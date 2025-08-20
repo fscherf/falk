@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "falk"
+description = ""
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+authors = [
+  { name="Florian Scherf", email="mail@florianscherf.de" },
+]
+
+readme = "README.md"
+license = { file="LICENSE.txt" }
+
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools_scm]
+version_file = "falk/version.py"
+
+[tool.setuptools.packages.find]
+include = ["falk*"]
+
+[tool.setuptools.package-data]
+"falk" = ["**"]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+  ".*",
+  "~*",
+  "*.swp",
+  "*.pyc",
+]
