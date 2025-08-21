@@ -1,0 +1,4 @@
+[run]
+branch = True
+source = falk
+omit = falk/version.py

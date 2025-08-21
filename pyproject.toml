@@ -14,7 +14,15 @@ authors = [
 ]
 
 readme = "README.md"
-license = { file="LICENSE.txt" }
+license-files = ["LICENSE.txt"]
+
+
+[project.optional-dependencies]
+test = [
+  "coverage==7.10.4",
+  "pytest==8.4.1",
+  "rlpython",
+]
 
 
 [tool.setuptools]
