@@ -16,6 +16,10 @@ authors = [
 readme = "README.md"
 license-files = ["LICENSE.txt"]
 
+dependencies = [
+  "jinja2",
+]
+
 
 [project.optional-dependencies]
 test = [
