@@ -1,0 +1,2 @@
+class FalkError(Exception):
+    pass
