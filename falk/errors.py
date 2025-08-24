@@ -1,6 +1,12 @@
 class FalkError(Exception):
     pass
 
+
+# settings
+class InvalidSettingsError(FalkError):
+    pass
+
+
 # dependency injection
 class DependencyError(FalkError):
     pass
@@ -19,4 +25,9 @@ class InvalidDependencyProviderError(DependencyError):
 
 
 class AsyncNotSupportedError(DependencyError):
+    pass
+
+
+# tokens
+class InvalidTokenError(FalkError):
     pass
