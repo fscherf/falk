@@ -1,0 +1,64 @@
+site_name: falk
+repo_url: https://github.com/fscherf/falk
+copyright: Copyright &copy; 2025 Florian Scherf
+
+theme:
+  name: material
+
+  icon:
+    repo: fontawesome/brands/github
+
+  palette:
+
+    # light
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # dark
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings
+  - autorefs
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - admonition
+
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  - pymdownx.snippets:
+      base_path: "../"
+
+nav:
+  - "Home": index.md
