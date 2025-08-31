@@ -60,3 +60,16 @@ class UnbalancedTagsError(HTMLError):
 
 class UnclosedTagsError(HTMLError):
     pass
+
+
+# components
+class ComponentError(FalkError):
+    pass
+
+
+class InvalidComponentError(ComponentError):
+    pass
+
+
+class UnknownComponentIdError(ComponentError):
+    pass
