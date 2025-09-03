@@ -12,3 +12,14 @@ services:
 
     user: 1000:1000
     working_dir: /app
+
+  node:
+    build:
+      context: .
+      dockerfile: node.Dockerfile
+
+    volumes:
+      - ./:/app
+
+    user: 1000:1000
+    working_dir: /app

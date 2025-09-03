@@ -1,7 +1,10 @@
 import os
 
+from falk.dependency_injection import run_coroutine_sync
 from falk.tokens import encode_token, decode_token
+from falk.request_handling import handle_request
 from falk.keys import get_random_key
+from falk.html import get_node_id
 
 from falk.component_caching import (
     get_component_id,
@@ -12,8 +15,12 @@ from falk.component_caching import (
 
 def get_default_app():
     app = {
-        "settings": {},
-        "entry_points": {},
+        "settings": {
+            "run_coroutine_sync": run_coroutine_sync,
+        },
+        "entry_points": {
+            "handle_request": handle_request,
+        },
         "component_cache": {},
     }
 
@@ -30,6 +37,12 @@ def get_default_app():
         "decode_token": decode_token,
     })
 
+    # settings: components
+    app["settings"].update({
+        "node_id_random_bytes": 8,
+        "get_node_id": get_node_id,
+    })
+
     # settings: component caching
     if "FALK_COMPONENT_ID_SALT" in os.environ:
         component_id_salt = os.environ["FALK_COMPONENT_ID_SALT"]
@@ -42,6 +55,11 @@ def get_default_app():
         "get_component_id": get_component_id,
         "cache_component": cache_component,
         "get_component": get_component,
+    })
+
+    # settings: dependencies
+    app["settings"].update({
+        "providers": {},
     })
 
     return app

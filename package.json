@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "_install": "test -d node_modules || npm install",
+    "build": "npm run _install && webpack build",
+    "watch": "npm run _install && webpack watch --mode=development",
+    "lint": "npm run _install && prettier --write ./client"
+  },
+  "devDependencies": {
+    "morphdom": "^2.7.7",
+    "ts-loader": "^9.5.4",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "prettier": "^3.6.2"
+  }
+}
