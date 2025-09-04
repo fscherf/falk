@@ -73,3 +73,24 @@ class InvalidComponentError(ComponentError):
 
 class UnknownComponentIdError(ComponentError):
     pass
+
+
+# routing
+class RoutingError(FalkError):
+    pass
+
+
+class UnknownRouteError(RoutingError):
+    pass
+
+
+class InvalidRouteError(RoutingError):
+    pass
+
+
+class InvalidPathError(RoutingError):
+    pass
+
+
+class InvalidRouteArgsError(RoutingError):
+    pass
