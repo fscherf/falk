@@ -3,6 +3,7 @@ import os
 from falk.dependency_injection import run_coroutine_sync
 from falk.tokens import encode_token, decode_token
 from falk.request_handling import handle_request
+from falk.components import Error404
 from falk.keys import get_random_key
 from falk.html import get_node_id
 
@@ -11,6 +12,8 @@ from falk.component_caching import (
     cache_component,
     get_component,
 )
+
+from falk.providers import set_response_status_provider
 
 
 def get_default_app():
@@ -22,6 +25,7 @@ def get_default_app():
             "handle_request": handle_request,
         },
         "component_cache": {},
+        "routes": [],
     }
 
     # settings: tokens
@@ -43,6 +47,11 @@ def get_default_app():
         "get_node_id": get_node_id,
     })
 
+    # settings: error components
+    app["settings"].update({
+        "error_404_component": Error404,
+    })
+
     # settings: component caching
     if "FALK_COMPONENT_ID_SALT" in os.environ:
         component_id_salt = os.environ["FALK_COMPONENT_ID_SALT"]
@@ -59,7 +68,9 @@ def get_default_app():
 
     # settings: dependencies
     app["settings"].update({
-        "providers": {},
+        "providers": {
+            "set_response_status": set_response_status_provider,
+        },
     })
 
     return app

@@ -1,6 +1,7 @@
 import json
 
 from falk.rendering import render_component
+from falk.routing import get_component
 from falk.components import ItWorks
 
 
@@ -89,8 +90,25 @@ def handle_request(request, app):
         return response
 
     # initial render (HTML response)
+    # if no routes are configured, we default to the `ItWorks` component
+    component = ItWorks
+
+    if app["routes"]:
+
+        # search for a matching route
+        component, match_info = get_component(
+            routes=app["routes"],
+            path=request["path"],
+        )
+
+        request["match_info"] = match_info
+
+        # falling back to the configured 404 component
+        if not component:
+            component = app["settings"]["error_404_component"]
+
     html = render_component(
-        component=ItWorks,
+        component=component,
         app=app,
         request=request,
         response=response,

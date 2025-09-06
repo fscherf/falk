@@ -57,3 +57,18 @@ def ItWorks(context):
         {% endfor %}
       </HTML5Base>
     """
+
+
+def Error404(context, set_response_status):
+    set_response_status(404)
+
+    context.update({
+        "HTML5Base": HTML5Base,
+    })
+
+    return """
+        <HTML5Base title="404 Not Found">
+            <h1>Error 404</h1>
+            <p>Not Found</p>
+        </HTML5Base>
+    """

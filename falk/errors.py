@@ -75,6 +75,15 @@ class UnknownComponentIdError(ComponentError):
     pass
 
 
+# HTTP
+class HTTPError(FalkError):
+    pass
+
+
+class InvalidStatusCodeError(HTTPError):
+    pass
+
+
 # routing
 class RoutingError(FalkError):
     pass
