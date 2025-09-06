@@ -16,45 +16,14 @@ def HTML5Base(props):
     """
 
 
-def Counter(context, state, initial_render, props):
-    if initial_render:
-        state.update({
-            "count": props.get("initial_value", 0),
-        })
-
-    def decrement():
-        state["count"] -= 1
-
-    def increment():
-        state["count"] += 1
-
-    context.update({
-        "decrement": decrement,
-        "increment": increment,
-    })
-
-    return """
-        <div>
-            <button onclick="{{ callback(decrement) }}">-</button>
-            <span>{{ state.count }}</span>
-            <button onclick="{{ callback(increment) }}">+</button>
-        </div>
-    """
-
-
 def ItWorks(context):
     context.update({
         "HTML5Base": HTML5Base,
-        "Counter": Counter,
     })
 
     return """
       <HTML5Base title="It works!">
         <h1>It works!</h1>
-        <h2>Counter</h2>
-        {% for i in range(5) %}
-            <Counter initial_value="{{ i }}" />
-        {% endfor %}
       </HTML5Base>
     """
 
