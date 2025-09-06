@@ -13,7 +13,15 @@ from falk.component_caching import (
     get_component,
 )
 
-from falk.providers import set_response_status_provider
+from falk.providers import (
+    set_response_status_provider,
+    get_request_header_provider,
+    set_request_header_provider,
+    del_request_header_provider,
+    get_response_header_provider,
+    set_response_header_provider,
+    del_response_header_provider,
+)
 
 
 def get_default_app():
@@ -70,6 +78,12 @@ def get_default_app():
     app["settings"].update({
         "providers": {
             "set_response_status": set_response_status_provider,
+            "get_request_header": get_request_header_provider,
+            "set_request_header": set_request_header_provider,
+            "del_request_header": del_request_header_provider,
+            "get_response_header": get_response_header_provider,
+            "set_response_header": set_response_header_provider,
+            "del_response_header": del_response_header_provider,
         },
     })
 
