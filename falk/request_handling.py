@@ -1,5 +1,6 @@
 import json
 
+from falk.http import set_header, set_status
 from falk.rendering import render_component
 from falk.routing import get_component
 from falk.components import ItWorks
@@ -14,16 +15,23 @@ def get_request(
         json=None,
 ):
 
-    # TODO: normalize headers
-
-    return {
-        "headers": headers or {},
+    request = {
+        "headers": {},
         "method": method,
         "path": path,
         "content_type": content_type,
         "post": post or {},
         "json": json or {},
     }
+
+    for name, value in (headers or {}).items():
+        set_header(
+            headers=request["headers"],
+            name=name,
+            value=value,
+        )
+
+    return request
 
 
 def get_response(
@@ -34,16 +42,27 @@ def get_response(
         body="",
 ):
 
-    # TODO: check status
-    # TODO: normalize headers
-
-    return {
-        "headers": headers or {},
+    response = {
+        "headers": {},
         "status": status,
         "charset": charset,
         "content_type": content_type,
         "body": body,
     }
+
+    set_status(
+        response=response,
+        status=status,
+    )
+
+    for name, value in (headers or {}).items():
+        set_header(
+            headers=response["headers"],
+            name=name,
+            value=value,
+        )
+
+    return response
 
 
 def handle_request(request, app):
