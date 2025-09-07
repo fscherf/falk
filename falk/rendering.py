@@ -167,6 +167,7 @@ def render_component(
         dependencies=dependencies,
         providers=app["settings"]["providers"],
         cache=dependency_cache,
+        run_coroutine_sync=app["settings"]["run_coroutine_sync"],
     )
 
     if run_component_callback:
@@ -175,6 +176,7 @@ def render_component(
             dependencies=dependencies,
             providers=app["settings"]["providers"],
             cache=dependency_cache,
+            run_coroutine_sync=app["settings"]["run_coroutine_sync"],
         )
 
     # transpile pyx to jinja2
