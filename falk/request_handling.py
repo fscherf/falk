@@ -1,9 +1,14 @@
+import logging
+import time
 import json
 
 from falk.http import set_header, set_status
 from falk.rendering import render_component
 from falk.routing import get_component
 from falk.components import ItWorks
+
+access_logger = logging.getLogger("falk.access")
+error_logger = logging.getLogger("falk.errors")
 
 
 def get_request(
@@ -66,6 +71,10 @@ def get_response(
 
 
 def handle_request(request, app):
+    # TODO: make logging configurable
+    # TODO: add client host and user agent to logs
+
+    start_time = time.perf_counter()
     response = get_response()
 
     mutation_request = (
@@ -128,6 +137,13 @@ def handle_request(request, app):
         )
 
     except Exception as exception:
+        error_logger.exception(
+            "exception raised while processing %s %s",
+            request["method"],
+            request["path"],
+        )
+
+        # render error 500 component
         component = app["settings"]["error_500_component"]
 
         component_props = {
@@ -153,5 +169,23 @@ def handle_request(request, app):
 
     else:
         response["body"] = html
+
+    # access log
+    end_time = time.perf_counter()
+    total_time = end_time - start_time
+    total_time_string = f"{total_time:.4f}s"
+    action_string = "initial render"
+
+    if mutation_request:
+        action_string = f"mutation: {component.__module__}.{component.__qualname__}:{node_id}"  # NOQA
+
+    access_logger.info(
+        "%s %s %s -- %s -- took %s",
+        request["method"],
+        request["path"],
+        response["status"],
+        action_string,
+        total_time_string,
+    )
 
     return response
