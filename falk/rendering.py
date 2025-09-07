@@ -129,10 +129,29 @@ def render_component(
     # setup template context
     data = {
         # immutable
-        "app": get_immutable_proxy(app),
-        "settings": get_immutable_proxy(app["settings"]),
-        "request": get_immutable_proxy(request),
-        "props": get_immutable_proxy(component_props),
+        "app": get_immutable_proxy(
+            data=app,
+            name="app",
+            mutable_version_name="mutable_app",
+        ),
+
+        "settings": get_immutable_proxy(
+            data=app["settings"],
+            name="settings",
+            mutable_version_name="mutable_settings",
+        ),
+
+        "request": get_immutable_proxy(
+            data=request,
+            name="request",
+            mutable_version_name="mutable_request",
+        ),
+
+        "props": get_immutable_proxy(
+            data=component_props,
+            name="props",
+            mutable_version_name="mutable_props",
+        ),
 
         # explicitly mutable
         "mutable_app": app,
