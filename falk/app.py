@@ -3,7 +3,7 @@ import os
 from falk.dependency_injection import run_coroutine_sync
 from falk.tokens import encode_token, decode_token
 from falk.request_handling import handle_request
-from falk.components import Error404
+from falk.components import Error404, Error500
 from falk.keys import get_random_key
 from falk.html import get_node_id
 
@@ -58,6 +58,7 @@ def get_default_app():
     # settings: error components
     app["settings"].update({
         "error_404_component": Error404,
+        "error_500_component": Error500,
     })
 
     # settings: component caching

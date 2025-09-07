@@ -78,53 +78,70 @@ def handle_request(request, app):
     component_state = None
     callback_name = ""
 
-    # mutation request (JSON response)
-    if mutation_request:
-        token = request["json"]["token"]
-        node_id = request["json"]["nodeId"]
-        callback_name = request["json"]["callbackName"]
+    try:
+        # mutation request (JSON response)
+        if mutation_request:
+            token = request["json"]["token"]
+            node_id = request["json"]["nodeId"]
+            callback_name = request["json"]["callbackName"]
 
-        # decode token
-        component_id, component_state = app["settings"]["decode_token"](
-            token=token,
-            settings=app["settings"],
-        )
-
-        # get component from cache
-        component = app["settings"]["get_component"](
-            component_id=component_id,
-            app=app,
-        )
-
-    # initial render (HTML response)
-    # if no routes are configured, we default to the `ItWorks` component
-    else:
-        component = ItWorks
-
-        if app["routes"]:
-
-            # search for a matching route
-            component, match_info = get_component(
-                routes=app["routes"],
-                path=request["path"],
+            # decode token
+            component_id, component_state = app["settings"]["decode_token"](
+                token=token,
+                settings=app["settings"],
             )
 
-            request["match_info"] = match_info
+            # get component from cache
+            component = app["settings"]["get_component"](
+                component_id=component_id,
+                app=app,
+            )
 
-            # falling back to the configured 404 component
-            if not component:
-                component = app["settings"]["error_404_component"]
+        # initial render (HTML response)
+        # if no routes are configured, we default to the `ItWorks` component
+        else:
+            component = ItWorks
 
-    # render component
-    html = render_component(
-        component=component,
-        app=app,
-        request=request,
-        response=response,
-        node_id=node_id,
-        component_state=component_state,
-        run_component_callback=callback_name,
-    )
+            if app["routes"]:
+
+                # search for a matching route
+                component, match_info = get_component(
+                    routes=app["routes"],
+                    path=request["path"],
+                )
+
+                request["match_info"] = match_info
+
+                # falling back to the configured 404 component
+                if not component:
+                    component = app["settings"]["error_404_component"]
+
+        # render component
+        html = render_component(
+            component=component,
+            app=app,
+            request=request,
+            response=response,
+            node_id=node_id,
+            component_state=component_state,
+            run_component_callback=callback_name,
+        )
+
+    except Exception as exception:
+        component = app["settings"]["error_500_component"]
+
+        component_props = {
+            "exception": exception,
+            "mutation_request": mutation_request,
+        }
+
+        html = render_component(
+            component=component,
+            app=app,
+            request=request,
+            response=response,
+            component_props=component_props,
+        )
 
     # finish response
     if mutation_request:
