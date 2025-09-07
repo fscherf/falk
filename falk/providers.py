@@ -13,10 +13,10 @@ def set_response_status_provider(response):
 
 
 # request headers
-def get_request_header_provider(request):
+def get_request_header_provider(mutable_request):
     def get_request_header(name, default=None):
         return get_header(
-            headers=request["headers"],
+            headers=mutable_request["headers"],
             name=name,
             default=default,
         )
@@ -24,10 +24,10 @@ def get_request_header_provider(request):
     return get_request_header
 
 
-def set_request_header_provider(request):
+def set_request_header_provider(muatable_request):
     def set_request_header(name, value):
         set_header(
-            headers=request["headers"],
+            headers=muatable_request["headers"],
             name=name,
             value=value,
         )
@@ -35,10 +35,10 @@ def set_request_header_provider(request):
     return set_request_header
 
 
-def del_request_header_provider(request):
+def del_request_header_provider(mutable_request):
     def del_request_header(name):
         del_header(
-            headers=request["headers"],
+            headers=mutable_request["headers"],
             name=name,
         )
 

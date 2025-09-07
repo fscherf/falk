@@ -4,6 +4,7 @@ from jinja2 import Template, pass_context
 
 from falk.html import add_attributes_to_root_node, parse_component_template
 from falk.errors import InvalidComponentError, UnknownComponentError
+from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.pyx import transpile_pyx_to_jinja2
 
@@ -43,8 +44,8 @@ def _render_component(context, component_name, caller=None, **props):
 
     return render_component(
         component=component,
-        app=context["app"],
-        request=context["request"],
+        app=context["mutable_app"],
+        request=context["mutable_request"],
         response=context["response"],
         component_props=props,
         dependency_cache=context["_dependency_cache"],
@@ -108,7 +109,7 @@ def render_component(
             "components have to be callable",
         )
 
-    # setup state
+    # setup component state
     initial_render = False
 
     if not node_id:
@@ -126,40 +127,39 @@ def render_component(
         dependency_cache = {}
 
     # setup template context
-    template_context = {
+    data = {
+        # immutable
+        "app": get_immutable_proxy(app),
+        "settings": get_immutable_proxy(app["settings"]),
+        "request": get_immutable_proxy(request),
+        "props": get_immutable_proxy(component_props),
 
-        # internal API
-        "_dependency_cache": dependency_cache,
-        "_render_component": _render_component,
+        # explicitly mutable
+        "mutable_app": app,
+        "mutable_settings": app["settings"],
+        "mutable_request": request,
+        "mutable_props": component_props,
 
-        # public API
-        "app": app,
-        "settings": app["settings"],
-        "request": request,
-        "response": response,
+        # mutable by design
+        # (some of them are implicitly immutable due to Python internals)
+        "initial_render": initial_render,
         "node_id": node_id,
         "state": component_state,
-        "props": component_props,
+        "response": response,
+    }
 
+    template_context = {
+        **data,
+        "_dependency_cache": dependency_cache,
+        "_render_component": _render_component,
         "callback": _callback,
         "falk_scripts": _falk_scripts,
     }
 
     # run component with dependencies
     dependencies = {
-
-        # external dependencies
-        "app": app,
-        "settings": app["settings"],
-        "request": request,
-        "response": response,
-        "initial_render": initial_render,
-        "props": component_props,
-
-        # state
-        "node_id": node_id,
+        **data,
         "context": template_context,
-        "state": component_state,
     }
 
     pyx_source = run_callback(
