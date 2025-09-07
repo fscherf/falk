@@ -79,7 +79,7 @@ class PyxJinja2Transpiler(HTMLParser):
         if self.is_component(tag_name):
             props_string = self.render_component_props_string(attributes)
 
-            return f"{{% call _render_component(component={tag_name}{props_string}) %}}"  # NOQA
+            return f'{{% call _render_component(component_name="{tag_name}"{props_string}) %}}'  # NOQA
 
         # plain HTML
         html_attrs_string = self.render_html_attribute_string(attributes)
@@ -93,7 +93,7 @@ class PyxJinja2Transpiler(HTMLParser):
         if self.is_component(tag_name):
             props_string = self.render_component_props_string(attributes)
 
-            return f"{{{{ _render_component(component={tag_name}{props_string}) }}}}"  # NOQA
+            return f'{{{{ _render_component(component_name="{tag_name}"{props_string}) }}}}'  # NOQA
 
         # plain HTML
         attr_string = self.render_html_attribute_string(attributes)

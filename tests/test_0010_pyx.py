@@ -7,11 +7,14 @@ def test_pyx_to_jinja2_transpiling():
     theory renderable. It does not use the rendering system.
     """
 
-    from jinja2 import Template
+    from jinja2 import Template, pass_context
 
     from falk.pyx import transpile_pyx_to_jinja2
 
-    def _render_component(component, caller=None, **props):
+    @pass_context
+    def _render_component(context, component_name, caller=None, **props):
+        component = context[component_name]
+
         return component(**props)
 
     def _component(class_name, **props):

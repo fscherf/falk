@@ -67,6 +67,10 @@ class ComponentError(FalkError):
     pass
 
 
+class UnknownComponentError(ComponentError):
+    pass
+
+
 class InvalidComponentError(ComponentError):
     pass
 

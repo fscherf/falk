@@ -3,8 +3,8 @@ import os
 from jinja2 import Template, pass_context
 
 from falk.html import add_attributes_to_root_node, parse_component_template
+from falk.errors import InvalidComponentError, UnknownComponentError
 from falk.dependency_injection import run_callback
-from falk.errors import InvalidComponentError
 from falk.pyx import transpile_pyx_to_jinja2
 
 CLIENT_JS_PATH = os.path.join(
@@ -14,7 +14,14 @@ CLIENT_JS_PATH = os.path.join(
 
 
 @pass_context
-def _render_component(context, component, caller=None, **props):
+def _render_component(context, component_name, caller=None, **props):
+    if component_name not in context:
+        raise UnknownComponentError(
+            f'component "{component_name}" was not found in the context',
+        )
+
+    component = context[component_name]
+
     if "children" not in props:
         props["children"] = ""
 
