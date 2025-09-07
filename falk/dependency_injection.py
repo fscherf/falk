@@ -23,6 +23,21 @@ def run_coroutine_sync(coroutine):
     raise AsyncNotSupportedError()
 
 
+def format_dependencies(items):
+    formated_items = []
+
+    for item in items:
+        if callable(item):
+            formated_items.append(
+                f"{item.__module__}.{item.__qualname__}",
+            )
+
+        else:
+            formated_items.append(item)
+
+    return " -> ".join(formated_items)
+
+
 def run_callback(
         callback,
         dependencies=None,
@@ -50,7 +65,9 @@ def run_callback(
     # search for unknown dependencies
     for name in names:
         if name not in providers and name not in dependencies:
-            raise UnknownDependencyError(name)
+            raise UnknownDependencyError(
+                format_dependencies([callback, name])
+            )
 
     callback_dependencies = {}
 
@@ -80,7 +97,7 @@ def run_callback(
         # we know we encountered a circular dependency
         if name in _stack:
             raise CircularDependencyError(
-                " -> ".join(_stack + [name]),
+                format_dependencies([*_stack, name])
             )
 
         # run provider
