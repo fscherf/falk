@@ -68,10 +68,18 @@ def get_response(
 def handle_request(request, app):
     response = get_response()
 
-    # mutation request (JSON response)
-    if (request["method"] == "POST" and
-            request["content_type"] == "application/json"):
+    mutation_request = (
+        request["method"] == "POST" and
+        request["content_type"] == "application/json"
+    )
 
+    component = None
+    node_id = None
+    component_state = None
+    callback_name = ""
+
+    # mutation request (JSON response)
+    if mutation_request:
         token = request["json"]["token"]
         node_id = request["json"]["nodeId"]
         callback_name = request["json"]["callbackName"]
@@ -88,51 +96,45 @@ def handle_request(request, app):
             app=app,
         )
 
-        # render component
-        html = render_component(
-            component=component,
-            app=app,
-            request=request,
-            response=response,
-            node_id=node_id,
-            component_state=component_state,
-            run_component_callback=callback_name,
-        )
+    # initial render (HTML response)
+    # if no routes are configured, we default to the `ItWorks` component
+    else:
+        component = ItWorks
 
-        # encode response as json
+        if app["routes"]:
+
+            # search for a matching route
+            component, match_info = get_component(
+                routes=app["routes"],
+                path=request["path"],
+            )
+
+            request["match_info"] = match_info
+
+            # falling back to the configured 404 component
+            if not component:
+                component = app["settings"]["error_404_component"]
+
+    # render component
+    html = render_component(
+        component=component,
+        app=app,
+        request=request,
+        response=response,
+        node_id=node_id,
+        component_state=component_state,
+        run_component_callback=callback_name,
+    )
+
+    # finish response
+    if mutation_request:
         response["body"] = json.dumps({
             "html": html,
         })
 
         response["content_type"] = "application/json"
 
-        return response
-
-    # initial render (HTML response)
-    # if no routes are configured, we default to the `ItWorks` component
-    component = ItWorks
-
-    if app["routes"]:
-
-        # search for a matching route
-        component, match_info = get_component(
-            routes=app["routes"],
-            path=request["path"],
-        )
-
-        request["match_info"] = match_info
-
-        # falling back to the configured 404 component
-        if not component:
-            component = app["settings"]["error_404_component"]
-
-    html = render_component(
-        component=component,
-        app=app,
-        request=request,
-        response=response,
-    )
-
-    response["body"] = html
+    else:
+        response["body"] = html
 
     return response
