@@ -170,6 +170,11 @@ def render_component(
         run_coroutine_sync=app["settings"]["run_coroutine_sync"],
     )
 
+    # `run_component_callback` is set to string that points to a callback
+    # in the template context of the component when we receive a
+    # mutation request.
+    # The callback needs to run before we render the jinja2 template because
+    # it will most likely mutate the template context.
     if run_component_callback:
         run_callback(
             callback=template_context[run_component_callback],
