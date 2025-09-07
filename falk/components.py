@@ -1,9 +1,9 @@
 def HTML5Base(props):
     return """
       <!DOCTYPE html>
-      <html lang="{{ props.get("lang", "en") }}">
+      <html lang="{{ props.get('lang', 'en') }}">
         <head>
-          <meta charset="{{ props.get("charset", "UTF-8") }}">
+          <meta charset="{{ props.get('charset', 'UTF-8') }}">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="X-UA-Compatible" content="ie=edge">
           <title>{{ props.get("title", "") }}</title>
