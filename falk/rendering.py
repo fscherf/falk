@@ -15,12 +15,25 @@ CLIENT_JS_PATH = os.path.join(
 
 @pass_context
 def _render_component(context, component_name, caller=None, **props):
+
+    # find component in context
     if component_name not in context:
         raise UnknownComponentError(
             f'component "{component_name}" was not found in the context',
         )
 
     component = context[component_name]
+
+    # prepare props
+    if "props" in props:
+        # We got the props of our caller passed in
+        # (`<Component props="{{ props }}" ... />`), so we use the passed
+        # props as base and our own props as overrides.
+
+        props = {
+            **props["props"],
+            **props,
+        }
 
     if "children" not in props:
         props["children"] = ""

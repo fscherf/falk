@@ -7,7 +7,7 @@ def Page(context, props):
     })
 
     return """
-        <HTML5Base title="{{ props.get('title', '') }}">
+        <HTML5Base props="{{ props }}">
             <h1>falk Test App</h1>
             <ul>
                 <li><a href="/">Home</a></li>
