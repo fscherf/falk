@@ -5,6 +5,7 @@ import logging
 import socket
 import sys
 
+from falk.contrib.asyncio import configure_run_coroutine_sync
 from falk.request_handling import get_request
 from falk.imports import import_by_string
 from falk.app import get_default_app
@@ -132,6 +133,7 @@ if __name__ == "__main__":
         )
 
     async def on_startup(aiohttp_app):
+        configure_run_coroutine_sync(app=falk_app)
         aiohttp_app["loop"] = asyncio.get_event_loop()
 
     async def on_cleanup(aiohttp_app):
