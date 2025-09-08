@@ -177,3 +177,4 @@ pyrightconfig.json
 falk/version.py
 falk/client/
 /node_modules/
+/playwright/

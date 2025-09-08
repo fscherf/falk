@@ -33,3 +33,15 @@ RUN pip${PYTHON_VERSION} install \
 	build \
 	twine \
 	tox
+
+# playwright
+# TODO: add explanation why this is necessary
+COPY . /app
+
+RUN cd /app && \
+	python${PYTHON_VERSION} -m venv env && \
+	. ./env/bin/activate && \
+	pip install .[test] && \
+	playwright install-deps && \
+	cd / && \
+	rm -rf /app
