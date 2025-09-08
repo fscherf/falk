@@ -1,12 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
 from argparse import ArgumentParser
-import asyncio
 import logging
 import socket
 import sys
 
-from falk.contrib.asyncio import configure_run_coroutine_sync
-from falk.request_handling import get_request
 from falk.imports import import_by_string
 from falk.app import get_default_app
 
@@ -63,8 +59,10 @@ if __name__ == "__main__":
     # import dependencies
     # these are additional dependencies, so this might fail
     try:
-        from aiohttp.web import Application, Response, route, run_app
+        from aiohttp.web import run_app
         import simple_logging_setup
+
+        from falk.contrib.aiohttp import get_aiohttp_app
 
     except ImportError as exception:
         argument_parser.error(f"missing dependencies: {exception}")
@@ -85,68 +83,7 @@ if __name__ == "__main__":
         argument_parser.error(str(exception))
 
     falk_app = get_falk_app(get_default_app())
-
-    # setup thread pool
-    executor = ThreadPoolExecutor(
-        max_workers=args.threads,
-        thread_name_prefix="falk.worker",
-    )
-
-    # setup aiohttp server
-    async def handle_aiohttp_request(aiohttp_request):
-        request_args = {
-            "method": aiohttp_request.method,
-            "path": aiohttp_request.url.path,
-            "headers": dict(aiohttp_request.headers),
-            "content_type": aiohttp_request.content_type,
-            "post": {},
-            "json": {},
-        }
-
-        if aiohttp_request.method == "POST":
-            request_args["post"] = await aiohttp_request.post()
-
-            if aiohttp_request.content_type == "application/json":
-                request_args["json"] = await aiohttp_request.json()
-
-        falk_request = get_request(**request_args)
-
-        def _handle_aiohttp_request():
-            falk_request_handler = falk_app["entry_points"]["handle_request"]
-
-            falk_response = falk_request_handler(
-                request=falk_request,
-                app=falk_app,
-            )
-
-            return Response(
-                status=falk_response["status"],
-                headers=falk_response["headers"],
-                charset=falk_response["charset"],
-                content_type=falk_response["content_type"],
-                body=falk_response["body"],
-            )
-
-        return await aiohttp_request.app["loop"].run_in_executor(
-            executor,
-            _handle_aiohttp_request,
-        )
-
-    async def on_startup(aiohttp_app):
-        configure_run_coroutine_sync(app=falk_app)
-        aiohttp_app["loop"] = asyncio.get_event_loop()
-
-    async def on_cleanup(aiohttp_app):
-        logger.info("shutting down")
-
-    aiohttp_app = Application()
-
-    aiohttp_app.on_startup.append(on_startup)
-    aiohttp_app.on_cleanup.append(on_cleanup)
-
-    aiohttp_app.add_routes([
-        route("*", "/{path:.*}", handle_aiohttp_request),
-    ])
+    aiohttp_app = get_aiohttp_app(falk_app, threads=args.threads)
 
     # start aiohttp server
     try:
@@ -156,8 +93,6 @@ if __name__ == "__main__":
             port=args.port,
             access_log=None,
         )
-
-        executor.shutdown()
 
     except (OSError, socket.gaierror):
         logger.exception("exception raised while running aiohttp server")
