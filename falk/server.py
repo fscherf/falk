@@ -4,11 +4,11 @@ import socket
 import sys
 
 from falk.imports import import_by_string
-from falk.app import get_default_app
+from falk.app import run_configure_app
 
 
-def get_app(default_app):
-    return default_app
+def configure_app():
+    pass
 
 
 if __name__ == "__main__":
@@ -17,8 +17,9 @@ if __name__ == "__main__":
     )
 
     argument_parser.add_argument(
-        "--app",
-        default="falk.server.get_app",
+        "-c",
+        "--configure-app",
+        default="falk.server.configure_app",
     )
 
     argument_parser.add_argument(
@@ -77,12 +78,12 @@ if __name__ == "__main__":
 
     # setup app
     try:
-        get_falk_app = import_by_string(args.app)
+        _configure_app = import_by_string(args.configure_app)
 
     except ImportError as exception:
         argument_parser.error(str(exception))
 
-    falk_app = get_falk_app(get_default_app())
+    falk_app = run_configure_app(_configure_app)
     aiohttp_app = get_aiohttp_app(falk_app, threads=args.threads)
 
     # start aiohttp server

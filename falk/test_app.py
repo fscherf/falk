@@ -72,12 +72,6 @@ def Counters(context):
     """
 
 
-def get_app(default_app):
-    from falk.routing import get_route
-
-    default_app["routes"] = [
-        get_route(r"/counters/", Counters),
-        get_route(r"/", Index),
-    ]
-
-    return default_app
+def configure_app(add_route, app, settings):
+    add_route(r"/counters/", Counters)
+    add_route(r"/", Index)

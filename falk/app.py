@@ -1,6 +1,6 @@
 import os
 
-from falk.dependency_injection import run_coroutine_sync
+from falk.dependency_injection import run_callback, run_coroutine_sync
 from falk.tokens import encode_token, decode_token
 from falk.request_handling import handle_request
 from falk.components import Error404, Error500
@@ -21,6 +21,7 @@ from falk.providers import (
     get_response_header_provider,
     set_response_header_provider,
     del_response_header_provider,
+    add_route_provider,
 )
 
 
@@ -87,5 +88,23 @@ def get_default_app():
             "del_response_header": del_response_header_provider,
         },
     })
+
+    return app
+
+
+def run_configure_app(configure_app):
+    app = get_default_app()
+
+    run_callback(
+        callback=configure_app,
+        dependencies={
+            "app": app,
+            "settings": app["settings"],
+            "routes": app["routes"],
+        },
+        providers={
+            "add_route": add_route_provider,
+        },
+    )
 
     return app

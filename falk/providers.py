@@ -1,4 +1,5 @@
 from falk.http import set_status, get_header, set_header, del_header
+from falk.routing import get_route
 
 
 # response status
@@ -76,3 +77,17 @@ def del_response_header_provider(response):
         )
 
     return del_response_header
+
+
+# routes
+def add_route_provider(app):
+    def add_route(pattern, component, name=""):
+        app["routes"].append(
+            get_route(
+                pattern=pattern,
+                component=component,
+                name=name,
+            ),
+        )
+
+    return add_route
