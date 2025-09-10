@@ -113,7 +113,9 @@ def render_component(
     initial_render = False
 
     if not node_id:
-        node_id = app["settings"]["get_node_id"](app["settings"])
+        node_id = app["settings"]["get_node_id"](
+            mutable_app=app,
+        )
 
     if not component_state:
         component_state = {}
@@ -216,13 +218,13 @@ def render_component(
     # create token
     component_id = app["settings"]["cache_component"](
         component=component,
-        app=app,
+        mutable_app=app,
     )
 
     token = app["settings"]["encode_token"](
         component_id=component_id,
         component_state=component_state,
-        settings=app["settings"],
+        mutable_app=app,
     )
 
     # post process HTML

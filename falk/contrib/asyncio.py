@@ -1,7 +1,7 @@
 import asyncio
 
 
-def configure_run_coroutine_sync(app):
+def configure_run_coroutine_sync(mutable_app):
     loop = asyncio.get_running_loop()
 
     def run_coroutine_sync(coroutine):
@@ -12,4 +12,4 @@ def configure_run_coroutine_sync(app):
 
         return future.result()
 
-    app["settings"]["run_coroutine_sync"] = run_coroutine_sync
+    mutable_app["settings"]["run_coroutine_sync"] = run_coroutine_sync

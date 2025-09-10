@@ -70,7 +70,7 @@ def get_response(
     return response
 
 
-def handle_request(request, app):
+def handle_request(request, mutable_app):
     # TODO: make logging configurable
     # TODO: add client host and user agent to logs
 
@@ -95,15 +95,17 @@ def handle_request(request, app):
             callback_name = request["json"]["callbackName"]
 
             # decode token
-            component_id, component_state = app["settings"]["decode_token"](
-                token=token,
-                settings=app["settings"],
+            component_id, component_state = (
+                mutable_app["settings"]["decode_token"](
+                    token=token,
+                    mutable_app=mutable_app,
+                )
             )
 
             # get component from cache
-            component = app["settings"]["get_component"](
+            component = mutable_app["settings"]["get_component"](
                 component_id=component_id,
-                app=app,
+                mutable_app=mutable_app,
             )
 
         # initial render (HTML response)
@@ -111,11 +113,11 @@ def handle_request(request, app):
         else:
             component = ItWorks
 
-            if app["routes"]:
+            if mutable_app["routes"]:
 
                 # search for a matching route
                 component, match_info = get_component(
-                    routes=app["routes"],
+                    routes=mutable_app["routes"],
                     path=request["path"],
                 )
 
@@ -123,12 +125,12 @@ def handle_request(request, app):
 
                 # falling back to the configured 404 component
                 if not component:
-                    component = app["settings"]["error_404_component"]
+                    component = mutable_app["settings"]["error_404_component"]
 
         # render component
         html = render_component(
             component=component,
-            app=app,
+            app=mutable_app,
             request=request,
             response=response,
             node_id=node_id,
@@ -144,7 +146,7 @@ def handle_request(request, app):
         )
 
         # render error 500 component
-        component = app["settings"]["error_500_component"]
+        component = mutable_app["settings"]["error_500_component"]
 
         component_props = {
             "exception": exception,
@@ -153,7 +155,7 @@ def handle_request(request, app):
 
         html = render_component(
             component=component,
-            app=app,
+            app=mutable_app,
             request=request,
             response=response,
             component_props=component_props,

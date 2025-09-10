@@ -43,7 +43,7 @@ async def falk_response_to_aiohttp_response(falk_response):
     )
 
 
-def get_aiohttp_app(falk_app, threads=4):
+def get_aiohttp_app(mutable_app, threads=4):
     aiohttp_app = Application()
 
     executor = ThreadPoolExecutor(
@@ -57,11 +57,12 @@ def get_aiohttp_app(falk_app, threads=4):
         )
 
         def _handle_aiohttp_request():
-            falk_request_handler = falk_app["entry_points"]["handle_request"]
+            falk_request_handler = (
+                mutable_app["entry_points"]["handle_request"])
 
             return falk_request_handler(
                 request=falk_request,
-                app=falk_app,
+                mutable_app=mutable_app,
             )
 
         falk_response = await aiohttp_request.app["loop"].run_in_executor(
@@ -76,7 +77,10 @@ def get_aiohttp_app(falk_app, threads=4):
         return aiohttp_response
 
     async def on_startup(aiohttp_app):
-        configure_run_coroutine_sync(app=falk_app)
+        configure_run_coroutine_sync(
+            mutable_app=mutable_app,
+        )
+
         aiohttp_app["loop"] = asyncio.get_event_loop()
 
     async def on_cleanup(aiohttp_app):

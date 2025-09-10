@@ -81,8 +81,12 @@ def start_falk_app():
     aiohttp_app_runner = AiohttpAppRunner()
 
     def _start_falk_app(configure_app, host="127.0.0.1", port=0, threads=4):
-        falk_app = run_configure_app(configure_app)
-        aiohttp_app = get_aiohttp_app(falk_app, threads=threads)
+        mutable_app = run_configure_app(configure_app)
+
+        aiohttp_app = get_aiohttp_app(
+            mutable_app=mutable_app,
+            threads=threads,
+        )
 
         aiohttp_app_runner.start(
             app=aiohttp_app,
@@ -90,7 +94,7 @@ def start_falk_app():
             port=port,
         )
 
-        return falk_app, aiohttp_app_runner.get_base_url()
+        return mutable_app, aiohttp_app_runner.get_base_url()
 
     yield _start_falk_app
 

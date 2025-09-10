@@ -6,13 +6,13 @@ import json
 from falk.errors import InvalidSettingsError, InvalidTokenError
 
 
-def encode_token(component_id, component_state, settings):
-    if "token_key" not in settings:
+def encode_token(component_id, component_state, mutable_app):
+    if "token_key" not in mutable_app["settings"]:
         raise InvalidSettingsError(
             "'token_key' needs to be configured to encode tokens",
         )
 
-    key = settings["token_key"]
+    key = mutable_app["settings"]["token_key"]
 
     component_data = json.dumps(
         [component_id, component_state],
@@ -32,13 +32,13 @@ def encode_token(component_id, component_state, settings):
     return token
 
 
-def decode_token(token, settings):
-    if "token_key" not in settings:
+def decode_token(token, mutable_app):
+    if "token_key" not in mutable_app["settings"]:
         raise InvalidSettingsError(
             "'token_key' needs to be configured to decode tokens",
         )
 
-    key = settings["token_key"]
+    key = mutable_app["settings"]["token_key"]
 
     try:
         decoded = base64.urlsafe_b64decode(token.encode())

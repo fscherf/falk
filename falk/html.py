@@ -308,13 +308,13 @@ def parse_component_template(component_template):
     )
 
 
-def get_node_id(settings):
-    if "node_id_random_bytes" not in settings:
+def get_node_id(mutable_app):
+    if "node_id_random_bytes" not in mutable_app["settings"]:
         raise InvalidSettingsError(
             "'node_id_random_bytes' needs to be configured to generate node ids",  # NOQA
         )
 
-    random_bytes = settings["node_id_random_bytes"]
+    random_bytes = mutable_app["settings"]["node_id_random_bytes"]
     token_bytes = secrets.token_bytes(random_bytes)
     random_id = base64.urlsafe_b64encode(token_bytes).rstrip(b"=").decode()
 

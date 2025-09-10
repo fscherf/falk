@@ -4,12 +4,12 @@ import pytest
 def test_state_encoding_and_decoding():
     from falk.tokens import decode_token, encode_token
     from falk.errors import InvalidTokenError
+    from falk.apps import get_default_app
     from falk.keys import get_random_key
 
-    settings = {
-        "token_key": get_random_key()
-    }
+    app = get_default_app()
 
+    app["settings"]["token_key"] = get_random_key()
     component_id = "foo.bar.baz"
 
     component_state = {
@@ -21,39 +21,40 @@ def test_state_encoding_and_decoding():
     token = encode_token(
         component_id=component_id,
         component_state=component_state,
-        settings=settings,
+        mutable_app=app,
     )
 
     # valid key
     _component_identifier, _component_state = decode_token(
         token=token,
-        settings=settings,
+        mutable_app=app,
     )
 
     assert _component_identifier == component_id
     assert _component_state == component_state
 
     # invalid key
+    app["settings"]["token_key"] = "invalid-key"
+
     with pytest.raises(InvalidTokenError):
         decode_token(
             token=token,
-            settings={
-                "token_key": "invalid-key",
-            },
+            mutable_app=app,
         )
 
 
 def test_invalid_tokens():
     from falk.errors import InvalidTokenError
+    from falk.apps import get_default_app
     from falk.tokens import decode_token
     from falk.keys import get_random_key
+
+    app = get_default_app()
 
     with pytest.raises(InvalidTokenError):
         decode_token(
             token="foo",
-            settings={
-                "token_key": get_random_key(),
-            },
+            mutable_app=app,
         )
 
 
@@ -63,12 +64,10 @@ def test_tampered_with_tokens():
 
     from falk.tokens import decode_token, encode_token
     from falk.errors import InvalidTokenError
+    from falk.apps import get_default_app
     from falk.keys import get_random_key
 
-    settings = {
-        "token_key": get_random_key()
-    }
-
+    app = get_default_app()
     component_id = "foo.bar.baz"
 
     component_state = {
@@ -103,16 +102,16 @@ def test_tampered_with_tokens():
     token = encode_token(
         component_id=component_id,
         component_state=component_state,
-        settings=settings,
+        mutable_app=app,
     )
 
     # test unpack and pack
-    assert decode_token(token=token, settings=settings)
+    assert decode_token(token=token, mutable_app=app)
 
     _component_id, _component_state, _signature = unpack(token)
     _token = pack(_component_id, _component_state, _signature)
 
-    assert decode_token(token=_token, settings=settings)
+    assert decode_token(token=_token, mutable_app=app)
 
     # test changed component identifier
     _component_id, _component_state, _signature = unpack(token)
@@ -121,7 +120,7 @@ def test_tampered_with_tokens():
     with pytest.raises(InvalidTokenError):
         decode_token(
             token=_token,
-            settings=settings,
+            mutable_app=app,
         )
 
     # test changed component state
@@ -132,23 +131,28 @@ def test_tampered_with_tokens():
     with pytest.raises(InvalidTokenError):
         decode_token(
             token=_token,
-            settings=settings,
+            mutable_app=app,
         )
 
 
 def test_invalid_settings_errors():
     from falk.tokens import decode_token, encode_token
     from falk.errors import InvalidSettingsError
+    from falk.apps import get_default_app
 
     with pytest.raises(InvalidSettingsError):
         encode_token(
             component_id="foo.bar.baz",
             component_state={},
-            settings={},
+            mutable_app={
+                "settings": {},
+            },
         )
 
     with pytest.raises(InvalidSettingsError):
         decode_token(
             token="foo",
-            settings={},
+            mutable_app={
+                "settings": {},
+            },
         )

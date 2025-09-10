@@ -3,8 +3,8 @@ import hashlib
 from falk.errors import UnknownComponentIdError, InvalidComponentError
 
 
-def get_component_id(component, app):
-    salt = app["settings"].get("component_id_salt", "")
+def get_component_id(component, mutable_app):
+    salt = mutable_app["settings"].get("component_id_salt", "")
     import_string = f"{component.__module__}.{component.__qualname__}"
     md5_hash = hashlib.md5()
 
@@ -14,10 +14,10 @@ def get_component_id(component, app):
     return md5_hash.hexdigest()
 
 
-def cache_component(component, app):
+def cache_component(component, mutable_app):
     # check if component is already cached
-    if component in app["component_cache"]:
-        return app["component_cache"][component]
+    if component in mutable_app["component_cache"]:
+        return mutable_app["component_cache"][component]
 
     # check component
     if not callable(component):
@@ -26,12 +26,12 @@ def cache_component(component, app):
         )
 
     # cache component
-    component_id = app["settings"]["get_component_id"](
+    component_id = mutable_app["settings"]["get_component_id"](
         component=component,
-        app=app,
+        mutable_app=mutable_app,
     )
 
-    app["component_cache"].update({
+    mutable_app["component_cache"].update({
         component_id: component,
         component: component_id,
     })
@@ -39,9 +39,9 @@ def cache_component(component, app):
     return component_id
 
 
-def get_component(component_id, app):
+def get_component(component_id, mutable_app):
     try:
-        return app["component_cache"][component_id]
+        return mutable_app["component_cache"][component_id]
 
     except KeyError as exception:
         raise UnknownComponentIdError() from exception

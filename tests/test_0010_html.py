@@ -368,21 +368,20 @@ def test_parse_component_template():
 
 def test_get_node_id():
     from falk.errors import InvalidSettingsError
+    from falk.apps import get_default_app
     from falk.html import get_node_id
 
-    settings = {
-        "node_id_random_bytes": 8,
-    }
+    app = get_default_app()
 
-    random_id1 = get_node_id(settings=settings)
-    random_id2 = get_node_id(settings=settings)
+    app["settings"]["node_id_random_bytes"] = 8
 
-    settings = {
-        "node_id_random_bytes": 12,
-    }
+    random_id1 = get_node_id(mutable_app=app)
+    random_id2 = get_node_id(mutable_app=app)
 
-    random_id3 = get_node_id(settings=settings)
-    random_id4 = get_node_id(settings=settings)
+    app["settings"]["node_id_random_bytes"] = 12
+
+    random_id3 = get_node_id(mutable_app=app)
+    random_id4 = get_node_id(mutable_app=app)
 
     assert len(random_id1) == 12
     assert len(random_id3) == 17
@@ -390,4 +389,4 @@ def test_get_node_id():
 
     # invalid settings
     with pytest.raises(InvalidSettingsError):
-        get_node_id(settings={})
+        get_node_id(mutable_app={"settings": {}})
