@@ -6,7 +6,7 @@ from aiohttp.web import AppRunner, TCPSite
 import pytest
 
 from falk.contrib.aiohttp import get_aiohttp_app
-from falk.app import run_configure_app
+from falk.apps import run_configure_app
 
 
 class AiohttpAppRunner:

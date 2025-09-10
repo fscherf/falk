@@ -4,7 +4,7 @@ import socket
 import sys
 
 from falk.imports import import_by_string
-from falk.app import run_configure_app
+from falk.apps import run_configure_app
 
 
 def configure_app():

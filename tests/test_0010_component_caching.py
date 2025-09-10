@@ -10,7 +10,7 @@ def test_component_caching():
 
     from falk.errors import UnknownComponentIdError, InvalidComponentError
     from falk.components import HTML5Base, ItWorks
-    from falk.app import get_default_app
+    from falk.apps import get_default_app
 
     app = get_default_app()
 
@@ -56,7 +56,7 @@ def test_component_caching():
 
 def test_component_id_collisions():
     from falk.component_caching import get_component_id
-    from falk.app import get_default_app
+    from falk.apps import get_default_app
 
     app = get_default_app()
 
