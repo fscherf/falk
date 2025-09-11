@@ -5,6 +5,14 @@ import asyncio
 import pytest
 
 
+def pytest_collection_modifyitems(session, config, items):
+    # The test suite is organized in stages that build upon each other.
+    # This hook ensures that the tests modules ordered by name so they get
+    # executed in the right order.
+
+    items.sort(key=lambda item: item.fspath.strpath)
+
+
 class BackgroundLoop:
     def __init__(self):
         self.loop = None
