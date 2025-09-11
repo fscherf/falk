@@ -18,15 +18,12 @@ license-files = ["LICENSE.txt"]
 
 dependencies = [
   "jinja2",
-]
-
-
-[project.optional-dependencies]
-server = [
   "aiohttp>=3.9,<4",
   "simple-logging-setup",
 ]
 
+
+[project.optional-dependencies]
 dev = [
   "watchfiles",
   "rlpython",
