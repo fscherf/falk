@@ -48,6 +48,7 @@ def _render_component(context, component_name, caller=None, **props):
         request=context["mutable_request"],
         response=context["response"],
         component_props=props,
+        is_root=False,
         dependency_cache=context["_dependency_cache"],
     )
 
@@ -99,6 +100,7 @@ def render_component(
         node_id=None,
         component_state=None,
         component_props=None,
+        is_root=True,
         dependency_cache=None,
         run_component_callback="",
 ):
@@ -130,6 +132,10 @@ def render_component(
 
     # setup template context
     data = {
+        # meta data
+        "initial_render": initial_render,
+        "is_root": is_root,
+
         # immutable
         "app": get_immutable_proxy(
             data=app,
@@ -163,7 +169,6 @@ def render_component(
 
         # mutable by design
         # (some of them are implicitly immutable due to Python internals)
-        "initial_render": initial_render,
         "node_id": node_id,
         "state": component_state,
         "response": response,
