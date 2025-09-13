@@ -133,6 +133,7 @@ def render_component(
     # setup template context
     data = {
         # meta data
+        "caller": component,
         "initial_render": initial_render,
         "is_root": is_root,
 
