@@ -1,6 +1,7 @@
 import os
 
 from falk.dependency_injection import run_callback, run_coroutine_sync
+from falk.providers.routing import add_route_provider
 from falk.tokens import encode_token, decode_token
 from falk.request_handling import handle_request
 from falk.components import Error404, Error500
@@ -13,15 +14,17 @@ from falk.component_caching import (
     get_component,
 )
 
-from falk.providers import (
-    set_response_status_provider,
+from falk.providers.requests import (
     get_request_header_provider,
     set_request_header_provider,
     del_request_header_provider,
+)
+
+from falk.providers.responses import (
+    set_response_status_provider,
     get_response_header_provider,
     set_response_header_provider,
     del_response_header_provider,
-    add_route_provider,
 )
 
 
