@@ -20,6 +20,11 @@ from falk.providers.requests import (
     del_request_header_provider,
 )
 
+from falk.providers.middlewares import (
+    add_post_component_middleware_provider,
+    add_pre_component_middleware_provider,
+)
+
 from falk.providers.responses import (
     set_response_status_provider,
     get_response_header_provider,
@@ -43,6 +48,12 @@ def get_default_app():
         "component_cache": {},
         "routes": [],
     }
+
+    # settings: middlewares
+    app["settings"].update({
+        "pre_component_middlewares": [],
+        "post_component_middlewares": [],
+    })
 
     # settings: tokens
     if "FALK_TOKEN_KEY" in os.environ:
@@ -115,6 +126,12 @@ def run_configure_app(configure_app):
         },
         providers={
             "add_route": add_route_provider,
+
+            "add_pre_component_middleware":
+                add_pre_component_middleware_provider,
+
+            "add_post_component_middleware":
+                add_post_component_middleware_provider,
         },
     )
 
