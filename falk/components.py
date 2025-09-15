@@ -55,7 +55,7 @@ def Error500(context, set_response_status, props):
         {% if props.mutation_request %}
             <div>Error 500: Internal Error</div>
         {% else %}
-            <HTML5Base title="404 Not Found">
+            <HTML5Base title="500 Internal Error">
                 <h1>Error 500</h1>
                 <p>Internal Error</p>
             </HTML5Base>
