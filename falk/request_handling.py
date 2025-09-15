@@ -77,7 +77,7 @@ def handle_request(request, mutable_app):
     start_time = time.perf_counter()
     response = get_response()
 
-    mutation_request = (
+    is_mutation_request = (
         request["method"] == "POST" and
         request["content_type"] == "application/json"
     )
@@ -89,7 +89,7 @@ def handle_request(request, mutable_app):
 
     try:
         # mutation request (JSON response)
-        if mutation_request:
+        if is_mutation_request:
             token = request["json"]["token"]
             node_id = request["json"]["nodeId"]
             callback_name = request["json"]["callbackName"]
@@ -150,7 +150,7 @@ def handle_request(request, mutable_app):
 
         component_props = {
             "exception": exception,
-            "mutation_request": mutation_request,
+            "mutation_request": is_mutation_request,
         }
 
         html = render_component(
@@ -162,7 +162,7 @@ def handle_request(request, mutable_app):
         )
 
     # finish response
-    if mutation_request:
+    if is_mutation_request:
         response["body"] = json.dumps({
             "html": html,
         })
@@ -178,7 +178,7 @@ def handle_request(request, mutable_app):
     total_time_string = f"{total_time:.4f}s"
     action_string = "initial render"
 
-    if mutation_request:
+    if is_mutation_request:
         action_string = f"mutation: {component.__module__}.{component.__qualname__}:{node_id}"  # NOQA
 
     access_logger.info(
