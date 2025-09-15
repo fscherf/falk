@@ -21,6 +21,7 @@ def get_request(
 ):
 
     request = {
+        "finished": False,
         "headers": {},
         "method": method,
         "path": path,
@@ -45,14 +46,19 @@ def get_response(
         charset="utf-8",
         content_type="text/html",
         body="",
+        file_path="",
+        json=None,
 ):
 
     response = {
+        "finished": False,
         "headers": {},
         "status": status,
         "charset": charset,
         "content_type": content_type,
         "body": body,
+        "file_path": file_path,
+        "json": json,
     }
 
     set_status(
@@ -169,7 +175,7 @@ def handle_request(request, mutable_app):
 
         response["content_type"] = "application/json"
 
-    else:
+    elif not response["finished"]:
         response["body"] = html
 
     # access log

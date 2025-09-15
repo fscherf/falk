@@ -197,6 +197,12 @@ def render_component(
         run_coroutine_sync=app["settings"]["run_coroutine_sync"],
     )
 
+    # Check if the component finished the response. If so, we can skip all
+    # parsing and post processing.
+    # This happens when files, binary data, or JSON is returned.
+    if response["finished"]:
+        return ""
+
     # `run_component_callback` is set to string that points to a callback
     # in the template context of the component when we receive a
     # mutation request.

@@ -25,6 +25,10 @@ from falk.providers.responses import (
     get_response_header_provider,
     set_response_header_provider,
     del_response_header_provider,
+    set_response_content_type_provider,
+    set_response_body_provider,
+    set_response_file_provider,
+    set_response_json_provider,
 )
 
 
@@ -89,6 +93,10 @@ def get_default_app():
             "get_response_header": get_response_header_provider,
             "set_response_header": set_response_header_provider,
             "del_response_header": del_response_header_provider,
+            "set_response_content_type": set_response_content_type_provider,
+            "set_response_body": set_response_body_provider,
+            "set_response_file": set_response_file_provider,
+            "set_response_json": set_response_json_provider,
         },
     })
 

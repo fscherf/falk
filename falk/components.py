@@ -43,7 +43,17 @@ def Error404(context, set_response_status):
     """
 
 
-def Error500(context, set_response_status, props):
+def Error500(context, response, set_response_status, props):
+
+    # reset response
+    response.update({
+        "finished": False,
+        "content_type": "text/html",
+        "body": None,
+        "file_path": "",
+        "json": None,
+    })
+
     if not props["mutation_request"]:
         set_response_status(500)
 

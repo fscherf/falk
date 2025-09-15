@@ -2,7 +2,13 @@ from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import logging
 
-from aiohttp.web import Application, Response, route
+from aiohttp.web import (
+    json_response,
+    FileResponse,
+    Application,
+    Response,
+    route,
+)
 
 from falk.contrib.asyncio import configure_run_coroutine_sync
 from falk.request_handling import get_request
@@ -32,8 +38,24 @@ async def aiohttp_request_to_falk_request(aiohttp_request):
 
 
 async def falk_response_to_aiohttp_response(falk_response):
-    # TODO: add support for file and JSON responses
 
+    # JSON response
+    if falk_response["json"]:
+        return json_response(
+            status=falk_response["status"],
+            headers=falk_response["headers"],
+            data=falk_response["json"],
+        )
+
+    # file response
+    if falk_response["file_path"]:
+        return FileResponse(
+            status=falk_response["status"],
+            headers=falk_response["headers"],
+            path=falk_response["file_path"],
+        )
+
+    # text response
     return Response(
         status=falk_response["status"],
         headers=falk_response["headers"],
