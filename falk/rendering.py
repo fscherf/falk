@@ -49,7 +49,6 @@ def _render_component(context, component_name, caller=None, **props):
         response=context["response"],
         component_props=props,
         is_root=False,
-        dependency_cache=context["_dependency_cache"],
     )
 
 
@@ -101,9 +100,11 @@ def render_component(
         component_state=None,
         component_props=None,
         is_root=True,
-        dependency_cache=None,
         run_component_callback="",
 ):
+
+    # TODO: add dependency caching once `uncachable_dependencies`
+    # is implemented.
 
     # check component
     if not callable(component):
@@ -125,10 +126,6 @@ def render_component(
 
     if not component_props:
         component_props = {}
-
-    # setup dependency cache
-    if dependency_cache is None:
-        dependency_cache = {}
 
     # setup template context
     data = {
@@ -177,7 +174,6 @@ def render_component(
 
     template_context = {
         **data,
-        "_dependency_cache": dependency_cache,
         "_render_component": _render_component,
         "callback": _callback,
         "falk_scripts": _falk_scripts,
@@ -193,7 +189,6 @@ def render_component(
         callback=component,
         dependencies=dependencies,
         providers=app["settings"]["providers"],
-        cache=dependency_cache,
         run_coroutine_sync=app["settings"]["run_coroutine_sync"],
     )
 
@@ -213,7 +208,6 @@ def render_component(
             callback=template_context[run_component_callback],
             dependencies=dependencies,
             providers=app["settings"]["providers"],
-            cache=dependency_cache,
             run_coroutine_sync=app["settings"]["run_coroutine_sync"],
         )
 

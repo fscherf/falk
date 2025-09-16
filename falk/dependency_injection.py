@@ -48,6 +48,13 @@ def run_callback(
         _stack=None,
 ):
 
+    # TODO: replace `dependencies` and `providers` with `dependencies` and
+    # `uncachable_dependencies` which both should be implemented as
+    # providers (callbacks).
+    # With the current model, providers with dependencies like `caller`, which
+    # need to be re evaluated on every call, not only per request, don't work
+    # if dependency caching is enabled.
+
     dependencies = dependencies or {}
     providers = providers or {}
     _stack = _stack or []
