@@ -203,7 +203,7 @@ def handle_request(request, mutable_app):
             # render component
             html = render_component(
                 component=component,
-                app=mutable_app,
+                mutable_app=mutable_app,
                 request=request,
                 response=response,
                 node_id=node_id,
@@ -236,7 +236,7 @@ def handle_request(request, mutable_app):
 
         html = render_component(
             component=component,
-            app=mutable_app,
+            mutable_app=mutable_app,
             request=request,
             response=response,
             component_props=component_props,

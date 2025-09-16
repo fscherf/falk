@@ -44,7 +44,7 @@ def _render_component(context, component_name, caller=None, **props):
 
     return render_component(
         component=component,
-        app=context["mutable_app"],
+        mutable_app=context["mutable_app"],
         request=context["mutable_request"],
         response=context["response"],
         component_props=props,
@@ -93,7 +93,7 @@ def _falk_scripts(context):
 
 def render_component(
         component,
-        app,
+        mutable_app,
         request,
         response,
         node_id=None,
@@ -116,8 +116,8 @@ def render_component(
     initial_render = False
 
     if not node_id:
-        node_id = app["settings"]["get_node_id"](
-            mutable_app=app,
+        node_id = mutable_app["settings"]["get_node_id"](
+            mutable_app=mutable_app,
         )
 
     if not component_state:
@@ -136,13 +136,13 @@ def render_component(
 
         # immutable
         "app": get_immutable_proxy(
-            data=app,
+            data=mutable_app,
             name="app",
             mutable_version_name="mutable_app",
         ),
 
         "settings": get_immutable_proxy(
-            data=app["settings"],
+            data=mutable_app["settings"],
             name="settings",
             mutable_version_name="mutable_settings",
         ),
@@ -160,8 +160,8 @@ def render_component(
         ),
 
         # explicitly mutable
-        "mutable_app": app,
-        "mutable_settings": app["settings"],
+        "mutable_app": mutable_app,
+        "mutable_settings": mutable_app["settings"],
         "mutable_request": request,
         "mutable_props": component_props,
 
@@ -188,8 +188,8 @@ def render_component(
     pyx_source = run_callback(
         callback=component,
         dependencies=dependencies,
-        providers=app["settings"]["providers"],
-        run_coroutine_sync=app["settings"]["run_coroutine_sync"],
+        providers=mutable_app["settings"]["providers"],
+        run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
     )
 
     # Check if the component finished the response. If so, we can skip all
@@ -207,8 +207,8 @@ def render_component(
         run_callback(
             callback=template_context[run_component_callback],
             dependencies=dependencies,
-            providers=app["settings"]["providers"],
-            run_coroutine_sync=app["settings"]["run_coroutine_sync"],
+            providers=mutable_app["settings"]["providers"],
+            run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
         )
 
     # transpile pyx to jinja2
@@ -222,15 +222,15 @@ def render_component(
     component_template = template.render(template_context)
 
     # create token
-    component_id = app["settings"]["cache_component"](
+    component_id = mutable_app["settings"]["cache_component"](
         component=component,
-        mutable_app=app,
+        mutable_app=mutable_app,
     )
 
-    token = app["settings"]["encode_token"](
+    token = mutable_app["settings"]["encode_token"](
         component_id=component_id,
         component_state=component_state,
-        mutable_app=app,
+        mutable_app=mutable_app,
     )
 
     # post process HTML

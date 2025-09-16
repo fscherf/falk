@@ -2,6 +2,7 @@ import os
 
 from falk.dependency_injection import run_callback, run_coroutine_sync
 from falk.providers.routing import add_route_provider
+from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.request_handling import handle_request
 from falk.components import Error404, Error500
@@ -38,7 +39,7 @@ from falk.providers.responses import (
 
 
 def get_default_app():
-    app = {
+    mutable_app = {
         "settings": {
             "run_coroutine_sync": run_coroutine_sync,
         },
@@ -50,7 +51,7 @@ def get_default_app():
     }
 
     # settings: middlewares
-    app["settings"].update({
+    mutable_app["settings"].update({
         "pre_component_middlewares": [],
         "post_component_middlewares": [],
     })
@@ -62,20 +63,20 @@ def get_default_app():
     else:
         token_key = get_random_key()
 
-    app["settings"].update({
+    mutable_app["settings"].update({
         "token_key": token_key,
         "encode_token": encode_token,
         "decode_token": decode_token,
     })
 
     # settings: components
-    app["settings"].update({
+    mutable_app["settings"].update({
         "node_id_random_bytes": 8,
         "get_node_id": get_node_id,
     })
 
     # settings: error components
-    app["settings"].update({
+    mutable_app["settings"].update({
         "error_404_component": Error404,
         "error_500_component": Error500,
     })
@@ -87,7 +88,7 @@ def get_default_app():
     else:
         component_id_salt = get_random_key()
 
-    app["settings"].update({
+    mutable_app["settings"].update({
         "component_id_salt": component_id_salt,
         "get_component_id": get_component_id,
         "cache_component": cache_component,
@@ -95,7 +96,7 @@ def get_default_app():
     })
 
     # settings: dependencies
-    app["settings"].update({
+    mutable_app["settings"].update({
         "providers": {
             "set_response_status": set_response_status_provider,
             "get_request_header": get_request_header_provider,
@@ -111,18 +112,34 @@ def get_default_app():
         },
     })
 
-    return app
+    return mutable_app
 
 
 def run_configure_app(configure_app):
-    app = get_default_app()
+    mutable_app = get_default_app()
 
     run_callback(
         callback=configure_app,
         dependencies={
-            "app": app,
-            "settings": app["settings"],
-            "routes": app["routes"],
+            # meta data
+            "caller": configure_app,
+
+            # immutable
+            "app": get_immutable_proxy(
+                data=mutable_app,
+                name="app",
+                mutable_version_name="mutable_app",
+            ),
+
+            "settings": get_immutable_proxy(
+                data=mutable_app["settings"],
+                name="settings",
+                mutable_version_name="mutable_settings",
+            ),
+
+            # explicitly mutable
+            "mutable_app": mutable_app,
+            "mutable_settings": mutable_app["settings"],
         },
         providers={
             "add_route": add_route_provider,
@@ -135,4 +152,4 @@ def run_configure_app(configure_app):
         },
     )
 
-    return app
+    return mutable_app
