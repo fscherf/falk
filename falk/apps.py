@@ -1,6 +1,7 @@
 import os
 
 from falk.dependency_injection import run_callback, run_coroutine_sync
+from falk.middlewares.static_files import serve_static_files
 from falk.providers.routing import add_route_provider
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
@@ -52,8 +53,16 @@ def get_default_app():
 
     # settings: middlewares
     mutable_app["settings"].update({
-        "pre_component_middlewares": [],
+        "pre_component_middlewares": [
+            serve_static_files,
+        ],
         "post_component_middlewares": [],
+    })
+
+    # settings: static files
+    mutable_app["settings"].update({
+        "static_url_prefix": "/static/",
+        "static_dirs": [],
     })
 
     # settings: tokens
