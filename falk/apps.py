@@ -5,6 +5,7 @@ from falk.middlewares.static_files import serve_static_files
 from falk.providers.routing import add_route_provider
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
+from falk.static_files import get_falk_static_dir
 from falk.request_handling import handle_request
 from falk.components import Error404, Error500
 from falk.keys import get_random_key
@@ -62,7 +63,9 @@ def get_default_app():
     # settings: static files
     mutable_app["settings"].update({
         "static_url_prefix": "/static/",
-        "static_dirs": [],
+        "static_dirs": [
+            get_falk_static_dir(),
+        ],
     })
 
     # settings: tokens

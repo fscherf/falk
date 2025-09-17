@@ -8,11 +8,6 @@ from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.pyx import transpile_pyx_to_jinja2
 
-CLIENT_JS_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "client/falk.js",
-)
-
 
 @pass_context
 def _render_component(context, component_name, caller=None, **props):
@@ -87,8 +82,16 @@ def _callback(context, callback_or_callback_name, delay=None, initial=False):
 
 @pass_context
 def _falk_scripts(context):
-    with open(CLIENT_JS_PATH, "r") as f:
-        return f'<script>{f.read()}</script>'
+    static_url_prefix = context["settings"]["static_url_prefix"]
+
+    url = os.path.join(
+        static_url_prefix,
+        "falk/falk.js",
+    )
+
+    return f"""
+        <script src="{url}"></script>
+    """
 
 
 def render_component(

@@ -8,7 +8,7 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    path: path.resolve(__dirname, "falk/client"),
+    path: path.resolve(__dirname, "falk/static/falk"),
   },
   resolve: {
     extensions: [".ts"],
