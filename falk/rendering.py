@@ -171,6 +171,10 @@ def render_component(
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
 
+    # TODO: We are doing a lot of parsing and pre and post processing
+    # currently. Pre processing and transpiling to Jinja2 could be done in
+    # one step.
+
     if parts is None:
         parts = {
             "html": "",
@@ -285,31 +289,9 @@ def render_component(
             run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
         )
 
-    # transpile pyx to jinja2
-    jinja2_source = transpile_pyx_to_jinja2(
-        pyx_source=pyx_source,
-    )
-
-    # render jinja2 template
-    template = Template(jinja2_source)
-
-    component_template = template.render(template_context)
-
-    # create token
-    component_id = mutable_app["settings"]["cache_component"](
-        component=component,
-        mutable_app=mutable_app,
-    )
-
-    token = mutable_app["settings"]["encode_token"](
-        component_id=component_id,
-        component_state=component_state,
-        mutable_app=mutable_app,
-    )
-
-    # post process component blocks
+    # parse component template
     component_blocks = parse_component_template(
-        component_template=component_template,
+        component_template=pyx_source,
     )
 
     # style URLs
@@ -330,9 +312,31 @@ def render_component(
         ),
     )
 
+    # transpile pyx to jinja2
+    jinja2_source = transpile_pyx_to_jinja2(
+        pyx_source=component_blocks["html"],
+    )
+
+    # render jinja2 template
+    template = Template(jinja2_source)
+
+    html_source = template.render(template_context)
+
+    # create token
+    component_id = mutable_app["settings"]["cache_component"](
+        component=component,
+        mutable_app=mutable_app,
+    )
+
+    token = mutable_app["settings"]["encode_token"](
+        component_id=component_id,
+        component_state=component_state,
+        mutable_app=mutable_app,
+    )
+
     # HTML
     parts["html"] = add_attributes_to_root_node(
-        html_source=component_blocks["html"],
+        html_source=html_source,
         attributes={
             "data-falk-id": node_id,
             "data-falk-token": token,

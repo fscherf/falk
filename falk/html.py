@@ -127,6 +127,17 @@ class ComponentTemplateParser(HTMLParser):
         HTML = auto()
         SCRIPT = auto()
 
+    def get_raw_tag_name(self, normalized_tag_name):
+        line_number, offset = self.getpos()
+        line = self._source_lines[line_number-1]
+
+        offset += 1
+
+        if line[offset] == "/":
+            offset += 1
+
+        return line[offset:offset+len(normalized_tag_name)]
+
     def _handle_start_tag(self, tag_name, attribute_list, self_closing):
         if tag_name not in ("link", "style", "script"):
             self._html_tag_encountered = True
@@ -172,6 +183,8 @@ class ComponentTemplateParser(HTMLParser):
             attribute_string = render_attribute_string(
                 attribute_list=attribute_list,
             )
+
+            tag_name = self.get_raw_tag_name(tag_name)
 
             self._data["html"] += f"<{tag_name}{attribute_string}"
 
@@ -249,6 +262,7 @@ class ComponentTemplateParser(HTMLParser):
             )
 
         if self._block_type == self.BlockType.HTML:
+            tag_name = self.get_raw_tag_name(tag_name)
             self._data["html"] += f"</{tag_name}>"
 
         if tag_name in ("style", "script"):
@@ -258,6 +272,7 @@ class ComponentTemplateParser(HTMLParser):
 
     # API
     def parse(self, component_template):
+        self._source_lines = component_template.splitlines(keepends=True)
         self._block_type = self.BlockType.HTML
         self._stack = []
         self._declaration = ""
