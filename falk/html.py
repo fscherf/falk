@@ -132,7 +132,7 @@ class ComponentTemplateParser(HTMLParser):
             self._html_tag_encountered = True
 
         # handle link nodes
-        if tag_name == "link":
+        if not self._stack and tag_name == "link":
             if not self_closing:
                 raise InvalidStyleBlockError(
                     "link nodes need to be self closing",
