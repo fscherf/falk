@@ -132,7 +132,7 @@ def test_parse_component_template():
 
     # style URLS
     template = """
-        <link href="foo.css" />
+        <link href="foo.css">
 
         <style>
             .foo { color: red }
@@ -325,17 +325,6 @@ def test_parse_component_template():
         parse_component_template("""
             foo
             <br />
-        """)
-
-    # InvalidStyleBlockError
-    with pytest.raises(InvalidStyleBlockError):
-        parse_component_template("""
-            <link />
-        """)
-
-    with pytest.raises(InvalidStyleBlockError):
-        parse_component_template("""
-            <link href="foo.css"></link>
         """)
 
     # InvalidScriptBlockError

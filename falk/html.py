@@ -133,11 +133,6 @@ class ComponentTemplateParser(HTMLParser):
 
         # handle link nodes
         if not self._stack and tag_name == "link":
-            if not self_closing:
-                raise InvalidStyleBlockError(
-                    "link nodes need to be self closing",
-                )
-
             href = get_attribute(attribute_list, "href")
 
             if not href:
