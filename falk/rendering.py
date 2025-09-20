@@ -37,14 +37,35 @@ def _render_component(context, component_name, caller=None, **props):
     if caller:
         props["children"] = caller()
 
-    return render_component(
+    parts = render_component(
         component=component,
         mutable_app=context["mutable_app"],
         request=context["mutable_request"],
         response=context["response"],
         component_props=props,
         is_root=False,
+        parts=context["_parts"],
     )
+
+    # style URLs
+    context["_parts"]["style_urls"].update(
+        _resolve_urls(
+            component=component,
+            urls=parts["style_urls"],
+            static_url_prefix=context["settings"]["static_url_prefix"],
+        ),
+    )
+
+    # script URLs
+    context["_parts"]["script_urls"].update(
+        _resolve_urls(
+            component=component,
+            urls=parts["script_urls"],
+            static_url_prefix=context["settings"]["static_url_prefix"],
+        ),
+    )
+
+    return parts["html"]
 
 
 @pass_context
@@ -81,17 +102,57 @@ def _callback(context, callback_or_callback_name, delay=None, initial=False):
 
 
 @pass_context
+def _falk_styles(context):
+    return Template("""
+        {% for url in style_urls %}
+            <link rel="stylesheet" href="{{ url }}">
+        {% endfor %}
+    """).render({
+        "settings": context["settings"],
+        "style_urls": context["_parts"]["style_urls"],
+    })
+
+
+@pass_context
 def _falk_scripts(context):
-    static_url_prefix = context["settings"]["static_url_prefix"]
+    return Template("""
+        <script src="{{ settings['static_url_prefix'] }}falk/falk.js"></script>
 
-    url = os.path.join(
-        static_url_prefix,
-        "falk/falk.js",
-    )
+        {% for url in script_urls %}
+            <script src="{{ url }}"></script>
+        {% endfor %}
+    """).render({
+        "settings": context["settings"],
+        "script_urls": context["_parts"]["script_urls"],
+    })
 
-    return f"""
-        <script src="{url}"></script>
-    """
+
+def _resolve_urls(component, urls, static_url_prefix):
+    resolved_urls = set()
+
+    for url in urls:
+
+        # external URLs
+        if "://" in url:
+            resolved_urls.add(url)
+
+        # static URLs
+        prefix = "/static/"
+
+        if url.startswith(prefix):
+            resolved_urls.add(
+                os.path.join(
+                    static_url_prefix,
+                    url[len(prefix):],
+                ),
+            )
+
+        else:
+            raise NotImplementedError(
+                "only external and static URLs are supported",
+            )
+
+    return urls
 
 
 def render_component(
@@ -104,10 +165,18 @@ def render_component(
         component_props=None,
         is_root=True,
         run_component_callback="",
+        parts=None,
 ):
 
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
+
+    if parts is None:
+        parts = {
+            "html": "",
+            "style_urls": set(),
+            "script_urls": set(),
+        }
 
     # check component
     if not callable(component):
@@ -178,7 +247,9 @@ def render_component(
     template_context = {
         **data,
         "_render_component": _render_component,
+        "_parts": parts,
         "callback": _callback,
+        "falk_styles": _falk_styles,
         "falk_scripts": _falk_scripts,
     }
 
@@ -236,12 +307,31 @@ def render_component(
         mutable_app=mutable_app,
     )
 
-    # post process HTML
+    # post process component blocks
     component_blocks = parse_component_template(
         component_template=component_template,
     )
 
-    html = add_attributes_to_root_node(
+    # style URLs
+    parts["style_urls"].update(
+        _resolve_urls(
+            component=component,
+            urls=component_blocks["style_urls"],
+            static_url_prefix=mutable_app["settings"]["static_url_prefix"],
+        ),
+    )
+
+    # script URLs
+    parts["script_urls"].update(
+        _resolve_urls(
+            component=component,
+            urls=component_blocks["script_urls"],
+            static_url_prefix=mutable_app["settings"]["static_url_prefix"],
+        ),
+    )
+
+    # HTML
+    parts["html"] = add_attributes_to_root_node(
         html_source=component_blocks["html"],
         attributes={
             "data-falk-id": node_id,
@@ -250,4 +340,4 @@ def render_component(
     )
 
     # finish
-    return html
+    return parts

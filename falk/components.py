@@ -7,6 +7,7 @@ def HTML5Base(props):
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="X-UA-Compatible" content="ie=edge">
           <title>{{ props.get("title", "") }}</title>
+          {{ falk_styles() }}
         </head>
         <body>
           {{ props.children }}

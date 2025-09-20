@@ -131,6 +131,7 @@ def run_middlewares(
 def handle_request(request, mutable_app):
     # TODO: make logging configurable
     # TODO: add client host and user agent to logs
+    # TODO: add support for style and script URLs to mutation requests
 
     start_time = time.perf_counter()
     response = get_response()
@@ -209,7 +210,7 @@ def handle_request(request, mutable_app):
                 node_id=node_id,
                 component_state=component_state,
                 run_component_callback=callback_name,
-            )
+            )["html"]
 
         # post component middlewares
         run_middlewares(
@@ -240,7 +241,7 @@ def handle_request(request, mutable_app):
             request=request,
             response=response,
             component_props=component_props,
-        )
+        )["html"]
 
     # finish response
     if is_mutation_request:
