@@ -2,23 +2,30 @@ import os
 
 from jinja2 import Template, pass_context
 
-from falk.html import add_attributes_to_root_node, parse_component_template
 from falk.errors import InvalidComponentError, UnknownComponentError
+from falk.component_templates import parse_component_template
+from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
-from falk.pyx import transpile_pyx_to_jinja2
 
 
 @pass_context
-def _render_component(context, component_name, caller=None, **props):
+def _render_component(
+        context,
+        caller=None,
+        _component_name="",
+        _node_id=None,
+        _token=None,
+        **props,
+):
 
     # find component in context
-    if component_name not in context:
+    if _component_name not in context:
         raise UnknownComponentError(
-            f'component "{component_name}" was not found in the context',
+            f'component "{_component_name}" was not found in the context',
         )
 
-    component = context[component_name]
+    component = context[_component_name]
 
     # prepare props
     if "props" in props:
@@ -43,26 +50,10 @@ def _render_component(context, component_name, caller=None, **props):
         request=context["mutable_request"],
         response=context["response"],
         component_props=props,
+        node_id=_node_id,
+        token=_token,
         is_root=False,
         parts=context["_parts"],
-    )
-
-    # style URLs
-    context["_parts"]["style_urls"].update(
-        _resolve_urls(
-            component=component,
-            urls=parts["style_urls"],
-            static_url_prefix=context["settings"]["static_url_prefix"],
-        ),
-    )
-
-    # script URLs
-    context["_parts"]["script_urls"].update(
-        _resolve_urls(
-            component=component,
-            urls=parts["script_urls"],
-            static_url_prefix=context["settings"]["static_url_prefix"],
-        ),
     )
 
     return parts["html"]
@@ -161,6 +152,7 @@ def render_component(
         request,
         response,
         node_id=None,
+        token=None,
         component_state=None,
         component_props=None,
         is_root=True,
@@ -171,15 +163,15 @@ def render_component(
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
 
-    # TODO: We are doing a lot of parsing and pre and post processing
-    # currently. Pre processing and transpiling to Jinja2 could be done in
-    # one step.
+    # TODO: When rendering components that include another component as their
+    # root node, we generate to many tokens.
 
     if parts is None:
         parts = {
             "html": "",
-            "style_urls": set(),
-            "script_urls": set(),
+            "style_urls": [],
+            "script_urls": [],
+            "tokens": {},
         }
 
     # check component
@@ -203,7 +195,7 @@ def render_component(
     if not component_props:
         component_props = {}
 
-    # setup template context
+    # setup dependencies and template context
     data = {
         # meta data
         "caller": component,
@@ -257,13 +249,13 @@ def render_component(
         "falk_scripts": _falk_scripts,
     }
 
-    # run component with dependencies
     dependencies = {
         **data,
         "context": template_context,
     }
 
-    pyx_source = run_callback(
+    # run component
+    component_template = run_callback(
         callback=component,
         dependencies=dependencies,
         providers=mutable_app["settings"]["providers"],
@@ -291,11 +283,12 @@ def render_component(
 
     # parse component template
     component_blocks = parse_component_template(
-        component_template=pyx_source,
+        component_template=component_template,
     )
 
     # style URLs
-    parts["style_urls"].update(
+    extend_with_unique_values(
+        parts["style_urls"],
         _resolve_urls(
             component=component,
             urls=component_blocks["style_urls"],
@@ -304,7 +297,8 @@ def render_component(
     )
 
     # script URLs
-    parts["script_urls"].update(
+    extend_with_unique_values(
+        parts["script_urls"],
         _resolve_urls(
             component=component,
             urls=component_blocks["script_urls"],
@@ -312,17 +306,7 @@ def render_component(
         ),
     )
 
-    # transpile pyx to jinja2
-    jinja2_source = transpile_pyx_to_jinja2(
-        pyx_source=component_blocks["html"],
-    )
-
-    # render jinja2 template
-    template = Template(jinja2_source)
-
-    html_source = template.render(template_context)
-
-    # create token
+    # generate token
     component_id = mutable_app["settings"]["cache_component"](
         component=component,
         mutable_app=mutable_app,
@@ -334,14 +318,13 @@ def render_component(
         mutable_app=mutable_app,
     )
 
-    # HTML
-    parts["html"] = add_attributes_to_root_node(
-        html_source=html_source,
-        attributes={
-            "data-falk-id": node_id,
-            "data-falk-token": token,
-        },
-    )
+    template_context["_token"] = token
+    parts["tokens"][node_id] = token
+
+    # render jinja2 template
+    template = Template(component_blocks["jinja2_template"])
+
+    parts["html"] = template.render(template_context)
 
     # finish
     return parts
