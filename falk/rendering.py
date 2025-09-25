@@ -247,6 +247,10 @@ def render_component(
         "callback": _callback,
         "falk_styles": _falk_styles,
         "falk_scripts": _falk_scripts,
+
+        # This is a simple NOP to make calls like
+        # `{{ callback(render) }}` for simply re rendering work.
+        "render": lambda: None,
     }
 
     dependencies = {
