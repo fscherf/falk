@@ -3,8 +3,8 @@ import pytest
 
 def test_get_node_id():
     from falk.errors import InvalidSettingsError
+    from falk.node_ids import get_node_id
     from falk.apps import get_default_app
-    from falk.html import get_node_id
 
     app = get_default_app()
 

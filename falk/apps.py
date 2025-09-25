@@ -8,8 +8,8 @@ from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
 from falk.request_handling import handle_request
 from falk.components import Error404, Error500
+from falk.node_ids import get_node_id
 from falk.keys import get_random_key
-from falk.html import get_node_id
 
 from falk.component_caching import (
     get_component_id,
