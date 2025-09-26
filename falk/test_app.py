@@ -13,9 +13,9 @@ def Page(context, props):
         <HTML5Base props="{{ props }}">
             <h1>falk Test App</h1>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/counters/">Counters</a></li>
-                <li><a href="/clocks/">Clocks</a></li>
+                <li><a href="{{ get_url('index') }}">Home</a></li>
+                <li><a href="{{ get_url('counters') }}">Counters</a></li>
+                <li><a href="{{ get_url('clocks') }}">Clocks</a></li>
             </ul>
             {{ props.children }}
         </HTML5Base>
@@ -117,6 +117,6 @@ def Clocks(context):
 
 
 def configure_app(add_route, app, settings):
-    add_route(r"/counters/", Counters)
-    add_route(r"/clocks/", Clocks)
-    add_route(r"/", Index)
+    add_route(r"/counters/", Counters, name="counters")
+    add_route(r"/clocks/", Clocks, name="clocks")
+    add_route(r"/", Index, name="index")

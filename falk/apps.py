@@ -7,6 +7,7 @@ from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
 from falk.request_handling import handle_request
+from falk.extra_template_context import get_url
 from falk.components import Error404, Error500
 from falk.node_ids import get_node_id
 from falk.keys import get_random_key
@@ -127,7 +128,9 @@ def get_default_app():
 
     # settings: templating
     mutable_app["settings"].update({
-        "extra_template_context": {},
+        "extra_template_context": {
+            "get_url": get_url,
+        },
     })
 
     return mutable_app
