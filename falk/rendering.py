@@ -251,6 +251,8 @@ def render_component(
         # This is a simple NOP to make calls like
         # `{{ callback(render) }}` for simply re rendering work.
         "render": lambda: None,
+
+        **mutable_app["settings"]["extra_template_context"],
     }
 
     dependencies = {

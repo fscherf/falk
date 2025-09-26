@@ -125,6 +125,11 @@ def get_default_app():
         },
     })
 
+    # settings: templating
+    mutable_app["settings"].update({
+        "extra_template_context": {},
+    })
+
     return mutable_app
 
 
