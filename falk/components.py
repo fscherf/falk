@@ -62,13 +62,14 @@ def Error500(context, response, set_response_status, props):
         "HTML5Base": HTML5Base,
     })
 
-    return """
-        {% if props.mutation_request %}
+    if props["mutation_request"]:
+        return """
             <div>Error 500: Internal Error</div>
-        {% else %}
-            <HTML5Base title="500 Internal Error">
-                <h1>Error 500</h1>
-                <p>Internal Error</p>
-            </HTML5Base>
-        {% endif %}
+        """
+
+    return """
+        <HTML5Base title="500 Internal Error">
+            <h1>Error 500</h1>
+            <p>Internal Error</p>
+        </HTML5Base>
     """
