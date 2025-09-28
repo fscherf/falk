@@ -179,9 +179,6 @@ def render_component(
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
 
-    # TODO: When rendering components that include another component as their
-    # root node, we generate to many tokens.
-
     if parts is None:
         parts = {
             "html": "",
@@ -331,16 +328,17 @@ def render_component(
     )
 
     # generate token
-    component_id = mutable_app["settings"]["cache_component"](
-        component=component,
-        mutable_app=mutable_app,
-    )
+    if not token:
+        component_id = mutable_app["settings"]["cache_component"](
+            component=component,
+            mutable_app=mutable_app,
+        )
 
-    token = mutable_app["settings"]["encode_token"](
-        component_id=component_id,
-        component_state=component_state,
-        mutable_app=mutable_app,
-    )
+        token = mutable_app["settings"]["encode_token"](
+            component_id=component_id,
+            component_state=component_state,
+            mutable_app=mutable_app,
+        )
 
     template_context["_token"] = token
     parts["tokens"][node_id] = token
