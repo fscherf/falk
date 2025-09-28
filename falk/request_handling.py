@@ -31,11 +31,8 @@ def get_request(
         "post": post or {},
         "json": json or {},
 
-        # flags
-        "finished": False,
-        "mutation": False,
-
         # mutation
+        "mutation": False,
         "callback_name": "",
         "node_id": "",
         "token": "",
@@ -251,7 +248,7 @@ def handle_request(request, mutable_app):
             component_props=component_props,
         )["html"]
 
-    # finish response
+    # set response body
     if request["mutation"]:
         response["body"] = json.dumps({
             "html": html,
