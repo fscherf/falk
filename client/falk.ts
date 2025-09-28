@@ -47,6 +47,7 @@ class Falk {
     const token = node.getAttribute("data-falk-token");
 
     const data = {
+      requestType: "falk/mutation",
       nodeId: nodeId,
       token: token,
       callbackName: callbackName,

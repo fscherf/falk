@@ -23,21 +23,41 @@ def get_request(
 ):
 
     request = {
-        "finished": False,
+        # basic HTTP fields
         "headers": {},
         "method": method,
         "path": path,
         "content_type": content_type,
         "post": post or {},
         "json": json or {},
+
+        # flags
+        "finished": False,
+        "mutation": False,
+
+        # mutation
+        "callback_name": "",
+        "node_id": "",
+        "token": "",
     }
 
+    # headers
     for name, value in (headers or {}).items():
         set_header(
             headers=request["headers"],
             name=name,
             value=value,
         )
+
+    # mutation requests
+    if (request["method"] == "POST" and
+            request["content_type"] == "application/json" and
+            request["json"].get("requestType", "") == "falk/mutation"):
+
+        request["mutation"] = True
+        request["callback_name"] = request["json"]["callbackName"]
+        request["token"] = request["json"]["token"]
+        request["node_id"] = request["json"]["nodeId"]
 
     return request
 
@@ -135,16 +155,8 @@ def handle_request(request, mutable_app):
 
     start_time = time.perf_counter()
     response = get_response()
-
-    is_mutation_request = (
-        request["method"] == "POST" and
-        request["content_type"] == "application/json"
-    )
-
     component = None
-    node_id = None
     component_state = None
-    callback_name = ""
 
     try:
         # pre component middlewares
@@ -160,15 +172,12 @@ def handle_request(request, mutable_app):
         if not response["finished"]:
 
             # mutation request (JSON response)
-            if is_mutation_request:
-                token = request["json"]["token"]
-                node_id = request["json"]["nodeId"]
-                callback_name = request["json"]["callbackName"]
+            if request["mutation"]:
 
                 # decode token
                 component_id, component_state = (
                     mutable_app["settings"]["decode_token"](
-                        token=token,
+                        token=request["token"],
                         mutable_app=mutable_app,
                     )
                 )
@@ -207,9 +216,9 @@ def handle_request(request, mutable_app):
                 mutable_app=mutable_app,
                 request=request,
                 response=response,
-                node_id=node_id,
+                node_id=request["node_id"],
                 component_state=component_state,
-                run_component_callback=callback_name,
+                run_component_callback=request["callback_name"],
             )["html"]
 
         # post component middlewares
@@ -232,7 +241,6 @@ def handle_request(request, mutable_app):
 
         component_props = {
             "exception": exception,
-            "mutation_request": is_mutation_request,
         }
 
         html = render_component(
@@ -244,7 +252,7 @@ def handle_request(request, mutable_app):
         )["html"]
 
     # finish response
-    if is_mutation_request:
+    if request["mutation"]:
         response["body"] = json.dumps({
             "html": html,
         })
@@ -260,8 +268,8 @@ def handle_request(request, mutable_app):
     total_time_string = f"{total_time:.4f}s"
     action_string = "initial render"
 
-    if is_mutation_request:
-        action_string = f"mutation: {component.__module__}.{component.__qualname__}:{node_id}"  # NOQA
+    if request["mutation"]:
+        action_string = f"mutation: {component.__module__}.{component.__qualname__}:{request['node_id']}"  # NOQA
 
     access_logger.info(
         "%s %s %s -- %s -- took %s",

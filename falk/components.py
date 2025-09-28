@@ -44,7 +44,7 @@ def Error404(context, set_response_status):
     """
 
 
-def Error500(context, response, set_response_status, props):
+def Error500(request, context, response, set_response_status):
 
     # reset response
     response.update({
@@ -55,14 +55,14 @@ def Error500(context, response, set_response_status, props):
         "json": None,
     })
 
-    if not props["mutation_request"]:
+    if not request["mutation"]:
         set_response_status(500)
 
     context.update({
         "HTML5Base": HTML5Base,
     })
 
-    if props["mutation_request"]:
+    if request["mutation"]:
         return """
             <div>Error 500: Internal Error</div>
         """
