@@ -13,7 +13,7 @@ def serve_static_files(
     # NOTE: This needs to be a middleware because the prefix for static URLs
     # should be configurable in the settings (settings["static_url_prefix"]).
 
-    if response["finished"]:
+    if response["is_finished"]:
         return
 
     if not request["path"].startswith(settings["static_url_prefix"]):

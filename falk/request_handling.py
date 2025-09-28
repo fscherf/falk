@@ -32,7 +32,7 @@ def get_request(
         "json": json or {},
 
         # mutation
-        "mutation": False,
+        "is_mutation_request": False,
         "callback_name": "",
         "node_id": "",
         "token": "",
@@ -51,7 +51,7 @@ def get_request(
             request["content_type"] == "application/json" and
             request["json"].get("requestType", "") == "falk/mutation"):
 
-        request["mutation"] = True
+        request["is_mutation_request"] = True
         request["callback_name"] = request["json"]["callbackName"]
         request["token"] = request["json"]["token"]
         request["node_id"] = request["json"]["nodeId"]
@@ -70,7 +70,7 @@ def get_response(
 ):
 
     response = {
-        "finished": False,
+        # basic HTTP fields
         "headers": {},
         "status": status,
         "charset": charset,
@@ -78,6 +78,9 @@ def get_response(
         "body": body,
         "file_path": file_path,
         "json": json,
+
+        # flags
+        "is_finished": False,
     }
 
     set_status(
@@ -166,10 +169,10 @@ def handle_request(request, mutable_app):
 
         # we run the component code only if the response was not finished
         # by a middleware before.
-        if not response["finished"]:
+        if not response["is_finished"]:
 
             # mutation request (JSON response)
-            if request["mutation"]:
+            if request["is_mutation_request"]:
 
                 # decode token
                 component_id, component_state = (
@@ -249,14 +252,14 @@ def handle_request(request, mutable_app):
         )["html"]
 
     # set response body
-    if request["mutation"]:
+    if request["is_mutation_request"]:
         response["body"] = json.dumps({
             "html": html,
         })
 
         response["content_type"] = "application/json"
 
-    elif not response["finished"]:
+    elif not response["is_finished"]:
         response["body"] = html
 
     # access log
@@ -265,7 +268,7 @@ def handle_request(request, mutable_app):
     total_time_string = f"{total_time:.4f}s"
     action_string = "initial render"
 
-    if request["mutation"]:
+    if request["is_mutation_request"]:
         action_string = f"mutation: {component.__module__}.{component.__qualname__}:{request['node_id']}"  # NOQA
 
     access_logger.info(

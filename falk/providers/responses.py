@@ -62,7 +62,7 @@ def set_response_content_type_provider(response):
 def set_response_body_provider(response):
     def set_respones_body(response_body):
         response["body"] = response_body
-        response["finished"] = True
+        response["is_finished"] = True
 
     return set_respones_body
 
@@ -81,7 +81,7 @@ def set_response_file_provider(response, caller, is_root):
         )
 
         response["file_path"] = abs_path
-        response["finished"] = True
+        response["is_finished"] = True
 
     return set_response_file
 
@@ -94,6 +94,6 @@ def set_response_json_provider(response, is_root):
             )
 
         response["json"] = data
-        response["finished"] = True
+        response["is_finished"] = True
 
     return set_response_json

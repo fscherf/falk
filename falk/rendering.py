@@ -271,7 +271,7 @@ def render_component(
     # Check if the component finished the response. If so, we can skip all
     # parsing and post processing.
     # This happens when files, binary data, or JSON is returned.
-    if response["finished"]:
+    if response["is_finished"]:
         return ""
 
     # `run_component_callback` is set to string that points to a callback

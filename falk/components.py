@@ -48,21 +48,21 @@ def Error500(request, context, response, set_response_status):
 
     # reset response
     response.update({
-        "finished": False,
+        "is_finished": False,
         "content_type": "text/html",
         "body": None,
         "file_path": "",
         "json": None,
     })
 
-    if not request["mutation"]:
+    if not request["is_mutation_request"]:
         set_response_status(500)
 
     context.update({
         "HTML5Base": HTML5Base,
     })
 
-    if request["mutation"]:
+    if request["is_mutation_request"]:
         return """
             <div>Error 500: Internal Error</div>
         """
