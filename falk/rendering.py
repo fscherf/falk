@@ -1,4 +1,5 @@
 from urllib.parse import quote
+import builtins
 import json
 import os
 
@@ -254,6 +255,7 @@ def render_component(
     }
 
     template_context = {
+        **builtins.__dict__,
         **data,
         "_render_component": _render_component,
         "_parts": parts,
