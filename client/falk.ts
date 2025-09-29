@@ -87,6 +87,35 @@ class Falk {
     return eventData;
   };
 
+  public patchNode = (node, newNode) => {
+    return morphdom(node, newNode, {
+      onBeforeElUpdated: (fromEl, toEl) => {
+        // preserve values of input elemente
+        if (
+          (fromEl instanceof HTMLInputElement &&
+            toEl instanceof HTMLInputElement) ||
+          (fromEl instanceof HTMLTextAreaElement &&
+            toEl instanceof HTMLTextAreaElement) ||
+          (fromEl instanceof HTMLSelectElement &&
+            toEl instanceof HTMLSelectElement)
+        ) {
+          toEl.value = fromEl.value;
+        }
+
+        return true;
+      },
+    });
+  };
+
+  public patchNodeAttributes = (node, newNode) => {
+    return morphdom(node, newNode, {
+      onBeforeElChildrenUpdated: (fromEl, toEl) => {
+        // ignore all children
+        return false;
+      },
+    });
+  };
+
   public runCallback = (
     event: Event,
     nodeId: string,
@@ -127,26 +156,29 @@ class Falk {
         }
 
         const responseData = await response.json();
-        const template = document.createElement("template");
+        const domParser = new DOMParser();
 
-        template.innerHTML = responseData.html.trim();
+        const newDocument = domParser.parseFromString(
+          responseData.html,
+          "text/html",
+        );
 
-        morphdom(node, template.content.firstElementChild, {
-          onBeforeElUpdated: (fromEl, toEl) => {
-            if (
-              (fromEl instanceof HTMLInputElement &&
-                toEl instanceof HTMLInputElement) ||
-              (fromEl instanceof HTMLTextAreaElement &&
-                toEl instanceof HTMLTextAreaElement) ||
-              (fromEl instanceof HTMLSelectElement &&
-                toEl instanceof HTMLSelectElement)
-            ) {
-              toEl.value = fromEl.value;
-            }
+        // patch entire document
+        if (node.tagName == "HTML") {
+          // patch the attributes of the HTML node
+          // (node id, token, event handlers, ...)
+          this.patchNodeAttributes(node, newDocument.children[0]);
 
-            return true;
-          },
-        });
+          // patch title
+          document.title = newDocument.title;
+
+          // patch body
+          this.patchNode(document.body, newDocument.body);
+
+          // patch only one node in the body
+        } else {
+          this.patchNode(node, newDocument.body.firstChild);
+        }
 
         this.runHook("render", node);
       });
