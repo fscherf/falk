@@ -127,6 +127,8 @@ def _resolve_urls(component, urls, static_url_prefix):
         if "://" in url:
             resolved_urls.add(url)
 
+            continue
+
         # static URLs
         prefix = "/static/"
 
