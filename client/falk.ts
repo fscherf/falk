@@ -38,10 +38,61 @@ class Falk {
     );
   };
 
+  public dumpEvent = (event: Event) => {
+    const eventData = {
+      type: "",
+      data: undefined,
+      formData: {},
+    };
+
+    // The event is `undefined` when handling non-standard event handler
+    // like `onRender`.
+    if (!event) {
+      return eventData;
+    }
+
+    eventData.type = event.type;
+
+    // input, change, submit
+    if (
+      event.type == "input" ||
+      event.type == "change" ||
+      event.type == "submit"
+    ) {
+      // forms
+      if (event.currentTarget instanceof HTMLFormElement) {
+        const formData: FormData = new FormData(event.currentTarget);
+
+        for (const [key, value] of formData.entries()) {
+          eventData.formData[key] = value;
+        }
+
+        // inputs
+      } else {
+        const inputElement: HTMLInputElement =
+          event.currentTarget as HTMLInputElement;
+
+        eventData.data = inputElement.value;
+
+        if (inputElement.hasAttribute("name")) {
+          const inputName: string = inputElement.getAttribute("name");
+
+          if (inputName) {
+            eventData.formData[inputName] = inputElement.value;
+          }
+        }
+      }
+    }
+
+    return eventData;
+  };
+
   public runCallback = (
+    event: Event,
     nodeId: string,
     callbackName: string,
     callbackArgs: string,
+    stopEvent: boolean,
     delay: number,
   ) => {
     const node = document.querySelector(`[data-falk-id=${nodeId}]`);
@@ -53,7 +104,15 @@ class Falk {
       token: token,
       callbackName: callbackName,
       callbackArgs: JSON.parse(decodeURIComponent(callbackArgs)),
+      event: this.dumpEvent(event),
     };
+
+    // The event is `undefined` when handling non-standard event handler
+    // like `onRender`.
+    if (event && stopEvent) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     setTimeout(() => {
       fetch(window.location + "", {

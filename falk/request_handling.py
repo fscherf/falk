@@ -35,6 +35,7 @@ def get_request(
         "is_mutation_request": False,
         "callback_name": "",
         "callback_args": {},
+        "event": {},
         "node_id": "",
         "token": "",
     }
@@ -55,8 +56,9 @@ def get_request(
         request["is_mutation_request"] = True
         request["callback_name"] = request["json"]["callbackName"]
         request["callback_args"] = request["json"]["callbackArgs"]
-        request["token"] = request["json"]["token"]
+        request["event"] = request["json"]["event"]
         request["node_id"] = request["json"]["nodeId"]
+        request["token"] = request["json"]["token"]
 
     return request
 

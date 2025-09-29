@@ -67,6 +67,7 @@ def _callback(
         context,
         callback_or_callback_name,
         callback_args=None,
+        stop_event=True,
         delay=None,
         initial=False,
 ):
@@ -90,17 +91,19 @@ def _callback(
     context[callback_name]
 
     arg_string_parts = [
-        repr(context["node_id"]),
-        repr(callback_name),
-        "null",
-        "null",
+        "event",                   # event (string)
+        repr(context["node_id"]),  # nodeId (string)
+        repr(callback_name),       # callbackName (string)
+        "null",                    # callbackArgs (URL encoded JSON)
+        str(stop_event).lower(),   # stopEvent (boolean)
+        "null",                    # delay (string)
     ]
 
     if callback_args:
-        arg_string_parts[2] = f"'{quote(json.dumps(callback_args))}'"
+        arg_string_parts[3] = f"'{quote(json.dumps(callback_args))}'"
 
     if delay:
-        arg_string_parts[3] = f"'{delay}'"
+        arg_string_parts[5] = f"'{delay}'"
 
     arg_string = ", ".join(arg_string_parts)
 
@@ -295,7 +298,10 @@ def render_component(
     # The callback needs to run before we render the jinja2 template because
     # it will most likely mutate the template context.
     if run_component_callback:
-        dependencies["args"] = request["callback_args"]
+        dependencies.update({
+            "args": request["callback_args"],
+            "event": request["event"],
+        })
 
         run_callback(
             callback=template_context[run_component_callback],
