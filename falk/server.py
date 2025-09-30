@@ -93,6 +93,15 @@ if __name__ == "__main__":
             host=args.host,
             port=args.port,
             access_log=None,
+
+            # We don't need graceful shutdown for websockets since we don't
+            # hold any session data or support long running requests.
+            shutdown_timeout=0,
+            # TODO: This works very poorly. For some reason, we still run into
+            # long timeouts when running behind watchfiles and having running
+            # websocket connections.
+            # To "fix" this in development, we set `--sigint-timeout=0` in
+            # the watchfiles call.
         )
 
     except (OSError, socket.gaierror):

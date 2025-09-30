@@ -1,10 +1,106 @@
 import morphdom from "morphdom";
 
 class Falk {
-  public init = () => {
+  private websocketsAvailable: boolean;
+  private websocket: WebSocket;
+  private websocketMessageIdCounter: number;
+
+  private pendingWebsocketRequests: Map<
+    number,
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+    }
+  >;
+
+  public init = async () => {
+    this.websocketsAvailable = await this.connectWebsocket();
+
     this.runHook("render");
   };
 
+  // request handling: AJAX
+  public sendHttpRequest = async (data) => {
+    return new Promise(async (resolve, reject) => {
+      const response = await fetch(window.location + "", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        reject(`HTTP error! Status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      resolve(responseData);
+    });
+  };
+
+  // request handling: websockets
+  private handleWebsocketMessage = (event: MessageEvent) => {
+    const [messageId, messageData] = JSON.parse(event.data);
+    const promiseCallbacks = this.pendingWebsocketRequests.get(messageId);
+
+    promiseCallbacks["resolve"](messageData["json"]);
+
+    this.pendingWebsocketRequests.delete(messageId);
+  };
+
+  public connectWebsocket = async (): Promise<boolean> => {
+    return new Promise(async (resolve, reject) => {
+      this.websocket = new WebSocket(window.location + "");
+
+      this.websocket.addEventListener("message", this.handleWebsocketMessage);
+
+      this.websocket.addEventListener("open", () => {
+        this.websocketMessageIdCounter = 1;
+        this.pendingWebsocketRequests = new Map();
+
+        resolve(true);
+      });
+
+      this.websocket.addEventListener("error", (event) => {
+        resolve(false);
+      });
+    });
+  };
+
+  public sendWebsocketRequest = async (data) => {
+    return new Promise(async (resolve, reject) => {
+      // connect websocket if necessary
+      if (this.websocket.readyState !== this.websocket.OPEN) {
+        await this.connectWebsocket();
+      }
+
+      // send request
+      const messageId: number = this.websocketMessageIdCounter;
+      const message: string = JSON.stringify([messageId, data]);
+
+      this.websocketMessageIdCounter += 1;
+
+      this.websocket.send(message);
+
+      this.pendingWebsocketRequests.set(messageId, {
+        resolve: resolve,
+        reject: reject,
+      });
+    });
+  };
+
+  // request handling
+  public sendRequest = async (data) => {
+    if (this.websocketsAvailable) {
+      return await this.sendWebsocketRequest(data);
+    } else {
+      return await this.sendHttpRequest(data);
+    }
+  };
+
+  // hooks
   public iterNodes = (
     selector: string,
     callback: (node: Element) => any,
@@ -38,6 +134,7 @@ class Falk {
     );
   };
 
+  // events
   public dumpEvent = (event: Event) => {
     const eventData = {
       type: "",
@@ -87,6 +184,7 @@ class Falk {
     return eventData;
   };
 
+  // node patching
   public patchNode = (node, newNode) => {
     return morphdom(node, newNode, {
       onBeforeElUpdated: (fromEl, toEl) => {
@@ -116,7 +214,8 @@ class Falk {
     });
   };
 
-  public runCallback = (
+  // callbacks
+  public runCallback = async (
     event: Event,
     nodeId: string,
     callbackName: string,
@@ -143,45 +242,33 @@ class Falk {
       event.preventDefault();
     }
 
-    setTimeout(() => {
-      fetch(window.location + "", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }).then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+    setTimeout(async () => {
+      const responseData = await this.sendRequest(data);
+      const domParser = new DOMParser();
 
-        const responseData = await response.json();
-        const domParser = new DOMParser();
+      const newDocument = domParser.parseFromString(
+        responseData["html"],
+        "text/html",
+      );
 
-        const newDocument = domParser.parseFromString(
-          responseData.html,
-          "text/html",
-        );
+      // patch entire document
+      if (node.tagName == "HTML") {
+        // patch the attributes of the HTML node
+        // (node id, token, event handlers, ...)
+        this.patchNodeAttributes(node, newDocument.children[0]);
 
-        // patch entire document
-        if (node.tagName == "HTML") {
-          // patch the attributes of the HTML node
-          // (node id, token, event handlers, ...)
-          this.patchNodeAttributes(node, newDocument.children[0]);
+        // patch title
+        document.title = newDocument.title;
 
-          // patch title
-          document.title = newDocument.title;
+        // patch body
+        this.patchNode(document.body, newDocument.body);
 
-          // patch body
-          this.patchNode(document.body, newDocument.body);
+        // patch only one node in the body
+      } else {
+        this.patchNode(node, newDocument.body.firstChild);
+      }
 
-          // patch only one node in the body
-        } else {
-          this.patchNode(node, newDocument.body.firstChild);
-        }
-
-        this.runHook("render", node);
-      });
+      this.runHook("render", node);
     }, delay);
   };
 }

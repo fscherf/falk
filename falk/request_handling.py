@@ -13,6 +13,7 @@ error_logger = logging.getLogger("falk.errors")
 
 
 def get_request(
+        protocol="HTTP",
         headers=None,
         method="GET",
         path="/",
@@ -23,6 +24,7 @@ def get_request(
 
     request = {
         # basic HTTP fields
+        "protocol": protocol,
         "headers": {},
         "method": method,
         "path": path,
@@ -275,7 +277,8 @@ def handle_request(request, mutable_app):
         action_string = f"mutation: {component.__module__}.{component.__qualname__}:{request['node_id']}"  # NOQA
 
     access_logger.info(
-        "%s %s %s -- %s -- took %s",
+        "%s/%s %s %s -- %s -- took %s",
+        request["protocol"],
         request["method"],
         request["path"],
         response["status"],

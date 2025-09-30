@@ -1,11 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import logging
+import json
 
 from aiohttp.web import (
+    WebSocketResponse,
     json_response,
     FileResponse,
     Application,
+    WSMsgType,
     Response,
     route,
 )
@@ -33,6 +36,24 @@ async def aiohttp_request_to_falk_request(aiohttp_request):
 
         if aiohttp_request.content_type == "application/json":
             request_args["json"] = await aiohttp_request.json()
+
+    return get_request(**request_args)
+
+
+def aiohttp_websocket_message_to_falk_request(
+        aiohttp_request,
+        message_data,
+):
+
+    request_args = {
+        "protocol": "WS",
+        "method": "POST",
+        "path": aiohttp_request.url.path,
+        "headers": dict(aiohttp_request.headers),
+        "content_type": "application/json",
+        "post": {},
+        "json": message_data,
+    }
 
     return get_request(**request_args)
 
@@ -73,7 +94,77 @@ def get_aiohttp_app(mutable_app, threads=4):
         thread_name_prefix="falk.worker",
     )
 
+    settings = mutable_app["settings"]
+    falk_request_handler = mutable_app["entry_points"]["handle_request"]
+
+    def handle_aiohttp_websocket_message(aiohttp_request, message_string):
+        message_id, message_data = json.loads(message_string)
+
+        falk_request = aiohttp_websocket_message_to_falk_request(
+            aiohttp_request=aiohttp_request,
+            message_data=message_data,
+        )
+
+        falk_response = falk_request_handler(
+            request=falk_request,
+            mutable_app=mutable_app,
+        )
+
+        return json.dumps([
+            message_id,
+            falk_response,
+        ])
+
+    async def handle_aiohttp_websocket_request(aiohttp_request):
+        loop = aiohttp_request.app["loop"]
+        aiohttp_websocket_response = WebSocketResponse()
+
+        await aiohttp_websocket_response.prepare(aiohttp_request)
+
+        try:
+            async for message in aiohttp_websocket_response:
+                if message.type == WSMsgType.TEXT:
+                    response_message = await loop.run_in_executor(
+                        executor,
+                        lambda: handle_aiohttp_websocket_message(
+                            aiohttp_request=aiohttp_request,
+                            message_string=message.data,
+                        ),
+                    )
+
+                    await aiohttp_websocket_response.send_str(response_message)
+
+                elif message.type == WSMsgType.PING:
+                    await aiohttp_websocket_response.pong()
+
+                elif message.type in (WSMsgType.CLOSED, WSMsgType.ERROR):
+                    break
+
+        except asyncio.CancelledError:
+            pass
+
+        finally:
+            await aiohttp_websocket_response.close()
+
+        return aiohttp_websocket_response
+
     async def handle_aiohttp_request(aiohttp_request):
+        loop = aiohttp_request.app["loop"]
+
+        # websocket request
+        upgrade_header = aiohttp_request.headers.get("Upgrade", "").lower()
+
+        if aiohttp_request.method == "GET" and upgrade_header == "websocket":
+            if not settings["websockets"]:
+                return Response(
+                    status=426,
+                    content_type="application/json",
+                    text='{"error": "websocket requests are disabled"}',
+                )
+
+            return await handle_aiohttp_websocket_request(aiohttp_request)
+
+        # HTTP request
         falk_request = await aiohttp_request_to_falk_request(
             aiohttp_request=aiohttp_request,
         )
@@ -87,7 +178,7 @@ def get_aiohttp_app(mutable_app, threads=4):
                 mutable_app=mutable_app,
             )
 
-        falk_response = await aiohttp_request.app["loop"].run_in_executor(
+        falk_response = await loop.run_in_executor(
             executor,
             _handle_aiohttp_request,
         )
