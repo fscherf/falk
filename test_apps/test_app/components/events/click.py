@@ -1,0 +1,53 @@
+from test_app.components.base import Base
+
+
+def Counter(context, state, initial_render, props):
+    if initial_render:
+        state.update({
+            "initial_value": props.get("initial_value", 0),
+            "count": props.get("initial_value", 0),
+        })
+
+    def update(args, event):
+        operation, value = args
+
+        if operation == "inc":
+            state["count"] += value
+
+        elif operation == "dec":
+            state["count"] -= value
+
+    def reset():
+        state["count"] = state["initial_value"]
+
+    context.update({
+        "update": update,
+        "reset": reset,
+    })
+
+    return """
+        <div id="{{ props.id }}">
+            <button onclick="{{ callback(update, ['dec', 1]) }}">-</button>
+            <span>{{ state.count }}</span>
+            <button onclick="{{ callback(update, ['inc', 1]) }}">+</button>
+            <button onclick="{{ callback(reset) }}">Reset</button>
+        </div>
+    """
+
+
+def Click(context):
+    context.update({
+        "Base": Base,
+        "Counter": Counter,
+    })
+
+    return """
+        <Base title="Click Events">
+            <h2>Click Events</h2>
+            {% for i in range(5) %}
+                <Counter
+                  id="{{ 'counter-' + str(i) }}"
+                  initial_value="{{ i }}" />
+            {% endfor %}
+        </Base>
+    """

@@ -5,7 +5,8 @@ PYTHON=python3.13
 	python-shell python-test python-build \
 	node-shell node-build node-watch node-lint \
 	clean build server test ci-test lint \
-	docs docs-server grip
+	docs docs-server grip \
+	test-app
 
 define DOCKER_COMPOSE_RUN
 	docker compose run \
@@ -71,3 +72,7 @@ docs-server:
 
 grip:
 	$(call DOCKER_COMPOSE_RUN,python,tox -e grip ${args})
+
+# test apps
+test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e test-app ${args})
