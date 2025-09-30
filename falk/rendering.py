@@ -1,3 +1,5 @@
+from urllib.parse import quote
+import json
 import os
 
 from jinja2 import Template, pass_context
@@ -60,7 +62,14 @@ def _render_component(
 
 
 @pass_context
-def _callback(context, callback_or_callback_name, delay=None, initial=False):
+def _callback(
+        context,
+        callback_or_callback_name,
+        callback_args=None,
+        delay=None,
+        initial=False,
+):
+
     callback_name = ""
 
     if initial and context["initial_render"]:
@@ -79,17 +88,22 @@ def _callback(context, callback_or_callback_name, delay=None, initial=False):
     # provoke a KeyError if the callback does not exist
     context[callback_name]
 
-    callback_args = [
-        context["node_id"],
-        callback_name,
+    arg_string_parts = [
+        repr(context["node_id"]),
+        repr(callback_name),
+        "null",
+        "null",
     ]
 
-    if delay is not None:
-        callback_args.append(delay)
+    if callback_args:
+        arg_string_parts[2] = f"'{quote(json.dumps(callback_args))}'"
 
-    callback_args_string = ", ".join([repr(i) for i in callback_args])
+    if delay:
+        arg_string_parts[3] = f"'{delay}'"
 
-    return f"falk.runCallback({callback_args_string});"
+    arg_string = ", ".join(arg_string_parts)
+
+    return f"falk.runCallback({arg_string});"
 
 
 @pass_context
@@ -282,6 +296,8 @@ def render_component(
     # The callback needs to run before we render the jinja2 template because
     # it will most likely mutate the template context.
     if run_component_callback:
+        dependencies["args"] = request["callback_args"]
+
         run_callback(
             callback=template_context[run_component_callback],
             dependencies=dependencies,

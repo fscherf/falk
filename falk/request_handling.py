@@ -34,6 +34,7 @@ def get_request(
         # mutation
         "is_mutation_request": False,
         "callback_name": "",
+        "callback_args": {},
         "node_id": "",
         "token": "",
     }
@@ -53,6 +54,7 @@ def get_request(
 
         request["is_mutation_request"] = True
         request["callback_name"] = request["json"]["callbackName"]
+        request["callback_args"] = request["json"]["callbackArgs"]
         request["token"] = request["json"]["token"]
         request["node_id"] = request["json"]["nodeId"]
 

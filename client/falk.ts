@@ -41,6 +41,7 @@ class Falk {
   public runCallback = (
     nodeId: string,
     callbackName: string,
+    callbackArgs: string,
     delay: number,
   ) => {
     const node = document.querySelector(`[data-falk-id=${nodeId}]`);
@@ -51,6 +52,7 @@ class Falk {
       nodeId: nodeId,
       token: token,
       callbackName: callbackName,
+      callbackArgs: JSON.parse(decodeURIComponent(callbackArgs)),
     };
 
     setTimeout(() => {
