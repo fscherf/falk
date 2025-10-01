@@ -1,6 +1,5 @@
 import logging
 import time
-import json
 
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
@@ -257,9 +256,9 @@ def handle_request(request, mutable_app):
 
     # set response body
     if request["is_mutation_request"]:
-        response["body"] = json.dumps({
+        response["json"] = {
             "html": html,
-        })
+        }
 
         response["content_type"] = "application/json"
 
