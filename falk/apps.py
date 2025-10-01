@@ -51,6 +51,8 @@ def get_default_app():
         },
         "entry_points": {
             "handle_request": handle_request,
+            "on_startup": lambda mutable_app: None,
+            "on_shutdown": lambda mutable_app: None,
         },
         "component_cache": {},
         "routes": [],

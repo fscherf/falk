@@ -96,6 +96,8 @@ def get_aiohttp_app(mutable_app, threads=4):
 
     settings = mutable_app["settings"]
     falk_request_handler = mutable_app["entry_points"]["handle_request"]
+    falk_on_startup = mutable_app["entry_points"]["on_startup"]
+    falk_on_shutdown = mutable_app["entry_points"]["on_shutdown"]
 
     def handle_aiohttp_websocket_message(aiohttp_request, message_string):
         message_id, message_data = json.loads(message_string)
@@ -196,8 +198,26 @@ def get_aiohttp_app(mutable_app, threads=4):
 
         aiohttp_app["loop"] = asyncio.get_event_loop()
 
+        try:
+            falk_on_startup(mutable_app)
+
+        except Exception:
+            logger.exception(
+                "exception raised while running %s",
+                falk_on_startup,
+            )
+
     async def on_cleanup(aiohttp_app):
         logger.info("shutting down")
+
+        try:
+            falk_on_shutdown(mutable_app)
+
+        except Exception:
+            logger.exception(
+                "exception raised while running %s",
+                falk_on_shutdown,
+            )
 
     aiohttp_app.on_startup.append(on_startup)
     aiohttp_app.on_cleanup.append(on_cleanup)
