@@ -4,7 +4,7 @@ PYTHON=python3.13
 	all \
 	python-shell python-test python-build \
 	node-shell node-build node-watch node-lint \
-	clean build server test ci-test lint \
+	clean build test ci-test lint \
 	docs docs-server grip \
 	no-app test-app
 
@@ -17,7 +17,7 @@ define DOCKER_COMPOSE_RUN
 		$1 $2
 endef
 
-all: server
+all: test-app
 
 # python
 python-shell:
@@ -51,9 +51,6 @@ clean:
 	rm -rf falk/client
 
 build: node-build python-build
-
-server: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e server ${args})
 
 test:
 	$(call DOCKER_COMPOSE_RUN,python,tox -e ${PYTHON} ${args})
