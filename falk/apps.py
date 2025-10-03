@@ -2,6 +2,7 @@ import os
 
 from falk.providers.routing import add_route_provider, get_url_provider
 from falk.dependency_injection import run_callback, run_coroutine_sync
+from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
@@ -123,6 +124,7 @@ def get_default_app():
             "set_response_file": set_response_file_provider,
             "set_response_json": set_response_json_provider,
             "get_url": get_url_provider,
+            "add_static_dir": add_static_dir_provider,
         },
     })
 
@@ -164,6 +166,7 @@ def run_configure_app(configure_app):
         },
         providers={
             "add_route": add_route_provider,
+            "add_static_dir": add_static_dir_provider,
             "get_url": get_url_provider,
 
             "add_pre_component_middleware":
