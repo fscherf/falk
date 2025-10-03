@@ -4,7 +4,7 @@ from falk.utils.path import get_abs_path
 def add_static_dir_provider(caller, mutable_settings):
     def add_static_dir(path):
         abs_path = get_abs_path(
-            callback=caller,
+            caller=caller,
             path=path,
             require_directory=True,
         )
