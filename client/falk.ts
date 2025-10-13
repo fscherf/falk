@@ -128,7 +128,11 @@ class Falk {
         const attribute = element.getAttribute(attributeName);
         let fn: Function = new Function(attribute);
 
-        fn.call(element);
+        try {
+          fn.call(element);
+        } catch (error) {
+          console.error(error);
+        }
       },
       rootNode,
     );
