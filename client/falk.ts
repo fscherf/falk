@@ -277,8 +277,6 @@ class Falk {
   };
 }
 
-window.addEventListener("load", () => {
-  window["falk"] = new Falk();
+window["falk"] = new Falk();
 
-  window["falk"].init();
-});
+window["falk"].init();
