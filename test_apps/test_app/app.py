@@ -1,4 +1,9 @@
 def configure_app(add_route, add_static_dir):
+    from test_app.components.rendering.styles_and_scripts import (
+        StylesAndScripts,
+        CodeSplitting,
+    )
+
     from test_app.components.rendering.iframes import Iframes, Iframe
     from test_app.components.events.render import Render
     from test_app.components.events.change import Change
@@ -12,6 +17,18 @@ def configure_app(add_route, add_static_dir):
     add_static_dir("./static/")
 
     # routes: rendering
+    add_route(
+        r"/rendering/styles-and-scripts(/)",
+        StylesAndScripts,
+        name="rendering__styles_and_scripts",
+    )
+
+    add_route(
+        r"/rendering/code-splitting(/)",
+        CodeSplitting,
+        name="rendering__code_splitting",
+    )
+
     add_route(
         r"/rendering/iframe/<index:\d+>(/)",
         Iframe,

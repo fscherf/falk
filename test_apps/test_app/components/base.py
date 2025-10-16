@@ -16,6 +16,8 @@ def Base(context, props):
                     <li>
                         Rendering
                         <ul>
+                            <li><a href="{{ get_url('rendering__styles_and_scripts') }}">Styles and Scripts</a></li>
+                            <li><a href="{{ get_url('rendering__code_splitting') }}">Code Splitting</a></li>
                             <li><a href="{{ get_url('rendering__iframes') }}">iFrames</a></li>
                         </ul>
                     </li>

@@ -12,6 +12,7 @@ from falk.extra_template_context import get_url
 from falk.utils.environment import get_boolean
 from falk.components import Error404, Error500
 from falk.node_ids import get_node_id
+from falk.hashing import get_md5_hash
 from falk.keys import get_random_key
 
 from falk.component_caching import (
@@ -47,6 +48,7 @@ def get_default_app():
     mutable_app = {
         "settings": {
             "run_coroutine_sync": run_coroutine_sync,
+            "hash_string": get_md5_hash,
             "websockets": get_boolean("FALK_WEBSOCKETS", True),
         },
         "entry_points": {

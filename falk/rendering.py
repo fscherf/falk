@@ -112,58 +112,34 @@ def _callback(
 
 @pass_context
 def _falk_styles(context):
-    return Template("""
-        {% for url in style_urls %}
-            <link rel="stylesheet" href="{{ url }}">
-        {% endfor %}
-    """).render({
-        "settings": context["settings"],
-        "style_urls": context["_parts"]["style_urls"],
-    })
+    return render_styles(
+        app=context["app"],
+        styles=context["_parts"]["styles"],
+    )
 
 
 @pass_context
 def _falk_scripts(context):
-    return Template("""
-        <script src="{{ settings['static_url_prefix'] }}falk/falk.js"></script>
-
-        {% for url in script_urls %}
-            <script src="{{ url }}"></script>
-        {% endfor %}
-    """).render({
-        "settings": context["settings"],
-        "script_urls": context["_parts"]["script_urls"],
-    })
+    return render_scripts(
+        app=context["app"],
+        scripts=context["_parts"]["scripts"],
+    )
 
 
-def _resolve_urls(component, urls, static_url_prefix):
-    resolved_urls = set()
+def render_styles(app, styles):
+    return "\n".join(styles)
 
-    for url in urls:
 
-        # external URLs
-        if "://" in url:
-            resolved_urls.add(url)
+def render_scripts(app, scripts):
+    client_url = os.path.join(
+        app["settings"]["static_url_prefix"],
+        "falk/falk.js",
+    )
 
-            continue
-
-        # static URLs
-        prefix = "/static/"
-
-        if url.startswith(prefix):
-            resolved_urls.add(
-                os.path.join(
-                    static_url_prefix,
-                    url[len(prefix):],
-                ),
-            )
-
-        else:
-            raise NotImplementedError(
-                "only external and static URLs are supported",
-            )
-
-    return urls
+    return "\n".join([
+        f'<script src="{client_url}"></script>',
+        *scripts,
+    ])
 
 
 def render_component(
@@ -183,11 +159,14 @@ def render_component(
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
 
+    # TODO: Since mutation requests return HTML now, it would be much nicer if
+    # this method would return an HTML document as a string.
+
     if parts is None:
         parts = {
             "html": "",
-            "style_urls": [],
-            "script_urls": [],
+            "styles": [],
+            "scripts": [],
             "tokens": {},
         }
 
@@ -311,28 +290,31 @@ def render_component(
         )
 
     # parse component template
+    def _hash_string(string):
+        return mutable_app["settings"]["hash_string"](
+            mutable_app=mutable_app,
+            string=string,
+        )
+
     component_blocks = parse_component_template(
         component_template=component_template,
+        component=component,
+        static_url_prefix=mutable_app["settings"]["static_url_prefix"],
+        hash_string=_hash_string,
     )
 
-    # style URLs
+    # add styles and scripts to the output
+    # We use `extend_with_unique_values` here to prevent styles and scripts
+    # to be added to the document more than once if a component is used
+    # multiple times or if two components share a static file.
     extend_with_unique_values(
-        parts["style_urls"],
-        _resolve_urls(
-            component=component,
-            urls=component_blocks["style_urls"],
-            static_url_prefix=mutable_app["settings"]["static_url_prefix"],
-        ),
+        parts["styles"],
+        component_blocks["styles"],
     )
 
-    # script URLs
     extend_with_unique_values(
-        parts["script_urls"],
-        _resolve_urls(
-            component=component,
-            urls=component_blocks["script_urls"],
-            static_url_prefix=mutable_app["settings"]["static_url_prefix"],
-        ),
+        parts["scripts"],
+        component_blocks["scripts"],
     )
 
     # generate token

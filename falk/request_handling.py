@@ -1,10 +1,10 @@
 import logging
 import time
 
+from falk.rendering import render_component, render_styles, render_scripts
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.http import set_header, set_status
-from falk.rendering import render_component
 from falk.routing import get_component
 from falk.components import ItWorks
 
@@ -156,7 +156,6 @@ def run_middlewares(
 def handle_request(request, mutable_app):
     # TODO: make logging configurable
     # TODO: add client host and user agent to logs
-    # TODO: add support for style and script URLs to mutation requests
 
     start_time = time.perf_counter()
     response = get_response()
@@ -216,7 +215,7 @@ def handle_request(request, mutable_app):
                         )
 
             # render component
-            html = render_component(
+            parts = render_component(
                 component=component,
                 mutable_app=mutable_app,
                 request=request,
@@ -224,7 +223,7 @@ def handle_request(request, mutable_app):
                 node_id=request["node_id"],
                 component_state=component_state,
                 run_component_callback=request["callback_name"],
-            )["html"]
+            )
 
         # post component middlewares
         run_middlewares(
@@ -248,24 +247,30 @@ def handle_request(request, mutable_app):
             "exception": exception,
         }
 
-        html = render_component(
+        parts = render_component(
             component=component,
             mutable_app=mutable_app,
             request=request,
             response=response,
             component_props=component_props,
-        )["html"]
+        )
 
     # set response body
     if request["is_mutation_request"]:
-        response["json"] = {
-            "html": html,
-        }
-
-        response["content_type"] = "application/json"
+        response["body"] = (
+            render_styles(
+                app=mutable_app,
+                styles=parts["styles"],
+            ) +
+            parts["html"] +
+            render_scripts(
+                app=mutable_app,
+                scripts=parts["scripts"],
+            )
+        )
 
     elif not response["is_finished"]:
-        response["body"] = html
+        response["body"] = parts["html"]
 
     # access log
     end_time = time.perf_counter()

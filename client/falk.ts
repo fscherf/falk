@@ -20,7 +20,7 @@ class Falk {
   };
 
   // request handling: AJAX
-  public sendHttpRequest = async (data) => {
+  public sendHttpRequest = async (data): Promise<string> => {
     return new Promise(async (resolve, reject) => {
       const response = await fetch(window.location + "", {
         method: "POST",
@@ -34,9 +34,9 @@ class Falk {
         reject(`HTTP error! Status: ${response.status}`);
       }
 
-      const responseData = await response.json();
+      const responseText = await response.text();
 
-      resolve(responseData);
+      resolve(responseText);
     });
   };
 
@@ -45,7 +45,7 @@ class Falk {
     const [messageId, messageData] = JSON.parse(event.data);
     const promiseCallbacks = this.pendingWebsocketRequests.get(messageId);
 
-    promiseCallbacks["resolve"](messageData["json"]);
+    promiseCallbacks["resolve"](messageData["body"]);
 
     this.pendingWebsocketRequests.delete(messageId);
   };
@@ -69,7 +69,7 @@ class Falk {
     });
   };
 
-  public sendWebsocketRequest = async (data) => {
+  public sendWebsocketRequest = async (data): Promise<string> => {
     return new Promise(async (resolve, reject) => {
       // connect websocket if necessary
       if (this.websocket.readyState !== this.websocket.OPEN) {
@@ -92,7 +92,7 @@ class Falk {
   };
 
   // request handling
-  public sendRequest = async (data) => {
+  public sendRequest = async (data): Promise<string> => {
     if (this.websocketsAvailable) {
       return await this.sendWebsocketRequest(data);
     } else {
@@ -191,7 +191,42 @@ class Falk {
   // node patching
   public patchNode = (node, newNode) => {
     return morphdom(node, newNode, {
+      onBeforeNodeAdded: (node) => {
+        // ignore styles and scripts
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return node;
+        }
+
+        const tagName: string = (node as HTMLElement).tagName;
+
+        if (["SCRIPT", "LINK", "STYLE"].includes(tagName)) {
+          return false;
+        }
+
+        return node;
+      },
+
+      onBeforeNodeDiscarded: (node) => {
+        // ignore styles and scripts
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return true;
+        }
+
+        const tagName: string = (node as HTMLElement).tagName;
+
+        if (["SCRIPT", "LINK", "STYLE"].includes(tagName)) {
+          return false;
+        }
+
+        return true;
+      },
+
       onBeforeElUpdated: (fromEl, toEl) => {
+        // ignore styles and scripts
+        if (["SCRIPT", "LINK", "STYLE"].includes(fromEl.tagName)) {
+          return false;
+        }
+
         // preserve values of input elemente
         if (
           (fromEl instanceof HTMLInputElement &&
@@ -247,14 +282,100 @@ class Falk {
     }
 
     setTimeout(async () => {
-      const responseData = await this.sendRequest(data);
+      const responseText: string = await this.sendRequest(data);
       const domParser = new DOMParser();
 
-      const newDocument = domParser.parseFromString(
-        responseData["html"],
-        "text/html",
+      const newDocument = domParser.parseFromString(responseText, "text/html");
+
+      // load linked styles
+      const linkNodes = newDocument.head.querySelectorAll(
+        "link[rel=stylesheet]",
       );
 
+      linkNodes.forEach((node) => {
+        // check if style is already loaded
+        let selector: string;
+        const styleHref: string = node.getAttribute("href");
+
+        if (styleHref) {
+          selector = `link[href="${styleHref}"]`;
+        } else {
+          const styleId: string = node.getAttribute("data-falk-id");
+
+          selector = `link[data-falk-id="${styleId}"]`;
+        }
+
+        if (document.querySelector(selector)) {
+          return;
+        }
+
+        // load style
+        document.head.appendChild(node);
+      });
+
+      // load styles
+      const styleNodes = newDocument.head.querySelectorAll("style");
+
+      styleNodes.forEach((node) => {
+        // check if style is already loaded
+        const styleId: string = node.getAttribute("data-falk-id");
+        const selector = `style[data-falk-id="${styleId}"]`;
+
+        if (document.querySelector(selector)) {
+          return;
+        }
+
+        // load style
+        document.head.appendChild(node);
+      });
+
+      // load scripts
+      const scriptNodes = newDocument.body.querySelectorAll("script");
+      const promises = new Array();
+
+      scriptNodes.forEach((node) => {
+        // check if script is already loaded
+        let selector: string;
+        const scriptSrc: string = node.getAttribute("src");
+
+        if (scriptSrc) {
+          selector = `script[src="${scriptSrc}"]`;
+        } else {
+          const scriptId: string = node.getAttribute("data-falk-id");
+
+          selector = `script[data-falk-id="${scriptId}"]`;
+        }
+
+        if (document.querySelector(selector)) {
+          return;
+        }
+
+        // load script
+        // We need to create a new node so our original document will run it.
+        const newNode = document.createElement("script");
+
+        for (const attribute of node.attributes) {
+          newNode.setAttribute(attribute.name, attribute.value);
+        }
+
+        if (!node.src) {
+          newNode.textContent = node.textContent;
+        } else {
+          const promise = new Promise((resolve) => {
+            newNode.addEventListener("load", () => {
+              resolve(null);
+            });
+          });
+
+          promises.push(promise);
+        }
+
+        document.body.appendChild(newNode);
+      });
+
+      await Promise.all(promises);
+
+      // render HTML
       // patch entire document
       if (node.tagName == "HTML") {
         // patch the attributes of the HTML node
@@ -272,6 +393,7 @@ class Falk {
         this.patchNode(node, newDocument.body.firstChild);
       }
 
+      // run hooks
       this.runHook("render", node);
     }, delay);
   };

@@ -1,6 +1,5 @@
 from html.parser import HTMLParser
-
-from falk.utils.iterables import add_unique_value
+import os
 
 from falk.errors import (
     InvalidStyleBlockError,
@@ -32,17 +31,44 @@ class ComponentTemplateParser(HTMLParser):
         index = self.get_index()
 
         # handle self closing tags
-        if self._input[index+1] == "/":
+        if self._component_template[index+1] == "/":
             index += 1
 
-        return self._input[index+1:index+len(normalized_tag_name)+1]
+        return (
+            self._component_template[index+1:index+len(normalized_tag_name)+1]
+        )
 
     def get_attribute(self, attribute_list, name):
         for key, value in attribute_list:
             if name == key:
                 return value
 
-    def render_attribute_string(self, attribute_list=None, overrides=None):
+    def resolve_url(self, url):
+
+        # external URLs
+        if "://" in url:
+            return url
+
+        # static URLs
+        prefix = "/static/"
+
+        if url.startswith(prefix):
+            return os.path.join(
+                self._static_url_prefix,
+                url[len(prefix):],
+            )
+
+        raise NotImplementedError(
+            "only external and static URLs are supported",
+        )
+
+    def render_attribute_string(
+            self,
+            attribute_list=None,
+            overrides=None,
+            sort_names=False,
+    ):
+
         attribute_string_parts = []
         attribute_list = attribute_list or []
         attributes = {}
@@ -52,7 +78,12 @@ class ComponentTemplateParser(HTMLParser):
 
         attributes.update(overrides or {})
 
-        for key, value in attributes.items():
+        items = attributes.items()
+
+        if sort_names:
+            items = sorted(items, key=lambda item: item[0])
+
+        for key, value in items:
             if value is None:
                 attribute_string_parts.append(key)
 
@@ -143,36 +174,33 @@ class ComponentTemplateParser(HTMLParser):
         if not self._stack:
 
             # styles
-            if normalized_tag_name == "style":
-                self._stack.append("style")
+            if normalized_tag_name in ("style", "link"):
+                if normalized_tag_name == "link":
+                    href = self.get_attribute(attribute_list, "href")
+
+                    if not href:
+                        raise InvalidStyleBlockError(
+                            "link nodes need to define a href",
+                        )
+
+                else:
+                    self._stack.append("style")
+
+                self._output["styles"].append([
+                    normalized_tag_name,
+                    attribute_list,
+                    "",
+                ])
 
                 return
 
-            # style URLs
-            if normalized_tag_name == "link":
-                href = self.get_attribute(attribute_list, "href")
-
-                if not href:
-                    raise InvalidStyleBlockError(
-                        "link nodes need to define a href",
-                    )
-
-                add_unique_value(
-                    self._output["style_urls"],
-                    href,
-                )
-
-                return
-
-            # script URLs
+            # scripts
             if normalized_tag_name == "script":
-                src = self.get_attribute(attribute_list, "src")
-
-                if src:
-                    add_unique_value(
-                        self._output["script_urls"],
-                        src,
-                    )
+                self._output["scripts"].append([
+                    normalized_tag_name,
+                    attribute_list,
+                    "",
+                ])
 
                 self._stack.append("script")
 
@@ -270,11 +298,11 @@ class ComponentTemplateParser(HTMLParser):
     def handle_data(self, data):
         # styles
         if self._stack == ["style"]:
-            self._output["styles"].append(data.strip())
+            self._output["styles"][-1][2] = data.strip()
 
         # scripts
         elif self._stack == ["script"]:
-            self._output["scripts"].append(data.strip())
+            self._output["scripts"][-1][2] = data.strip()
 
         # HTML
         else:
@@ -327,15 +355,21 @@ class ComponentTemplateParser(HTMLParser):
             )
 
     # public API
-    def parse(self, component_template):
-        self._input = component_template
+    def parse(
+            self,
+            component_template,
+            component, static_url_prefix,
+            hash_string,
+    ):
+
+        self._component_template = component_template
+        self._component = component
+        self._static_url_prefix = static_url_prefix
 
         self._output = {
             "styles": [],
-            "style_urls": [],
             "jinja2_template": "",
             "scripts": [],
-            "script_urls": [],
         }
 
         self._has_root_node = False
@@ -355,10 +389,127 @@ class ComponentTemplateParser(HTMLParser):
                 f"stack: {', '.join(self._stack)}",
             )
 
+        # render styles and scripts
+        # styles
+        for index, style_parts in enumerate(self._output["styles"]):
+            tag_name, attribute_list, data = style_parts
+
+            # link tags
+            if tag_name == "link":
+                href = self.get_attribute(attribute_list, "href")
+
+                overrides = {
+                    "href": self.resolve_url(
+                        url=href,
+                    ),
+
+                    # `rel` is needed to make the browser load and apply the
+                    # stylesheet. This override serves as a sensible default.
+                    "rel": "stylesheet",
+                }
+
+                attribute_string = self.render_attribute_string(
+                    attribute_list=attribute_list,
+                    overrides=overrides,
+                    sort_names=True,
+                )
+
+                self._output["styles"][index] = f"<link{attribute_string}>"
+
+            # style tags
+            else:
+                overrides = {}
+
+                identifier = self.get_attribute(
+                    attribute_list,
+                    "data-falk-id",
+                )
+
+                if not identifier:
+                    identifier = self.get_attribute(
+                        attribute_list,
+                        "id",
+                    )
+
+                # No identifier found, so we generate a hash of the
+                # tags content.
+                if not identifier:
+                    identifier = hash_string(data)
+
+                overrides["data-falk-id"] = identifier
+
+                attribute_string = self.render_attribute_string(
+                    attribute_list=attribute_list,
+                    overrides=overrides,
+                    sort_names=True,
+                )
+
+                self._output["styles"][index] = (
+                    f"<style{attribute_string}>{data}</style>"
+                )
+
+        # scripts
+        for index, style_parts in enumerate(self._output["scripts"]):
+            tag_name, attribute_list, data = style_parts
+            src = self.get_attribute(attribute_list, "src")
+            overrides = {}
+
+            if src:
+                overrides["src"] = self.resolve_url(
+                    url=src,
+                )
+
+            else:
+                # The script does not have an URL, so we need to find or
+                # create an identifier.
+                identifier = self.get_attribute(
+                    attribute_list,
+                    "data-falk-id",
+                )
+
+                if not identifier:
+                    identifier = self.get_attribute(
+                        attribute_list,
+                        "id",
+                    )
+
+                # No identifier found, so we generate a hash of the
+                # tags content.
+                if not identifier:
+                    identifier = hash_string(data)
+
+                overrides["data-falk-id"] = identifier
+
+            attribute_string = self.render_attribute_string(
+                attribute_list=attribute_list,
+                overrides=overrides,
+                sort_names=True,
+            )
+
+            self._output["scripts"][index] = (
+                f"<script{attribute_string}>{data}</script>"
+            )
+
         return self._output
 
 
-def parse_component_template(component_template):
+def parse_component_template(
+        component_template,
+        component,
+        static_url_prefix,
+        hash_string,
+):
+
+    # NOTE: The attributes need to be sorted to normalize the rendered tags
+    # so they can be deduplicated while rendering the whole document.
+
+    # NOTE: We need need to find or generate an identifier (URL, id, or hash)
+    # here so we don't need to add a necessary hydration/init step to
+    # the client.
+
     return ComponentTemplateParser().parse(
         component_template=component_template,
+        component=component,
+        static_url_prefix=static_url_prefix,
+        hash_string=hash_string,
     )
