@@ -26,11 +26,23 @@ def Counter(context, state, initial_render, props):
     })
 
     return """
-        <div id="{{ props.id }}">
-            <button onclick="{{ callback(update, ['dec', 1]) }}">-</button>
-            <span>{{ state.count }}</span>
-            <button onclick="{{ callback(update, ['inc', 1]) }}">+</button>
-            <button onclick="{{ callback(reset) }}">Reset</button>
+        <div class="counter" id="{{ props.id }}">
+            <button
+              class="decrement"
+              onclick="{{ callback(update, ['dec', 1]) }}"
+              >-</button>
+
+            <span class="state">{{ state.count }}</span>
+
+            <button
+              class="increment"
+              onclick="{{ callback(update, ['inc', 1]) }}"
+              >+</button>
+
+            <button
+              class="reset"
+              onclick="{{ callback(reset) }}"
+              >Reset</button>
         </div>
     """
 
