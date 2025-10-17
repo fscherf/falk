@@ -4,7 +4,6 @@ from test_app.components.base import Base
 
 def Iframe(
         request,
-        context,
         initial_render,
         state,
         Counter=Counter,
@@ -13,11 +12,6 @@ def Iframe(
 
     if initial_render:
         state["index"] = request["match_info"]["index"]
-
-    context.update({
-        "Base": Base,
-        "Counter": Counter,
-    })
 
     return """
         <Base title="iFrames" menu="{{ False }}">
@@ -39,7 +33,6 @@ def Iframes(context, state, initial_render, Base=Base):
         state["active_index"] = args[0]
 
     context.update({
-        "Base": Base,
         "set_active_index": set_active_index,
     })
 

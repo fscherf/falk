@@ -2,11 +2,7 @@ from test_app.components.events.click import Counter
 from test_app.components.base import Base
 
 
-def Component(context, Counter=Counter):
-    context.update({
-        "Counter": Counter,
-    })
-
+def Component(Counter=Counter):
     return """
         <link href="/static/component.css">
 
@@ -49,17 +45,7 @@ def Component(context, Counter=Counter):
     """
 
 
-def StylesAndScripts(
-        context,
-        Base=Base,
-        Component=Component,
-):
-
-    context.update({
-        "Base": Base,
-        "Component": Component,
-    })
-
+def StylesAndScripts(Base=Base, Component=Component):
     return """
         <Base title="Styles and Scripts">
             <h2>Styles and Scripts</h2>
@@ -84,8 +70,6 @@ def CodeSplitting(
         state["load_component"] = True
 
     context.update({
-        "Base": Base,
-        "Component": Component,
         "load_component": load_component,
     })
 

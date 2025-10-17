@@ -10,7 +10,6 @@ def Change(context, Base=Base):
         })
 
     context.update({
-        "Base": Base,
         "event_data_string": "{}",
         "format_event_data": format_event_data,
     })

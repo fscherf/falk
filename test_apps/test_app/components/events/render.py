@@ -19,12 +19,7 @@ def Clock(context, props, initial_render, state):
     """
 
 
-def Render(context, Base=Base, Clock=Clock):
-    context.update({
-        "Base": Base,
-        "Clock": Clock,
-    })
-
+def Render(Base=Base, Clock=Clock):
     return """
         <Base title="Render Events">
             <h2>Render Events</h2>
