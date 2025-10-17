@@ -37,11 +37,6 @@ def test_basic_request_handling(page, start_falk_app):
         """
 
     def Index(context, HTML5Base=HTML5Base, Counter=Counter):
-        context.update({
-            "HTML5Base": HTML5Base,
-            "Counter": Counter,
-        })
-
         return """
             <HTML5Base title="Counter">
                 <h1 id="title">Counter</h1>
