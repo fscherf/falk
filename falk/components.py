@@ -17,11 +17,7 @@ def HTML5Base(props):
     """
 
 
-def ItWorks(context, HTML5Base=HTML5Base):
-    context.update({
-        "HTML5Base": HTML5Base,
-    })
-
+def ItWorks(HTML5Base=HTML5Base):
     return """
       <HTML5Base title="It works!">
         <h1>It works!</h1>
@@ -29,12 +25,8 @@ def ItWorks(context, HTML5Base=HTML5Base):
     """
 
 
-def Error404(context, set_response_status, HTML5Base=HTML5Base):
+def Error404(set_response_status, HTML5Base=HTML5Base):
     set_response_status(404)
-
-    context.update({
-        "HTML5Base": HTML5Base,
-    })
 
     return """
         <HTML5Base title="404 Not Found">
@@ -46,7 +38,6 @@ def Error404(context, set_response_status, HTML5Base=HTML5Base):
 
 def Error500(
         request,
-        context,
         response,
         set_response_status,
         HTML5Base=HTML5Base,
@@ -63,10 +54,6 @@ def Error500(
 
     if not request["is_mutation_request"]:
         set_response_status(500)
-
-    context.update({
-        "HTML5Base": HTML5Base,
-    })
 
     if request["is_mutation_request"]:
         return """
