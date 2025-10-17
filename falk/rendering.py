@@ -5,11 +5,11 @@ import os
 
 from jinja2 import Template, pass_context
 
+from falk.dependency_injection import run_callback, get_dependencies
 from falk.errors import InvalidComponentError, UnknownComponentError
 from falk.component_templates import parse_component_template
 from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
-from falk.dependency_injection import run_callback
 
 
 @pass_context
@@ -23,12 +23,14 @@ def _render_component(
 ):
 
     # find component in context
-    if _component_name not in context:
+    if _component_name not in context["_components"]:
+
+        # TODO: state which component is lacking the dependency
         raise UnknownComponentError(
-            f'component "{_component_name}" was not found in the context',
+            f'component "{_component_name}" was not found in the dependencies',
         )
 
-    component = context[_component_name]
+    component = context["_components"][_component_name]
 
     # prepare props
     if "props" in props:
@@ -239,6 +241,11 @@ def render_component(
     template_context = {
         **builtins.__dict__,
         **data,
+
+        # TODO: we inspect the component at least twice here. Explicitly using
+        # `get_dependencies()` and inexplicitly using `run_callback()`.
+        "_components": get_dependencies(component)[1],
+
         "_render_component": _render_component,
         "_parts": parts,
         "callback": _callback,
