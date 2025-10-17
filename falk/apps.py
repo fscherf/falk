@@ -56,7 +56,6 @@ def get_default_app():
             "on_startup": lambda mutable_app: None,
             "on_shutdown": lambda mutable_app: None,
         },
-        "component_cache": {},
         "components": {},
         "routes": [],
     }
