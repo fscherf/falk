@@ -28,12 +28,19 @@ class Falk {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
+        redirect: "manual",
       });
 
       if (!response.ok) {
         reject(`HTTP error! Status: ${response.status}`);
       }
 
+      // redirect responses
+      if (response.type == "opaqueredirect") {
+        window.location.reload();
+      }
+
+      // HTML responses
       const responseText = await response.text();
 
       resolve(responseText);
@@ -45,6 +52,12 @@ class Falk {
     const [messageId, messageData] = JSON.parse(event.data);
     const promiseCallbacks = this.pendingWebsocketRequests.get(messageId);
 
+    // redirect responses
+    if (messageData["status"] == 302) {
+        window.location.reload();
+    }
+
+    // HTML responses
     promiseCallbacks["resolve"](messageData["body"]);
 
     this.pendingWebsocketRequests.delete(messageId);

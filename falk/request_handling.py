@@ -2,6 +2,7 @@ import logging
 import time
 
 from falk.rendering import render_component, render_styles, render_scripts
+from falk.errors import UnknownComponentIdError, InvalidTokenError
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.http import set_header, set_status
@@ -161,6 +162,7 @@ def handle_request(request, mutable_app):
     response = get_response()
     component = None
     component_state = None
+    parts = {}
 
     try:
         # pre component middlewares
@@ -178,19 +180,43 @@ def handle_request(request, mutable_app):
             # mutation request (JSON response)
             if request["is_mutation_request"]:
 
-                # decode token
-                component_id, component_state = (
-                    mutable_app["settings"]["decode_token"](
-                        token=request["token"],
+                try:
+                    # decode token
+                    component_id, component_state = (
+                        mutable_app["settings"]["decode_token"](
+                            token=request["token"],
+                            mutable_app=mutable_app,
+                        )
+                    )
+
+                    # get component from cache
+                    component = mutable_app["settings"]["get_component"](
+                        component_id=component_id,
                         mutable_app=mutable_app,
                     )
-                )
 
-                # get component from cache
-                component = mutable_app["settings"]["get_component"](
-                    component_id=component_id,
-                    mutable_app=mutable_app,
-                )
+                except (InvalidTokenError, UnknownComponentIdError):
+                    # When the app gets restarted and generates random
+                    # `settings["token_key"]` and/or
+                    # `settings["component_id_salt"]` these errors happen on
+                    # clients which are sending mutatation requests to the new
+                    # instance using tokens, the old app generated.
+                    #
+                    # Reloading fixes both errors, so we return an
+                    # HTTP redirect.
+
+                    set_status(
+                        response=response,
+                        status=302,
+                    )
+
+                    set_header(
+                        headers=response["headers"],
+                        name="Location",
+                        value=request["path"],
+                    )
+
+                    response["is_finished"] = True
 
             # initial render (HTML response)
             # if no routes are configured, we default to the
@@ -215,15 +241,16 @@ def handle_request(request, mutable_app):
                         )
 
             # render component
-            parts = render_component(
-                component=component,
-                mutable_app=mutable_app,
-                request=request,
-                response=response,
-                node_id=request["node_id"],
-                component_state=component_state,
-                run_component_callback=request["callback_name"],
-            )
+            if not response["is_finished"]:
+                parts = render_component(
+                    component=component,
+                    mutable_app=mutable_app,
+                    request=request,
+                    response=response,
+                    node_id=request["node_id"],
+                    component_state=component_state,
+                    run_component_callback=request["callback_name"],
+                )
 
         # post component middlewares
         run_middlewares(
@@ -256,21 +283,22 @@ def handle_request(request, mutable_app):
         )
 
     # set response body
-    if request["is_mutation_request"]:
-        response["body"] = (
-            render_styles(
-                app=mutable_app,
-                styles=parts["styles"],
-            ) +
-            parts["html"] +
-            render_scripts(
-                app=mutable_app,
-                scripts=parts["scripts"],
+    if parts:
+        if request["is_mutation_request"]:
+            response["body"] = (
+                render_styles(
+                    app=mutable_app,
+                    styles=parts["styles"],
+                ) +
+                parts["html"] +
+                render_scripts(
+                    app=mutable_app,
+                    scripts=parts["scripts"],
+                )
             )
-        )
 
-    elif not response["is_finished"]:
-        response["body"] = parts["html"]
+        elif not response["is_finished"]:
+            response["body"] = parts["html"]
 
     # access log
     end_time = time.perf_counter()
@@ -279,7 +307,13 @@ def handle_request(request, mutable_app):
     action_string = "initial render"
 
     if request["is_mutation_request"]:
-        action_string = f"mutation: {component.__module__}.{component.__qualname__}:{request['node_id']}"  # NOQA
+        if component:
+            component_identifier = f"{component.__module__}.{component.__qualname__}"  # NOQA
+
+        else:
+            component_identifier = "UKNOWN"
+
+        action_string = f"mutation: {component_identifier}:{request['node_id']}"  # NOQA
 
     access_logger.info(
         "%s/%s %s %s -- %s -- took %s",
