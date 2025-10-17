@@ -130,6 +130,9 @@ def get_default_app():
             "set_response_file": set_response_file_provider,
             "set_response_json": set_response_json_provider,
             "get_url": get_url_provider,
+
+            # TODO: `add_static_dir()` only works correctly on single node
+            # application servers.
             "add_static_dir": add_static_dir_provider,
         },
     })
