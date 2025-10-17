@@ -9,10 +9,20 @@ from falk.errors import (
 )
 
 
-def get_dependency_names(callback):
-    signature = inspect.signature(callback)
+def get_dependencies(callback):
+    required_dependencies = []
+    dependencies = {}
 
-    return list(signature.parameters.keys())
+    parameters = inspect.signature(callback).parameters
+
+    for name, parameter in parameters.items():
+        if parameter.default is inspect.Parameter.empty:
+            required_dependencies.append(name)
+
+        else:
+            dependencies[name] = parameter.default
+
+    return required_dependencies, dependencies
 
 
 def run_coroutine_sync(coroutine):
@@ -43,7 +53,7 @@ def run_callback(
         dependencies=None,
         providers=None,
         cache=None,
-        get_dependency_names=get_dependency_names,
+        get_dependencies=get_dependencies,
         run_coroutine_sync=run_coroutine_sync,
         _stack=None,
 ):
@@ -67,10 +77,10 @@ def run_callback(
         cache = {}
 
     # inspect callback
-    names = get_dependency_names(callback=callback)
+    required_dependencies, _ = get_dependencies(callback=callback)
 
     # search for unknown dependencies
-    for name in names:
+    for name in required_dependencies:
         if name not in providers and name not in dependencies:
             raise UnknownDependencyError(
                 format_dependencies([callback, name])
@@ -78,7 +88,7 @@ def run_callback(
 
     callback_dependencies = {}
 
-    for name in names:
+    for name in required_dependencies:
 
         # dependencies
         # We prefer directly injected dependencies over provider dependencies
@@ -113,7 +123,7 @@ def run_callback(
             providers=providers,
             dependencies=dependencies,
             cache=cache,
-            get_dependency_names=get_dependency_names,
+            get_dependencies=get_dependencies,
             run_coroutine_sync=run_coroutine_sync,
             _stack=_stack + [name],
         )

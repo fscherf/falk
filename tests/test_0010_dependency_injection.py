@@ -1,13 +1,18 @@
 import pytest
 
 
-def test_get_dependency_names():
-    from falk.dependency_injection import get_dependency_names
+def test_get_dependencies():
+    from falk.dependency_injection import get_dependencies
 
-    def callback1(arg_1, arg_2, arg_3):
+    def callback1(arg_1, arg_2, arg_3, arg_4="value"):
         pass  # pragma: no cover
 
-    assert get_dependency_names(callback1) == ["arg_1", "arg_2", "arg_3"]
+    assert get_dependencies(
+        callback=callback1,
+    ) == (
+        ["arg_1", "arg_2", "arg_3"],
+        {"arg_4": "value"},
+    )
 
 
 def test_run_callback():
@@ -78,8 +83,8 @@ def test_dependency_name_caching():
     from falk.dependency_injection import run_callback
     from falk.errors import UnknownDependencyError
 
-    def get_wrong_dependency_names(callback):
-        return ["arg_4"]
+    def get_wrong_dependencies(callback):
+        return ["arg_4"], {}
 
     def callback1(arg_1, arg_2, arg_3):
         pass  # pragma: no cover
@@ -101,7 +106,7 @@ def test_dependency_name_caching():
         run_callback(
             callback=callback1,
             dependencies=dependencies,
-            get_dependency_names=get_wrong_dependency_names,
+            get_dependencies=get_wrong_dependencies,
         )
 
 
