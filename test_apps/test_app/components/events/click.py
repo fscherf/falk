@@ -47,7 +47,7 @@ def Counter(context, state, initial_render, props):
     """
 
 
-def Click(context):
+def Click(context, Base=Base, Counter=Counter):
     context.update({
         "Base": Base,
         "Counter": Counter,

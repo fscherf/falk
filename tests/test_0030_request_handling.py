@@ -36,7 +36,7 @@ def test_basic_request_handling(page, start_falk_app):
             </button>
         """
 
-    def Index(context):
+    def Index(context, HTML5Base=HTML5Base, Counter=Counter):
         context.update({
             "HTML5Base": HTML5Base,
             "Counter": Counter,

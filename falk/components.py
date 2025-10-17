@@ -17,7 +17,7 @@ def HTML5Base(props):
     """
 
 
-def ItWorks(context):
+def ItWorks(context, HTML5Base=HTML5Base):
     context.update({
         "HTML5Base": HTML5Base,
     })
@@ -29,7 +29,7 @@ def ItWorks(context):
     """
 
 
-def Error404(context, set_response_status):
+def Error404(context, set_response_status, HTML5Base=HTML5Base):
     set_response_status(404)
 
     context.update({
@@ -44,7 +44,13 @@ def Error404(context, set_response_status):
     """
 
 
-def Error500(request, context, response, set_response_status):
+def Error500(
+        request,
+        context,
+        response,
+        set_response_status,
+        HTML5Base=HTML5Base,
+):
 
     # reset response
     response.update({

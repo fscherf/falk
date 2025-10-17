@@ -3,7 +3,7 @@ from pprint import pformat
 from test_app.components.base import Base
 
 
-def Change(context):
+def Change(context, Base=Base):
     def format_event_data(event):
         context.update({
             "event_data_string": pformat(event),

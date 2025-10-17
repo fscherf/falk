@@ -2,7 +2,15 @@ from test_app.components.events.click import Counter
 from test_app.components.base import Base
 
 
-def Iframe(request, context, initial_render, state):
+def Iframe(
+        request,
+        context,
+        initial_render,
+        state,
+        Counter=Counter,
+        Base=Base,
+):
+
     if initial_render:
         state["index"] = request["match_info"]["index"]
 
@@ -23,7 +31,7 @@ def Iframe(request, context, initial_render, state):
     """
 
 
-def Iframes(context, state, initial_render):
+def Iframes(context, state, initial_render, Base=Base):
     if initial_render:
         state["active_index"] = 0
 

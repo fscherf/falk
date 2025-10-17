@@ -15,9 +15,9 @@ from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
 from falk.keys import get_random_key
 
-from falk.component_caching import (
+from falk.component_registry import (
+    register_component,
     get_component_id,
-    cache_component,
     get_component,
 )
 
@@ -57,6 +57,7 @@ def get_default_app():
             "on_shutdown": lambda mutable_app: None,
         },
         "component_cache": {},
+        "components": {},
         "routes": [],
     }
 
@@ -101,7 +102,7 @@ def get_default_app():
         "error_500_component": Error500,
     })
 
-    # settings: component caching
+    # settings: component registry
     if "FALK_COMPONENT_ID_SALT" in os.environ:
         component_id_salt = os.environ["FALK_COMPONENT_ID_SALT"]
 
@@ -111,7 +112,7 @@ def get_default_app():
     mutable_app["settings"].update({
         "component_id_salt": component_id_salt,
         "get_component_id": get_component_id,
-        "cache_component": cache_component,
+        "register_component": register_component,
         "get_component": get_component,
     })
 
@@ -147,6 +148,7 @@ def get_default_app():
 def run_configure_app(configure_app):
     mutable_app = get_default_app()
 
+    # run user `configure_app` callback
     run_callback(
         callback=configure_app,
         dependencies={
@@ -182,5 +184,12 @@ def run_configure_app(configure_app):
                 add_post_component_middleware_provider,
         },
     )
+
+    # setup component registry
+    for route in mutable_app["routes"]:
+        mutable_app["settings"]["register_component"](
+            component=route[1],
+            mutable_app=mutable_app,
+        )
 
     return mutable_app

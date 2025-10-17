@@ -319,7 +319,7 @@ def render_component(
 
     # generate token
     if not token:
-        component_id = mutable_app["settings"]["cache_component"](
+        component_id = mutable_app["settings"]["get_component_id"](
             component=component,
             mutable_app=mutable_app,
         )
