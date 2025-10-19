@@ -70,7 +70,6 @@ def CodeSplitting(
         context,
         state,
         initial_render,
-        add_static_dir,
         Base=Base,
         Component=Component,
 ):
