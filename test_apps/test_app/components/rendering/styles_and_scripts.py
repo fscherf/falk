@@ -2,9 +2,15 @@ from test_app.components.events.click import Counter
 from test_app.components.base import Base
 
 
-def Component(Counter=Counter):
+def Component(
+        Counter=Counter,
+        static_dirs=[
+            "./static/",
+        ],
+):
     return """
-        <link href="/static/component.css">
+        <link href="/static/app-component.css">
+        <link href="/static/package-component.css">
 
         <style>
             #component-inline-style::before {
@@ -15,12 +21,17 @@ def Component(Counter=Counter):
         <div class="component">
             <h3>Component</h3>
 
-            <div id="component-external-style"></div>
+            <div id="component-app-external-style"></div>
+            <div id="component-package-external-style"></div>
             <div id="component-inline-style"></div>
 
             <div
-              id="component-external-script"
-              onrender="ComponentExternalFunction(this);"></div>
+              id="component-app-external-script"
+              onrender="ComponentAppExternalFunction(this);"></div>
+
+            <div
+              id="component-package-external-script"
+              onrender="ComponentPackageExternalFunction(this);"></div>
 
             <div
               id="component-inline-script"
@@ -35,7 +46,8 @@ def Component(Counter=Counter):
             <Counter />
         </div>
 
-        <script src="/static/component.js"></script>
+        <script src="/static/app-component.js"></script>
+        <script src="/static/package-component.js"></script>
 
         <script>
             function ComponentInlineFunction(element) {

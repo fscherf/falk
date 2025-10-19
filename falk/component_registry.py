@@ -1,7 +1,9 @@
 import hashlib
 
 from falk.dependency_injection import get_dependencies
+from falk.utils.iterables import add_unique_value
 from falk.errors import UnknownComponentIdError
+from falk.utils.path import get_abs_path
 
 
 def get_component_id(component, mutable_app):
@@ -33,13 +35,27 @@ def register_component(component, mutable_app):
     )
 
     for name, dependency in dependencies.items():
-        if not callable(dependency):
-            continue
 
-        register_component(
-            component=dependency,
-            mutable_app=mutable_app,
-        )
+        # static dirs
+        if name == "static_dirs":
+            for rel_path in dependency:
+                abs_path = get_abs_path(
+                    caller=component,
+                    path=rel_path,
+                    require_directory=True,
+                )
+
+                add_unique_value(
+                    mutable_app["settings"]["static_dirs"],
+                    abs_path,
+                )
+
+        # components
+        elif callable(dependency):
+            register_component(
+                component=dependency,
+                mutable_app=mutable_app,
+            )
 
 
 def get_component(component_id, mutable_app):

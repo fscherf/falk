@@ -1,0 +1,3 @@
+#component-app-external-style::before {
+  content: "Loading app external styles works";
+}

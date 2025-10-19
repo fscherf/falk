@@ -1,0 +1,3 @@
+#component-package-external-style::before {
+  content: "Loading package external styles works";
+}

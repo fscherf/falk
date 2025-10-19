@@ -42,13 +42,13 @@ def test_styles_and_scripts(url, page, start_falk_app):
     # When the component is loaded, we should see:
     #  - base.css as a linked style
     #  - falk.js as a linked script
-    #  - One additional linked style
-    #  - One additional inline style
-    #  - One additional linked script
-    #  - One additional inline script
-    assert len(page.query_selector_all("link")) == 2
+    #  - Two additional linked styles
+    #  - One additional inline styles
+    #  - Two additional linked scripts
+    #  - One additional inline scripts
+    assert len(page.query_selector_all("link")) == 3
     assert len(page.query_selector_all("style")) == 1
-    assert len(page.query_selector_all("script")) == 3
+    assert len(page.query_selector_all("script")) == 4
 
     # check if loaded styles and scripts got applied or executed correctly
     def get_css_content(selector):
@@ -63,16 +63,24 @@ def test_styles_and_scripts(url, page, start_falk_app):
     # the `content` attribute in CSS. `element.inner_text()` would always yield
     # empty results.
     assert get_css_content(
-        "div#component-external-style",
-    ) == "Loading external styles works"
+        "div#component-app-external-style",
+    ) == "Loading app external styles works"
+
+    assert get_css_content(
+        "div#component-package-external-style",
+    ) == "Loading package external styles works"
 
     assert get_css_content(
         "div#component-inline-style",
     ) == "Loading inline styles works"
 
     assert page.query_selector(
-        "div#component-external-script",
-    ).inner_text() == "Loading external scripts works"
+        "div#component-app-external-script",
+    ).inner_text() == "Loading app external scripts works"
+
+    assert page.query_selector(
+        "div#component-package-external-script",
+    ).inner_text() == "Loading package external scripts works"
 
     assert page.query_selector(
         "div#component-inline-script",
