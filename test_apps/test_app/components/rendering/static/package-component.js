@@ -1,3 +1,5 @@
 function ComponentPackageExternalFunction(element) {
-    element.innerHTML = "Loading package external scripts works";
+    element.querySelector(
+        "#component-package-external-script",
+    ).innerHTML = "Loading package external scripts works";
 }

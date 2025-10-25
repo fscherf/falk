@@ -22,6 +22,13 @@ def Base(context, props, HTML5Base=HTML5Base):
                         </ul>
                     </li>
                     <li>
+                        Client
+                        <ul>
+                            <li><a href="{{ get_url('client__render_events') }}">Render Events</a></li>
+                            <li><a href="{{ get_url('client__event_delegation') }}">Event Delegation</a></li>
+                        </ul>
+                    </li>
+                    <li>
                         Events
                         <ul>
                             <li><a href="{{ get_url('events__render') }}">Render</a></li>

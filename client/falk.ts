@@ -16,7 +16,9 @@ class Falk {
   public init = async () => {
     this.websocketsAvailable = await this.connectWebsocket();
 
-    this.runHook("render");
+    this.dispatchRenderEvents(document.body, {
+      initial: true,
+    });
   };
 
   // request handling: AJAX
@@ -113,7 +115,7 @@ class Falk {
     }
   };
 
-  // hooks
+  // events
   public iterNodes = (
     selector: string,
     callback: (node: Element) => any,
@@ -132,20 +134,40 @@ class Falk {
     }
   };
 
-  public runHook = (name: string, rootNode: Element = document.body) => {
-    const attributeName: string = `on${name}`;
+  public dispatchEvent = (shortName: string, element: Element) => {
+    const attributeName: string = `on${shortName}`;
+    const eventName: string = `falk:${shortName}`;
+    const attribute = element.getAttribute(attributeName);
+    const fn: Function = new Function("event", attribute);
 
+    const event = new CustomEvent(eventName, {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    // inline event handler
+    try {
+      fn.call(element, event);
+    } catch (error) {
+      console.error(error);
+    }
+
+    // event listener
+    element.dispatchEvent(event);
+  };
+
+  public dispatchRenderEvents = (
+    rootNode: Element = document.body,
+    options: { initial: boolean } = { initial: false },
+  ) => {
     this.iterNodes(
-      `[${attributeName}]`,
-      (element) => {
-        const attribute = element.getAttribute(attributeName);
-        let fn: Function = new Function(attribute);
-
-        try {
-          fn.call(element);
-        } catch (error) {
-          console.error(error);
+      "[data-falk-id]",
+      (node) => {
+        if (options.initial || node != rootNode) {
+          this.dispatchEvent("initialrender", node);
         }
+
+        this.dispatchEvent("render", node);
       },
       rootNode,
     );
@@ -407,8 +429,43 @@ class Falk {
       }
 
       // run hooks
-      this.runHook("render", node);
+      this.dispatchRenderEvents(node);
     }, delay);
+  };
+
+  // public API
+  public filterEvents = (selector: string, callback: (event) => any) => {
+    return (event) => {
+      if (!event.target.matches(selector)) {
+        return;
+      }
+
+      return callback(event);
+    };
+  };
+
+  private on = (...args) => {
+    const eventShortName: string = args[0];
+    const eventName: string = `falk:${eventShortName}`;
+    let selector: string;
+    let callback: (event) => any;
+
+    // falk.on("render", ".component#1", event => { console.log(event));
+    if (args.length == 2) {
+      callback = args[1];
+
+      document.addEventListener(eventName, callback);
+
+      // falk.on("render", event => { console.log(event));
+    } else if (args.length == 3) {
+      selector = args[1];
+      callback = args[2];
+
+      document.addEventListener(
+        eventName,
+        this.filterEvents(selector, callback),
+      );
+    }
   };
 }
 

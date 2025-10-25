@@ -1,3 +1,5 @@
 function ComponentAppExternalFunction(element) {
-    element.innerHTML = "Loading app external scripts works";
+    element.querySelector(
+        "#component-app-external-script",
+    ).innerHTML = "Loading app external scripts works";
 }

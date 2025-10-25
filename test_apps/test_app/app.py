@@ -4,6 +4,8 @@ def configure_app(add_route, add_static_dir):
         CodeSplitting,
     )
 
+    from test_app.components.client.event_delegation import EventDelegation
+    from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
     from test_app.components.events.render import Render
     from test_app.components.events.change import Change
@@ -47,6 +49,19 @@ def configure_app(add_route, add_static_dir):
     add_route(r"/events/input(/)", Input, name="events__input")
     add_route(r"/events/change(/)", Change, name="events__change")
     add_route(r"/events/submit(/)", Submit, name="events__submit")
+
+    # routes: client
+    add_route(
+        r"/client/render-events(/)",
+        RenderEvents,
+        name="client__render_events",
+    )
+
+    add_route(
+        r"/client/event-delegation(/)",
+        EventDelegation,
+        name="client__event_delegation",
+    )
 
     # routes: index
     add_route(r"/", Index, name="index")

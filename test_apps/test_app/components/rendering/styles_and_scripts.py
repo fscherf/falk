@@ -18,24 +18,23 @@ def Component(
             }
         </style>
 
-        <div class="component">
+        <div class="component" onrender="
+            ((element) => {
+                ComponentAppExternalFunction(element);
+                ComponentPackageExternalFunction(element);
+                ComponentInlineFunction(element);
+            })(this);
+        ">
+
             <h3>Component</h3>
 
             <div id="component-app-external-style"></div>
             <div id="component-package-external-style"></div>
             <div id="component-inline-style"></div>
 
-            <div
-              id="component-app-external-script"
-              onrender="ComponentAppExternalFunction(this);"></div>
-
-            <div
-              id="component-package-external-script"
-              onrender="ComponentPackageExternalFunction(this);"></div>
-
-            <div
-              id="component-inline-script"
-              onrender="ComponentInlineFunction(this);"></div>
+            <div id="component-app-external-script"></div>
+            <div id="component-package-external-script"></div>
+            <div id="component-inline-script"></div>
 
             <h3>Counter</h3>
             <p>
@@ -51,7 +50,9 @@ def Component(
 
         <script>
             function ComponentInlineFunction(element) {
-                element.innerHTML = "Loading inline scripts works";
+                element.querySelector(
+                    "#component-inline-script",
+                ).innerHTML = "Loading inline scripts works";
             }
         </script>
     """
