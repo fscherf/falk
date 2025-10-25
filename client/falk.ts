@@ -54,7 +54,7 @@ class Falk {
 
     // redirect responses
     if (messageData["status"] == 302) {
-        window.location.reload();
+      window.location.reload();
     }
 
     // HTML responses
