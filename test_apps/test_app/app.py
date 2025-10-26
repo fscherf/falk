@@ -1,3 +1,6 @@
+from falk.wsgi import get_wsgi_app
+
+
 def configure_app(add_route, add_static_dir):
     from test_app.components.rendering.styles_and_scripts import (
         StylesAndScripts,
@@ -65,3 +68,6 @@ def configure_app(add_route, add_static_dir):
 
     # routes: index
     add_route(r"/", Index, name="index")
+
+
+wsgi_app = get_wsgi_app(configure_app)

@@ -76,3 +76,6 @@ no-app: node-build
 
 test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e test-app ${args})
+
+wsgi-test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e wsgi-test-app ${args})
