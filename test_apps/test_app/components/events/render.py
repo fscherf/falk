@@ -5,7 +5,7 @@ from test_app.components.base import Base
 
 def Clock(context, props, initial_render, state):
     if initial_render:
-        state["refresh_rate"] = props.get("refresh_rate", 1000)
+        state["refresh_rate"] = props.get("refresh_rate", "1")
         state["initial"] = props.get("initial", False)
 
     context.update({
@@ -26,7 +26,7 @@ def Render(Base=Base, Clock=Clock):
 
             <Clock initial="{{ True }}" />
             <Clock />
-            <Clock refresh_rate="{{ 5000 }}" />
-            <Clock refresh_rate="{{ 10000 }}" />
+            <Clock refresh_rate="5s" />
+            <Clock refresh_rate="10s" />
         </Base>
     """

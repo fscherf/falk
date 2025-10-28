@@ -21,6 +21,36 @@ class Falk {
     });
   };
 
+  // helper
+  public parseDelay = (delay: string | number) => {
+    if (typeof delay === "number") {
+      return delay * 1000;
+    }
+
+    delay = delay as string;
+
+    const match = /^(\d+(?:\.\d+)?)(ms|s|m|h)?$/.exec(delay.trim());
+
+    if (!match) {
+      throw new Error("Invalid time format: " + delay);
+    }
+
+    const value = parseFloat(match[1]);
+    const unit = match[2] || "s";
+
+    if (unit === "ms") {
+      return value;
+    } else if (unit === "s") {
+      return value * 1000;
+    } else if (unit === "m") {
+      return value * 60 * 1000;
+    } else if (unit === "h") {
+      return value * 60 * 60 * 1000;
+    } else {
+      throw new Error("Unknown unit: " + unit);
+    }
+  };
+
   // request handling: AJAX
   public sendHttpRequest = async (data): Promise<string> => {
     return new Promise(async (resolve, reject) => {
@@ -295,7 +325,7 @@ class Falk {
     callbackName: string,
     callbackArgs: string,
     stopEvent: boolean,
-    delay: number,
+    delay: string | number,
   ) => {
     const node = document.querySelector(`[data-falk-id=${nodeId}]`);
     const token = node.getAttribute("data-falk-token");
@@ -430,7 +460,7 @@ class Falk {
 
       // run hooks
       this.dispatchRenderEvents(node);
-    }, delay);
+    }, this.parseDelay(delay));
   };
 
   // public API

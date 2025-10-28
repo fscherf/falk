@@ -98,7 +98,7 @@ def _callback(
         repr(callback_name),       # callbackName (string)
         "null",                    # callbackArgs (URL encoded JSON)
         str(stop_event).lower(),   # stopEvent (boolean)
-        "null",                    # delay (string)
+        "0",                       # delay (string)
     ]
 
     if callback_args:
