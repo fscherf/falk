@@ -71,13 +71,9 @@ def _callback(
         callback_args=None,
         stop_event=True,
         delay=None,
-        initial=False,
 ):
 
     callback_name = ""
-
-    if initial and context["initial_render"]:
-        return ""
 
     if isinstance(callback_or_callback_name, str):
         callback_name = callback_or_callback_name
