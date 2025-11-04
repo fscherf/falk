@@ -10,6 +10,7 @@ def configure_app(add_route, add_static_dir):
     from test_app.components.client.event_delegation import EventDelegation
     from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
+    from test_app.components.rendering.flags import RenderingFlags
     from test_app.components.events.render import Render
     from test_app.components.events.change import Change
     from test_app.components.events.submit import Submit
@@ -32,6 +33,12 @@ def configure_app(add_route, add_static_dir):
         r"/rendering/code-splitting(/)",
         CodeSplitting,
         name="rendering__code_splitting",
+    )
+
+    add_route(
+        r"/rendering/rendering-flags(/)",
+        RenderingFlags,
+        name="rendering__flags",
     )
 
     add_route(

@@ -211,6 +211,8 @@ def handle_request(request, mutable_app):
                         "json": {
                             "flags": {
                                 "reload": True,
+                                "skipRendering": False,
+                                "forceRendering": False,
                             },
                             "body": "",
                         },
@@ -287,6 +289,8 @@ def handle_request(request, mutable_app):
                 "content_type": "application/json",
                 "flags": {
                     "reload": False,
+                    "skipRendering": parts["flags"]["skip_rendering"],
+                    "forceRendering": parts["flags"]["force_rendering"],
                 },
                 "body": render_body(
                     app=mutable_app,

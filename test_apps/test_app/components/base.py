@@ -18,6 +18,7 @@ def Base(context, props, HTML5Base=HTML5Base):
                         <ul>
                             <li><a href="{{ get_url('rendering__styles_and_scripts') }}">Styles and Scripts</a></li>
                             <li><a href="{{ get_url('rendering__code_splitting') }}">Code Splitting</a></li>
+                            <li><a href="{{ get_url('rendering__flags') }}">Rendering Flags</a></li>
                             <li><a href="{{ get_url('rendering__iframes') }}">iFrames</a></li>
                         </ul>
                     </li>

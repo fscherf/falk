@@ -43,6 +43,11 @@ from falk.providers.responses import (
     set_response_json_provider,
 )
 
+from falk.providers.flags import (
+    force_rendering_provider,
+    skip_rendering_provider,
+)
+
 
 def get_default_app():
     mutable_app = {
@@ -118,6 +123,8 @@ def get_default_app():
     # settings: dependencies
     mutable_app["settings"].update({
         "providers": {
+            "skip_rendering": skip_rendering_provider,
+            "force_rendering": force_rendering_provider,
             "set_response_status": set_response_status_provider,
             "get_request_header": get_request_header_provider,
             "set_request_header": set_request_header_provider,

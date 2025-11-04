@@ -254,7 +254,19 @@ class Falk {
   };
 
   // node patching
-  public patchNode = (node, newNode) => {
+  public patchNode = (node, newNode, flags) => {
+    const nodeShouldBeSkipped = (node) => {
+      if (flags.forceRendering) {
+        return false;
+      }
+
+      if (flags.skipRendering) {
+        return true;
+      }
+
+      return node.hasAttribute("data-skip-rerendering");
+    };
+
     return morphdom(node, newNode, {
       onBeforeNodeAdded: (node) => {
         // ignore styles and scripts
@@ -266,6 +278,10 @@ class Falk {
 
         if (["SCRIPT", "LINK", "STYLE"].includes(tagName)) {
           return false;
+        }
+
+        if (nodeShouldBeSkipped(node)) {
+          return node;
         }
 
         return node;
@@ -283,10 +299,18 @@ class Falk {
           return false;
         }
 
+        if (nodeShouldBeSkipped(node)) {
+          return false;
+        }
+
         return true;
       },
 
       onBeforeElUpdated: (fromEl, toEl) => {
+        if (nodeShouldBeSkipped(fromEl)) {
+          return false;
+        }
+
         // ignore styles and scripts
         if (["SCRIPT", "LINK", "STYLE"].includes(fromEl.tagName)) {
           return false;
@@ -454,11 +478,11 @@ class Falk {
         document.title = newDocument.title;
 
         // patch body
-        this.patchNode(document.body, newDocument.body);
+        this.patchNode(document.body, newDocument.body, responseData.flags);
 
         // patch only one node in the body
       } else {
-        this.patchNode(node, newDocument.body.firstChild);
+        this.patchNode(node, newDocument.body.firstChild, responseData.flags);
       }
 
       // run hooks
