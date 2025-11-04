@@ -165,7 +165,6 @@ def render_component(
             "html": "",
             "styles": [],
             "scripts": [],
-            "tokens": {},
         }
 
     # check component
@@ -334,7 +333,6 @@ def render_component(
         )
 
     template_context["_token"] = token
-    parts["tokens"][node_id] = token
 
     # render jinja2 template
     template = Template(component_blocks["jinja2_template"])
