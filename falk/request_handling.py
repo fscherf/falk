@@ -1,8 +1,8 @@
 import logging
 import time
 
-from falk.rendering import render_component, render_styles, render_scripts
 from falk.errors import UnknownComponentIdError, InvalidTokenError
+from falk.rendering import render_component, render_body
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.http import set_header, set_status
@@ -205,18 +205,16 @@ def handle_request(request, mutable_app):
                     # Reloading fixes both errors, so we return an
                     # HTTP redirect.
 
-                    set_status(
-                        response=response,
-                        status=302,
-                    )
-
-                    set_header(
-                        headers=response["headers"],
-                        name="Location",
-                        value=request["path"],
-                    )
-
-                    response["is_finished"] = True
+                    response.update({
+                        "is_finished": True,
+                        "content_type": "application/json",
+                        "json": {
+                            "flags": {
+                                "reload": True,
+                            },
+                            "body": "",
+                        },
+                    })
 
             # initial render (HTML response)
             # if no routes are configured, we default to the
@@ -285,17 +283,16 @@ def handle_request(request, mutable_app):
     # set response body
     if parts:
         if request["is_mutation_request"]:
-            response["body"] = (
-                render_styles(
+            response["json"] = {
+                "content_type": "application/json",
+                "flags": {
+                    "reload": False,
+                },
+                "body": render_body(
                     app=mutable_app,
-                    styles=parts["styles"],
-                ) +
-                parts["html"] +
-                render_scripts(
-                    app=mutable_app,
-                    scripts=parts["scripts"],
-                )
-            )
+                    parts=parts,
+                ),
+            }
 
         elif not response["is_finished"]:
             response["body"] = parts["html"]

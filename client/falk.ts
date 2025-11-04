@@ -52,7 +52,7 @@ class Falk {
   };
 
   // request handling: AJAX
-  public sendHttpRequest = async (data): Promise<string> => {
+  public sendHttpRequest = async (data): Promise<any> => {
     return new Promise(async (resolve, reject) => {
       const response = await fetch(window.location + "", {
         method: "POST",
@@ -67,35 +67,35 @@ class Falk {
         reject(`HTTP error! Status: ${response.status}`);
       }
 
-      // redirect responses
-      if (response.type == "opaqueredirect") {
+      const responseData = await response.json();
+
+      // handle reloads
+      if (responseData.flags.reload) {
         window.location.reload();
       }
 
-      // HTML responses
-      const responseText = await response.text();
-
-      resolve(responseText);
+      resolve(responseData);
     });
   };
 
   // request handling: websockets
   private handleWebsocketMessage = (event: MessageEvent) => {
     const [messageId, messageData] = JSON.parse(event.data);
+    const responseData = messageData.json;
     const promiseCallbacks = this.pendingWebsocketRequests.get(messageId);
 
-    // redirect responses
-    if (messageData["status"] == 302) {
+    // handle reloads
+    if (responseData.flags.reload) {
       window.location.reload();
     }
 
     // HTML responses
-    promiseCallbacks["resolve"](messageData["body"]);
+    promiseCallbacks["resolve"](responseData);
 
-    this.pendingWebsocketRequests.delete(messageId);
+    this.pendingWebsocketRequests.delete(messageData);
   };
 
-  public connectWebsocket = async (): Promise<boolean> => {
+  public connectWebsocket = async (): Promise<any> => {
     return new Promise(async (resolve, reject) => {
       this.websocket = new WebSocket(window.location + "");
 
@@ -114,7 +114,7 @@ class Falk {
     });
   };
 
-  public sendWebsocketRequest = async (data): Promise<string> => {
+  public sendWebsocketRequest = async (data): Promise<any> => {
     return new Promise(async (resolve, reject) => {
       // connect websocket if necessary
       if (this.websocket.readyState !== this.websocket.OPEN) {
@@ -137,7 +137,7 @@ class Falk {
   };
 
   // request handling
-  public sendRequest = async (data): Promise<string> => {
+  public sendRequest = async (data): Promise<any> => {
     if (this.websocketsAvailable) {
       return await this.sendWebsocketRequest(data);
     } else {
@@ -347,10 +347,13 @@ class Falk {
     }
 
     setTimeout(async () => {
-      const responseText: string = await this.sendRequest(data);
+      const responseData = await this.sendRequest(data);
       const domParser = new DOMParser();
 
-      const newDocument = domParser.parseFromString(responseText, "text/html");
+      const newDocument = domParser.parseFromString(
+        responseData.body as string,
+        "text/html",
+      );
 
       // load linked styles
       const linkNodes = newDocument.head.querySelectorAll(

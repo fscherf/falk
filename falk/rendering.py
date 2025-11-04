@@ -140,6 +140,20 @@ def render_scripts(app, scripts):
     ])
 
 
+def render_body(app, parts):
+    return (
+        render_styles(
+            app=app,
+            styles=parts["styles"],
+        ) +
+        parts["html"] +
+        render_scripts(
+            app=app,
+            scripts=parts["scripts"],
+        )
+    )
+
+
 def render_component(
         component,
         mutable_app,
