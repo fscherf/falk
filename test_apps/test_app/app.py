@@ -7,6 +7,7 @@ def configure_app(add_route, add_static_dir):
         CodeSplitting,
     )
 
+    from test_app.components.client.callback_passing import CallbackPassing
     from test_app.components.client.event_delegation import EventDelegation
     from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
@@ -65,6 +66,12 @@ def configure_app(add_route, add_static_dir):
         r"/client/render-events(/)",
         RenderEvents,
         name="client__render_events",
+    )
+
+    add_route(
+        r"/client/callback-passing(/)",
+        CallbackPassing,
+        name="client__callback_passing",
     )
 
     add_route(

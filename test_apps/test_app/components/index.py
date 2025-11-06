@@ -7,5 +7,7 @@ def Index(context, Base=Base):
     })
 
     return """
-        <Base />
+        <Base title="Index">
+            <h2>Index</h2>
+        </Base>
     """
