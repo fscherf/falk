@@ -18,6 +18,8 @@ def test_styles_and_scripts(url, page, start_falk_app):
 
     import json
 
+    from playwright.sync_api import expect
+
     from test_app.app import configure_app
 
     _, base_url = start_falk_app(configure_app)
@@ -51,45 +53,56 @@ def test_styles_and_scripts(url, page, start_falk_app):
     assert len(page.query_selector_all("script")) == 4
 
     # check if loaded styles and scripts got applied or executed correctly
-    def get_css_content(selector):
+    def await_css_content(selector, text):
         encoded_string = page.eval_on_selector(
             selector,
             "element => getComputedStyle(element, '::before').content",
         )
 
-        return json.loads(encoded_string)
+        assert json.loads(encoded_string) == text
+
+    def await_text(selector, text):
+        locator = page.locator(selector)
+
+        expect(locator).to_have_text(text)
 
     # We need to us `get_css_content` here because both strings are set using
     # the `content` attribute in CSS. `element.inner_text()` would always yield
     # empty results.
-    assert get_css_content(
+    await_css_content(
         "div#component-app-external-style",
-    ) == "Loading app external styles works"
+        "Loading app external styles works",
+    )
 
-    assert get_css_content(
+    await_css_content(
         "div#component-package-external-style",
-    ) == "Loading package external styles works"
+        "Loading package external styles works",
+    )
 
-    assert get_css_content(
+    await_css_content(
         "div#component-inline-style",
-    ) == "Loading inline styles works"
+        "Loading inline styles works",
+    )
 
-    assert page.query_selector(
+    await_text(
         "div#component-app-external-script",
-    ).inner_text() == "Loading app external scripts works"
+        "Loading app external scripts works",
+    )
 
-    assert page.query_selector(
+    await_text(
         "div#component-package-external-script",
-    ).inner_text() == "Loading package external scripts works"
+        "Loading package external scripts works",
+    )
 
-    assert page.query_selector(
+    await_text(
         "div#component-inline-script",
-    ).inner_text() == "Loading inline scripts works"
+        "Loading inline scripts works",
+    )
 
     # Ensure the falk client still works after we updated scripts by
     # incrementing a counter that is part of the test component
-    assert page.wait_for_selector(".counter .state:text('0')")
+    await_text(".counter .state", "0")
 
     page.click('.counter .increment')
 
-    assert page.wait_for_selector(".counter .state:text('1')")
+    await_text(".counter .state", "1")
