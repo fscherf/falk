@@ -17,7 +17,6 @@ def configure_app(add_route, add_static_dir):
     from test_app.components.events.submit import Submit
     from test_app.components.events.click import Click
     from test_app.components.events.input import Input
-
     from test_app.components.index import Index
 
     # static files
