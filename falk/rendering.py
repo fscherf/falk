@@ -199,11 +199,11 @@ def render_component(
             mutable_app=mutable_app,
         )
 
-    if not component_state:
+    if component_state is None:
         component_state = {}
         initial_render = True
 
-    if not component_props:
+    if component_props is None:
         component_props = {}
 
     # setup dependencies and template context
