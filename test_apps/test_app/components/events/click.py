@@ -4,6 +4,7 @@ from test_app.components.base import Base
 def Counter(context, state, initial_render, props):
     if initial_render:
         state.update({
+            "id": props.get("id", ""),
             "initial_value": props.get("initial_value", 0),
             "count": props.get("initial_value", 0),
         })
@@ -26,7 +27,7 @@ def Counter(context, state, initial_render, props):
     })
 
     return """
-        <div class="counter" id="{{ props.id }}">
+        <div class="counter" id="{{ state.id }}">
             <button
               class="decrement"
               onclick="{{ callback(update, ['dec', 1]) }}"
