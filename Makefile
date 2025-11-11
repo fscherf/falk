@@ -81,6 +81,9 @@ test-app: node-build
 wsgi-test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e wsgi-test-app ${args})
 
+asgi-test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi-test-app ${args})
+
 # releases
 _pypi-upload:
 	$(call DOCKER_COMPOSE_RUN,-v ${PYPIRC}:/.pypirc,python twine upload --config-file /.pypirc dist/*)

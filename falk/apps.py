@@ -4,12 +4,12 @@ from falk.providers.routing import add_route_provider, get_url_provider
 from falk.dependency_injection import run_callback, run_coroutine_sync
 from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
+from falk.utils.environment import get_boolean, get_integer
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
 from falk.request_handling import handle_request
 from falk.extra_template_context import get_url
-from falk.utils.environment import get_boolean
 from falk.components import Error404, Error500
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
@@ -52,6 +52,7 @@ from falk.providers.flags import (
 def get_default_app():
     mutable_app = {
         "settings": {
+            "workers": get_integer("FALK_WORKERS", 4),
             "run_coroutine_sync": run_coroutine_sync,
             "hash_string": get_md5_hash,
             "websockets": get_boolean("FALK_WEBSOCKETS", True),
@@ -61,6 +62,7 @@ def get_default_app():
             "on_startup": lambda mutable_app: None,
             "on_shutdown": lambda mutable_app: None,
         },
+        "executor": None,
         "components": {},
         "routes": [],
     }
