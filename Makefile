@@ -1,4 +1,5 @@
 PYTHON=python3.13
+PYPIRC=~/.pypirc.fscherf
 
 .PHONY: \
 	all \
@@ -79,3 +80,11 @@ test-app: node-build
 
 wsgi-test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e wsgi-test-app ${args})
+
+# releases
+_pypi-upload:
+	$(call DOCKER_COMPOSE_RUN,-v ${PYPIRC}:/.pypirc,python twine upload --config-file /.pypirc dist/*)
+
+_doc-upload:
+	rsync -avh --recursive --delete \
+		docs/site/* pages.fscherf.de:/var/www/virtual/fscherf/pages.fscherf.de/falk
