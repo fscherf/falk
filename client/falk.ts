@@ -16,9 +16,17 @@ class Falk {
   public init = async () => {
     this.websocketsAvailable = await this.connectWebsocket();
 
-    this.dispatchRenderEvents(document.body, {
-      initial: true,
-    });
+    if (document.readyState === "complete") {
+      this.dispatchRenderEvents(document.body, {
+        initial: true,
+      });
+    } else {
+      window.addEventListener("load", () => {
+        this.dispatchRenderEvents(document.body, {
+          initial: true,
+        });
+      });
+    }
   };
 
   // helper
@@ -95,8 +103,8 @@ class Falk {
     this.pendingWebsocketRequests.delete(messageData);
   };
 
-  public connectWebsocket = async (): Promise<any> => {
-    return new Promise(async (resolve, reject) => {
+  public connectWebsocket = (): Promise<boolean> => {
+    return new Promise((resolve) => {
       this.websocket = new WebSocket(window.location + "");
 
       this.websocket.addEventListener("message", this.handleWebsocketMessage);
