@@ -286,7 +286,6 @@ def handle_request(request, mutable_app):
     if parts:
         if request["is_mutation_request"]:
             response["json"] = {
-                "content_type": "application/json",
                 "flags": {
                     "reload": False,
                     "skipRendering": parts["flags"]["skip_rendering"],
