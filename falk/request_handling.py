@@ -19,6 +19,7 @@ def get_request(
         method="GET",
         path="/",
         content_type="",
+        query=None,
         post=None,
         json=None,
 ):
@@ -30,6 +31,7 @@ def get_request(
         "method": method,
         "path": path,
         "content_type": content_type,
+        "query": query or {},
         "post": post or {},
         "json": json or {},
 
