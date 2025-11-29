@@ -1,16 +1,22 @@
+import time
+
 from test_app.components.base import Base
 
 
-def EventDelegationTestComponent(props, state, initial_render):
+def EventDelegationTestComponent(props, state, initial_render, context):
     if initial_render:
         state["id"] = props.get("id", None)
+
+    context.update({
+        "slow_render": lambda: time.sleep(0.5),
+    })
 
     return """
         <div class="event-delegation-test-component" id="{{ state.id }}">
             <span>#{{ state.id }}:</span>
             <span class="events"></span>
 
-            <button class="render" onclick="{{ callback(render) }}">
+            <button class="render" onclick="{{ callback(slow_render) }}">
                 Render
             </button>
         </div>
@@ -19,11 +25,31 @@ def EventDelegationTestComponent(props, state, initial_render):
 
             // falk.filterEvents (#component-1)
             document.addEventListener(
+                "falk:beforerequest",
+                falk.filterEvents(
+                    ".event-delegation-test-component#component-1",
+                    event => {
+                        const span = event.target.querySelector("span.events");
+
+                        if (span.innerHTML) {
+                            span.innerHTML += ",";
+                        }
+
+                        span.innerHTML += "falk.filterEvents:beforeRequest";
+                    },
+                ),
+            );
+
+            document.addEventListener(
                 "falk:initialrender",
                 falk.filterEvents(
                     ".event-delegation-test-component#component-1",
                     event => {
                         const span = event.target.querySelector("span.events");
+
+                        if (span.innerHTML) {
+                            span.innerHTML += ",";
+                        }
 
                         span.innerHTML += "falk.filterEvents:initialRender";
                     },
@@ -48,10 +74,28 @@ def EventDelegationTestComponent(props, state, initial_render):
 
             // falk.on (#component-2)
             falk.on(
+                "beforerequest",
+                ".event-delegation-test-component#component-2",
+                event => {
+                    const span = event.target.querySelector("span.events");
+
+                    if (span.innerHTML) {
+                        span.innerHTML += ",";
+                    }
+
+                    span.innerHTML += "falk.on:beforeRequest";
+                },
+            );
+
+            falk.on(
                 "initialrender",
                 ".event-delegation-test-component#component-2",
                 event => {
                     const span = event.target.querySelector("span.events");
+
+                    if (span.innerHTML) {
+                        span.innerHTML += ",";
+                    }
 
                     span.innerHTML += "falk.on:initialRender";
                 },

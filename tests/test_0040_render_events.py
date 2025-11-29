@@ -20,21 +20,35 @@ def test_render_events(page, start_falk_app):
     page.goto(url)
     page.wait_for_selector("h2:text('Render Events')")
 
+    # initial render
     assert_events(0, "initialRender,render")
     assert_events(1, "initialRender,render")
     assert_events(2, "initialRender,render")
 
+    # click on "Render" of the first component
     render(0)
+
+    assert_events(0, "beforeRequest")
     assert_events(0, "render")
+
     assert_events(1, "initialRender,render")
     assert_events(2, "initialRender,render")
 
+    # click on "Render" of the second component
     render(1)
+
     assert_events(0, "render")
+
+    assert_events(1, "beforeRequest")
     assert_events(1, "render")
+
     assert_events(2, "initialRender,render")
 
+    # click on "Render" of the third component
     render(2)
+
     assert_events(0, "render")
     assert_events(1, "render")
+
+    assert_events(2, "beforeRequest")
     assert_events(2, "render")

@@ -17,6 +17,7 @@ def test_event_delegation(page, start_falk_app):
             f"#component-{index+1} button.render",
         )
 
+    # intial render
     page.goto(url)
     page.wait_for_selector("h2:text('Event Delegation')")
 
@@ -24,17 +25,28 @@ def test_event_delegation(page, start_falk_app):
     assert_events(1, "falk.on:initialRender,falk.on:render")
     assert_events(2, "")
 
+    # click on "Render" of the first component
     render(0)
+
+    assert_events(0, "falk.filterEvents:initialRender,falk.filterEvents:render,falk.filterEvents:beforeRequest")
     assert_events(0, "falk.filterEvents:render")
+
     assert_events(1, "falk.on:initialRender,falk.on:render")
     assert_events(2, "")
 
+    # click on "Render" of the second component
     render(1)
+
     assert_events(0, "falk.filterEvents:render")
+
+    assert_events(1, "falk.on:initialRender,falk.on:render,falk.on:beforeRequest")
     assert_events(1, "falk.on:render")
+
     assert_events(2, "")
 
+    # click on "Render" of the third component
     render(2)
+
     assert_events(0, "falk.filterEvents:render")
     assert_events(1, "falk.on:render")
     assert_events(2, "")

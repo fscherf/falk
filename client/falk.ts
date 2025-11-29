@@ -379,6 +379,10 @@ class Falk {
     }
 
     setTimeout(async () => {
+      // run beforerequest hook
+      this.dispatchEvent("beforerequest", node);
+
+      // send mutation request
       const responseData = await this.sendRequest(data);
       const domParser = new DOMParser();
 
