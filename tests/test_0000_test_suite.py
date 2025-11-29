@@ -40,16 +40,20 @@ def test_aiohttp_app_runner():
 
 
 def test_playwright_browser(page):
-    from falk.pytest_plugin import AiohttpAppRunner
+    import tempfile
+    import os
 
-    aiohttp_app_runner = AiohttpAppRunner()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        path = os.path.join(
+            temp_dir,
+            "hello-world.html",
+        )
 
-    aiohttp_app_runner.start(_get_aiohttp_test_app())
+        with open(path, "w+") as file_handle:
+            file_handle.write(
+                '<h1 id="hello-world">Hello World</h1>'
+            )
 
-    try:
-        page.goto(aiohttp_app_runner.get_base_url())
+        page.goto(f"file://{path}")
 
         assert page.inner_text("#hello-world") == "Hello World"
-
-    finally:
-        aiohttp_app_runner.stop()
