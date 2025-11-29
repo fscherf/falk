@@ -43,15 +43,15 @@ def get_request_from_wsgi_environ(environ):
     return get_request(**request_kwargs)
 
 
-def get_wsgi_app(configure_app, lazy=False):
-    mutable_app = {}
+def get_wsgi_app(configure_app=None, mutable_app=None, lazy=False):
+    mutable_app = mutable_app or {}
 
     def setup_app():
         mutable_app.update(
             run_configure_app(configure_app),
         )
 
-    if not lazy:
+    if not mutable_app and not lazy:
         setup_app()
 
     def wsgi_app(environ, start_response):
