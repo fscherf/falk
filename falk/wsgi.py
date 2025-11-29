@@ -82,6 +82,10 @@ def get_wsgi_app(configure_app, lazy=False):
 
         # start response
         headers = []
+
+        if response["json"]:
+            response["body"] = json.dumps(response["json"])
+
         body = response["body"].encode("utf-8")
 
         for key, value in response["headers"].items():
