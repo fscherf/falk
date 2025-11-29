@@ -35,6 +35,7 @@ def get_request_from_wsgi_environ(environ):
         "method": environ["REQUEST_METHOD"],
         "path": environ["PATH_INFO"],
         "content_type": content_type,
+        "query": parse_qs(environ["QUERY_STRING"]),
     }
 
     # POST
