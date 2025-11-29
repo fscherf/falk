@@ -1,4 +1,8 @@
-def test_basic_request_handling(page, start_falk_app):
+import pytest
+
+
+@pytest.mark.parametrize("interface", ["asgi", "wsgi"])
+def test_basic_request_handling(interface, page, start_falk_app):
     """
     This test tests basic requests handling and partial re rendering by setting
     up a counter component that can be incremented if a button is clicked.
@@ -47,7 +51,10 @@ def test_basic_request_handling(page, start_falk_app):
     def configure_app(add_route):
         add_route(r"/", Index)
 
-    _, base_url = start_falk_app(configure_app)
+    _, base_url = start_falk_app(
+        configure_app=configure_app,
+        interface=interface,
+    )
 
     # run test
     # go to the base URL and wait for the counter to appear
