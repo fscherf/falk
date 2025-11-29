@@ -1,30 +1,16 @@
 from wsgiref.util import FileWrapper
 from urllib.parse import parse_qs
+from http import HTTPStatus
 import json
 
 from falk.request_handling import get_request
 from falk.apps import run_configure_app
 
-HTTP_STATUS_CODES = {
-    200: "OK",
-    201: "Created",
-    202: "Accepted",
-    204: "No Content",
-    301: "Moved Permanently",
-    302: "Found",
-    400: "Bad Request",
-    401: "Unauthorized",
-    403: "Forbidden",
-    404: "Not Found",
-    405: "Method Not Allowed",
-    500: "Internal Server Error",
-    502: "Bad Gateway",
-    503: "Service Unavailable",
-}
-
 
 def get_http_status_string(status_code):
-    return f"{status_code} {HTTP_STATUS_CODES[status_code]}"
+    status = HTTPStatus(status_code)
+
+    return f"{status_code} {status.name}"
 
 
 def get_request_from_wsgi_environ(environ):
