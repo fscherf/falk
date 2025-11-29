@@ -6,8 +6,7 @@ PYPIRC=~/.pypirc.fscherf
 	python-shell python-test python-build \
 	node-shell node-build node-watch node-lint \
 	clean build test ci-test lint \
-	docs docs-server grip \
-	no-app test-app
+	docs docs-server grip
 
 define DOCKER_COMPOSE_RUN
 	docker compose run \
@@ -18,7 +17,7 @@ define DOCKER_COMPOSE_RUN
 		$1 $2
 endef
 
-all: test-app
+all: asgi-test-app
 
 # python
 python-shell:
@@ -72,12 +71,6 @@ grip:
 	$(call DOCKER_COMPOSE_RUN,python,tox -e grip ${args})
 
 # test apps
-no-app: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e no-app ${args})
-
-test-app: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e test-app ${args})
-
 wsgi-test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e wsgi-test-app ${args})
 
