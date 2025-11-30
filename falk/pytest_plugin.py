@@ -20,7 +20,7 @@ def start_falk_app():
 
     def _stop_falk_app():
         # check if app was already stopped by the test
-        if state["uvicorn_server"].should_exit:
+        if not state["uvicorn_server"] or state["uvicorn_server"].should_exit:
             return
 
         state["uvicorn_server"].should_exit = True

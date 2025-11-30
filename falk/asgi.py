@@ -287,6 +287,7 @@ def get_asgi_app(configure_app=None, mutable_app=None):
     mutable_app = mutable_app or {}
 
     async def app(scope, receive, send):
+        # FIXME: if `mutable_app` is provided, the executor is never set up
 
         # setup
         if not mutable_app:
