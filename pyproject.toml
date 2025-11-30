@@ -18,7 +18,6 @@ license-files = ["LICENSE.txt"]
 
 dependencies = [
   "jinja2",
-  "aiohttp>=3.9,<4",
   "simple-logging-setup",
   "aiofiles",
 ]
