@@ -7,6 +7,7 @@ import json
 import os
 
 from falk.request_handling import get_request
+from falk.http import get_header, set_header
 from falk.apps import run_configure_app
 import aiofiles
 
@@ -96,13 +97,27 @@ def _handle_falk_request(mutable_app, scope, body):
     headers = {}
 
     for name, value in scope.get("headers", []):
-        headers[name.decode("utf-8")] = value.decode("utf-8")
+        set_header(
+            headers=headers,
+            name=name.decode("utf-8"),
+            value=value.decode("utf-8"),
+        )
 
-    content_type = headers.get("content-type", "")
-    content_length = headers.get("content-length", "0")
+    content_type = get_header(
+        headers=headers,
+        name="Content-Type",
+        default="",
+    )
+
+    content_length = get_header(
+        headers=headers,
+        name="Content-Length",
+        default="0",
+    )
 
     request_kwargs = {
         "protocol": "HTTP",
+        "headers": headers,
         "method": scope["method"],
         "path": scope["path"],
         "content_type": content_type,
@@ -132,7 +147,11 @@ def _handle_falk_request(mutable_app, scope, body):
     if response["json"]:
         response["body"] = json.dumps(response["json"])
 
-    response["headers"]["content-length"] = str(len(response["body"]))
+    set_header(
+        headers=response["headers"],
+        name="content-length",
+        value=str(len(response["body"]))
+    )
 
     response["headers"] = [
         (k.encode(), v.encode()) for k, v in response["headers"].items()
