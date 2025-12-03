@@ -4,6 +4,7 @@ from http import HTTPStatus
 import json
 
 from falk.request_handling import get_request
+from falk.http import set_header, get_header
 from falk.apps import run_configure_app
 
 
@@ -14,10 +15,29 @@ def get_http_status_string(status_code):
 
 
 def get_request_from_wsgi_environ(environ):
-    content_type = environ.get("CONTENT_TYPE", "")
+
+    # headers
+    headers = {}
+
+    for name, value in environ.items():
+        if (name not in ("CONTENT_TYPE", "CONTENT_LENGTH") and
+                not name.startswith("HTTP_")):
+
+            continue
+
+        if name.startswith("HTTP_"):
+            name = name[5:]
+
+        name = name.replace("_", "-")
+
+        set_header(headers, name, value)
+
+    content_type = get_header(headers, "Content-Type", "")
+    content_length = get_header(headers, "Content-length", "0")
 
     request_kwargs = {
         "protocol": "HTTP",
+        "headers": headers,
         "method": environ["REQUEST_METHOD"],
         "path": environ["PATH_INFO"],
         "content_type": content_type,
@@ -26,7 +46,6 @@ def get_request_from_wsgi_environ(environ):
 
     # POST
     if environ["REQUEST_METHOD"] == "POST":
-        content_length = environ.get("CONTENT_LENGTH", "0")
         body = b""
 
         if content_length.isnumeric():
