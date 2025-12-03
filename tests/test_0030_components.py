@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.parametrize("interface", ["asgi", "wsgi"])
-def test_basic_request_handling(interface, page, start_falk_app):
+def test_basic_component(interface, page, start_falk_app):
     """
     This test tests basic requests handling and partial re rendering by setting
     up a counter component that can be incremented if a button is clicked.
