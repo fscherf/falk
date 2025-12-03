@@ -8,12 +8,6 @@ from falk.http import set_header, get_header
 from falk.apps import run_configure_app
 
 
-def get_http_status_string(status_code):
-    status = HTTPStatus(status_code)
-
-    return f"{status_code} {status.name}"
-
-
 def get_request_from_wsgi_environ(environ):
 
     # headers
@@ -113,10 +107,10 @@ def get_wsgi_app(configure_app=None, mutable_app=None, lazy=False):
                 ("content-length", str(len(body))),
             )
 
+        http_status = HTTPStatus(response["status"])
+
         start_response(
-            get_http_status_string(
-                status_code=response["status"],
-            ),
+            f"{http_status.value} {http_status.name}",
             headers,
         )
 
