@@ -41,9 +41,10 @@ async def shutdown(mutable_app, send):
         entry_point=mutable_app["entry_points"]["on_shutdown"],
     )
 
-    mutable_app["executor"].shutdown(
-        wait=False,
-    )
+    if mutable_app["executor"]:
+        mutable_app["executor"].shutdown(
+            wait=False,
+        )
 
     await send({"type": "lifespan.shutdown.complete"})
 
