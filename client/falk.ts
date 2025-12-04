@@ -351,158 +351,202 @@ class Falk {
   };
 
   // callbacks
-  public runCallback = async (
-    event: Event,
-    nodeId: string,
-    callbackName: string,
-    callbackArgs: string,
-    stopEvent: boolean,
-    delay: string | number,
-  ) => {
-    const node = document.querySelector(`[data-falk-id=${nodeId}]`);
-    const token = node.getAttribute("data-falk-token");
+  public runCallback = async (options: {
+    optionsString?: string;
+    event?: Event;
+    node?: HTMLElement;
+    nodeId?: string;
+    selector?: string;
+    callbackName?: string;
+    callbackArgs?: any;
+    stopEvent?: boolean;
+    delay?: string | number;
+  }) => {
+    let nodes: Array<HTMLElement>;
 
-    const data = {
-      requestType: "falk/mutation",
-      nodeId: nodeId,
-      token: token,
-      callbackName: callbackName,
-      callbackArgs: JSON.parse(decodeURIComponent(callbackArgs)),
-      event: this.dumpEvent(event),
-    };
+    // parse options string
+    if (options.optionsString) {
+      const optionsOverrides = JSON.parse(
+        decodeURIComponent(options.optionsString),
+      );
 
-    // The event is `undefined` when handling non-standard event handler
-    // like `onRender`.
-    if (event && stopEvent) {
-      event.stopPropagation();
-      event.preventDefault();
+      options = Object.assign(optionsOverrides);
     }
 
-    setTimeout(async () => {
-      // run beforerequest hook
-      this.dispatchEvent("beforerequest", node);
-
-      // send mutation request
-      const responseData = await this.sendRequest(data);
-      const domParser = new DOMParser();
-
-      const newDocument = domParser.parseFromString(
-        responseData.body as string,
-        "text/html",
+    // find nodes
+    if (options.node) {
+      nodes = [options.node];
+    } else if (options.nodeId) {
+      const node: HTMLElement = document.querySelector(
+        `[data-falk-id=${options.nodeId}]`,
       );
 
-      // load linked styles
-      const linkNodes = newDocument.head.querySelectorAll(
-        "link[rel=stylesheet]",
-      );
-
-      linkNodes.forEach((node) => {
-        // check if style is already loaded
-        let selector: string;
-        const styleHref: string = node.getAttribute("href");
-
-        if (styleHref) {
-          selector = `link[href="${styleHref}"]`;
-        } else {
-          const styleId: string = node.getAttribute("data-falk-id");
-
-          selector = `link[data-falk-id="${styleId}"]`;
-        }
-
-        if (document.querySelector(selector)) {
-          return;
-        }
-
-        // load style
-        document.head.appendChild(node);
-      });
-
-      // load styles
-      const styleNodes = newDocument.head.querySelectorAll("style");
-
-      styleNodes.forEach((node) => {
-        // check if style is already loaded
-        const styleId: string = node.getAttribute("data-falk-id");
-        const selector = `style[data-falk-id="${styleId}"]`;
-
-        if (document.querySelector(selector)) {
-          return;
-        }
-
-        // load style
-        document.head.appendChild(node);
-      });
-
-      // load scripts
-      const scriptNodes = newDocument.body.querySelectorAll("script");
-      const promises = new Array();
-
-      scriptNodes.forEach((node) => {
-        // check if script is already loaded
-        let selector: string;
-        const scriptSrc: string = node.getAttribute("src");
-
-        if (scriptSrc) {
-          selector = `script[src="${scriptSrc}"]`;
-        } else {
-          const scriptId: string = node.getAttribute("data-falk-id");
-
-          selector = `script[data-falk-id="${scriptId}"]`;
-        }
-
-        if (document.querySelector(selector)) {
-          return;
-        }
-
-        // load script
-        // We need to create a new node so our original document will run it.
-        const newNode = document.createElement("script");
-
-        for (const attribute of node.attributes) {
-          newNode.setAttribute(attribute.name, attribute.value);
-        }
-
-        if (!node.src) {
-          newNode.textContent = node.textContent;
-        } else {
-          const promise = new Promise((resolve) => {
-            newNode.addEventListener("load", () => {
-              resolve(null);
-            });
-          });
-
-          promises.push(promise);
-        }
-
-        document.body.appendChild(newNode);
-      });
-
-      await Promise.all(promises);
-
-      // render HTML
-      // patch entire document
-      if (node.tagName == "HTML") {
-        // patch the attributes of the HTML node
-        // (node id, token, event handlers, ...)
-        this.patchNodeAttributes(node, newDocument.children[0]);
-
-        // patch title
-        document.title = newDocument.title;
-
-        // patch body
-        this.patchNode(document.body, newDocument.body, responseData.flags);
-
-        // patch only one node in the body
-      } else {
-        this.patchNode(node, newDocument.body.firstChild, responseData.flags);
+      if (!node) {
+        throw `no node with id ${options.nodeId}`;
       }
 
-      // run hooks
-      this.dispatchRenderEvents(node);
-    }, this.parseDelay(delay));
+      nodes = [node];
+    } else if (options.selector) {
+      nodes = Array.from(document.querySelectorAll(options.selector));
+    }
+
+    // iter nodes
+    for (const node of nodes) {
+      const token = node.getAttribute("data-falk-token");
+      const nodeId = node.getAttribute("data-falk-id");
+
+      const data = {
+        requestType: "falk/mutation",
+        nodeId: nodeId,
+        token: token,
+        callbackName: options.callbackName || "",
+        callbackArgs: options.callbackArgs || {},
+        event: {},
+      };
+
+      if (options.event) {
+        data.event = this.dumpEvent(options.event);
+      }
+
+      // The event is `undefined` when handling non-standard event handler
+      // like `onRender`.
+      if (options.event && options.stopEvent) {
+        options.event.stopPropagation();
+        options.event.preventDefault();
+      }
+
+      setTimeout(
+        async () => {
+          // run beforerequest hook
+          this.dispatchEvent("beforerequest", node);
+
+          // send mutation request
+          const responseData = await this.sendRequest(data);
+          const domParser = new DOMParser();
+
+          const newDocument = domParser.parseFromString(
+            responseData.body as string,
+            "text/html",
+          );
+
+          // load linked styles
+          const linkNodes = newDocument.head.querySelectorAll(
+            "link[rel=stylesheet]",
+          );
+
+          linkNodes.forEach((node) => {
+            // check if style is already loaded
+            let selector: string;
+            const styleHref: string = node.getAttribute("href");
+
+            if (styleHref) {
+              selector = `link[href="${styleHref}"]`;
+            } else {
+              const styleId: string = node.getAttribute("data-falk-id");
+
+              selector = `link[data-falk-id="${styleId}"]`;
+            }
+
+            if (document.querySelector(selector)) {
+              return;
+            }
+
+            // load style
+            document.head.appendChild(node);
+          });
+
+          // load styles
+          const styleNodes = newDocument.head.querySelectorAll("style");
+
+          styleNodes.forEach((node) => {
+            // check if style is already loaded
+            const styleId: string = node.getAttribute("data-falk-id");
+            const selector = `style[data-falk-id="${styleId}"]`;
+
+            if (document.querySelector(selector)) {
+              return;
+            }
+
+            // load style
+            document.head.appendChild(node);
+          });
+
+          // load scripts
+          const scriptNodes = newDocument.body.querySelectorAll("script");
+          const promises = new Array();
+
+          scriptNodes.forEach((node) => {
+            // check if script is already loaded
+            let selector: string;
+            const scriptSrc: string = node.getAttribute("src");
+
+            if (scriptSrc) {
+              selector = `script[src="${scriptSrc}"]`;
+            } else {
+              const scriptId: string = node.getAttribute("data-falk-id");
+
+              selector = `script[data-falk-id="${scriptId}"]`;
+            }
+
+            if (document.querySelector(selector)) {
+              return;
+            }
+
+            // load script
+            // We need to create a new node so our original document will run it.
+            const newNode = document.createElement("script");
+
+            for (const attribute of node.attributes) {
+              newNode.setAttribute(attribute.name, attribute.value);
+            }
+
+            if (!node.src) {
+              newNode.textContent = node.textContent;
+            } else {
+              const promise = new Promise((resolve) => {
+                newNode.addEventListener("load", () => {
+                  resolve(null);
+                });
+              });
+
+              promises.push(promise);
+            }
+
+            document.body.appendChild(newNode);
+          });
+
+          await Promise.all(promises);
+
+          // render HTML
+          // patch entire document
+          if (node.tagName == "HTML") {
+            // patch the attributes of the HTML node
+            // (node id, token, event handlers, ...)
+            this.patchNodeAttributes(node, newDocument.children[0]);
+
+            // patch title
+            document.title = newDocument.title;
+
+            // patch body
+            this.patchNode(document.body, newDocument.body, responseData.flags);
+
+            // patch only one node in the body
+          } else {
+            this.patchNode(
+              node,
+              newDocument.body.firstChild,
+              responseData.flags,
+            );
+          }
+
+          // run hooks
+          this.dispatchRenderEvents(node);
+        },
+        this.parseDelay(options.delay || 0),
+      );
+    }
   };
 
-  // public API
   public filterEvents = (selector: string, callback: (event) => any) => {
     return (event) => {
       if (!event.target.matches(selector)) {

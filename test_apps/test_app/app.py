@@ -20,6 +20,10 @@ def configure_app(add_route, add_static_dir):
     from test_app.components.events.input import Input
     from test_app.components.index import Index
 
+    from test_app.components.client.run_callback_in_javascript import (
+        RunCallbackInJavascript,
+    )
+
     # static files
     add_static_dir("./static/")
 
@@ -78,6 +82,12 @@ def configure_app(add_route, add_static_dir):
         r"/client/event-delegation(/)",
         EventDelegation,
         name="client__event_delegation",
+    )
+
+    add_route(
+        r"/client/run-callback-in-javascript(/)",
+        RunCallbackInJavascript,
+        name="client__run_callback_in_javascript",
     )
 
     # routes: index

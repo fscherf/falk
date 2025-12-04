@@ -88,24 +88,17 @@ def _callback(
     # provoke a KeyError if the callback does not exist
     context[callback_name]
 
-    arg_string_parts = [
-        "event",                   # event (string)
-        repr(context["node_id"]),  # nodeId (string)
-        repr(callback_name),       # callbackName (string)
-        "null",                    # callbackArgs (URL encoded JSON)
-        str(stop_event).lower(),   # stopEvent (boolean)
-        "0",                       # delay (string)
-    ]
+    options = {
+        "nodeId": context["node_id"],
+        "callbackName": callback_name,
+        "callbackArgs": callback_args,
+        "stopEvent": stop_event,
+        "delay": delay,
+    }
 
-    if callback_args:
-        arg_string_parts[3] = f"'{quote(json.dumps(callback_args))}'"
+    options_string = quote(json.dumps(options))
 
-    if delay:
-        arg_string_parts[5] = f"'{delay}'"
-
-    arg_string = ", ".join(arg_string_parts)
-
-    return f"falk.runCallback({arg_string});"
+    return f"falk.runCallback({{event: event, optionsString: '{options_string}'}});"
 
 
 @pass_context
