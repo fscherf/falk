@@ -5,6 +5,7 @@ from falk.dependency_injection import run_callback, run_coroutine_sync
 from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
+from falk.providers.callbacks import run_callback_provider
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
@@ -138,6 +139,7 @@ def get_default_app():
             "set_response_body": set_response_body_provider,
             "set_response_file": set_response_file_provider,
             "set_response_json": set_response_json_provider,
+            "run_callback": run_callback_provider,
             "get_url": get_url_provider,
         },
     })

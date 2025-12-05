@@ -24,6 +24,10 @@ def configure_app(add_route, add_static_dir):
         RunCallbackInJavascript,
     )
 
+    from test_app.components.client.run_callback_in_python import (
+        RunCallbackInPython,
+    )
+
     # static files
     add_static_dir("./static/")
 
@@ -88,6 +92,12 @@ def configure_app(add_route, add_static_dir):
         r"/client/run-callback-in-javascript(/)",
         RunCallbackInJavascript,
         name="client__run_callback_in_javascript",
+    )
+
+    add_route(
+        r"/client/run-callback-in-python(/)",
+        RunCallbackInPython,
+        name="client__run_callback_in_python",
     )
 
     # routes: index

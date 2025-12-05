@@ -297,6 +297,7 @@ def handle_request(request, mutable_app):
                     app=mutable_app,
                     parts=parts,
                 ),
+                "callbacks": parts["callbacks"],
             }
 
         elif not response["is_finished"]:

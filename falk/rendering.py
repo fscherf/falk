@@ -172,6 +172,7 @@ def render_component(
             "html": "",
             "styles": [],
             "scripts": [],
+            "callbacks": [],
             "flags": {
                 "force_rendering": False,
                 "skip_rendering": False,

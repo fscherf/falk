@@ -29,6 +29,7 @@ def Base(context, props, HTML5Base=HTML5Base):
                             <li><a href="{{ get_url('client__render_events') }}">Render Events</a></li>
                             <li><a href="{{ get_url('client__event_delegation') }}">Event Delegation</a></li>
                             <li><a href="{{ get_url('client__run_callback_in_javascript') }}">runCallback In Javascript</a></li>
+                            <li><a href="{{ get_url('client__run_callback_in_python') }}">run_callback In Python</a></li>
                         </ul>
                     </li>
                     <li>

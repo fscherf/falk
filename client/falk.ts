@@ -541,6 +541,15 @@ class Falk {
 
           // run hooks
           this.dispatchRenderEvents(node);
+
+          // run callbacks
+          for (const callback of responseData.callbacks) {
+            this.runCallback({
+              selector: callback[0],
+              callbackName: callback[1],
+              callbackArgs: callback[2],
+            });
+          }
         },
         this.parseDelay(options.delay || 0),
       );
