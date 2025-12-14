@@ -151,7 +151,7 @@ def _handle_falk_request(mutable_app, scope, body):
     set_header(
         headers=response["headers"],
         name="content-length",
-        value=str(len(response["body"]))
+        value=str(len(response["body"].encode("utf-8"))),
     )
 
     response["headers"] = [
