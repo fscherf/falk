@@ -14,6 +14,12 @@ def Base(context, props, HTML5Base=HTML5Base):
                 <h1><a href="{{ get_url('index') }}">falk Test App</a></h1>
                 <ul class="menu">
                     <li>
+                        Request Handling
+                        <ul>
+                            <li><a href="{{ get_url('request_handling__post_forms') }}">POST Forms</a></li>
+                        </ul>
+                    </li>
+                    <li>
                         Rendering
                         <ul>
                             <li><a href="{{ get_url('rendering__styles_and_scripts') }}">Styles and Scripts</a></li>

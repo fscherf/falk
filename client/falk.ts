@@ -262,7 +262,7 @@ class Falk {
   };
 
   // node patching
-  public patchNode = (node, newNode, flags) => {
+  public patchNode = (node, newNode, eventType, flags) => {
     const nodeShouldBeSkipped = (node) => {
       if (flags.forceRendering) {
         return false;
@@ -324,14 +324,23 @@ class Falk {
           return false;
         }
 
-        // preserve values of input elemente
+        // Preserve values of input elements if the original event is no
+        // `submit` event.
+        // Normally, we don't want to override user input from the backend
+        // because this almost always results in bad user experience, but when
+        // submitting a form, the expected behavior is that the form
+        // clears afterwards.
+        // To make the backend code able to render an empty form after a
+        // successful submit, or containing the submitted values in case of an
+        // error, we take the new form as is and discard local values.
         if (
-          (fromEl instanceof HTMLInputElement &&
+          eventType != "submit" &&
+          ((fromEl instanceof HTMLInputElement &&
             toEl instanceof HTMLInputElement) ||
-          (fromEl instanceof HTMLTextAreaElement &&
-            toEl instanceof HTMLTextAreaElement) ||
-          (fromEl instanceof HTMLSelectElement &&
-            toEl instanceof HTMLSelectElement)
+            (fromEl instanceof HTMLTextAreaElement &&
+              toEl instanceof HTMLTextAreaElement) ||
+            (fromEl instanceof HTMLSelectElement &&
+              toEl instanceof HTMLSelectElement))
         ) {
           toEl.value = fromEl.value;
         }
@@ -371,6 +380,13 @@ class Falk {
       );
 
       options = Object.assign(options, optionsOverrides);
+    }
+
+    // find event type
+    let eventType: string = "";
+
+    if (event) {
+      eventType = event.type;
     }
 
     // find nodes
@@ -528,13 +544,19 @@ class Falk {
             document.title = newDocument.title;
 
             // patch body
-            this.patchNode(document.body, newDocument.body, responseData.flags);
+            this.patchNode(
+              document.body,
+              newDocument.body,
+              eventType,
+              responseData.flags,
+            );
 
             // patch only one node in the body
           } else {
             this.patchNode(
               node,
               newDocument.body.firstChild,
+              eventType,
               responseData.flags,
             );
           }

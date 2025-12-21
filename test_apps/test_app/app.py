@@ -10,6 +10,7 @@ def configure_app(add_route, add_static_dir):
 
     from test_app.components.client.callback_passing import CallbackPassing
     from test_app.components.client.event_delegation import EventDelegation
+    from test_app.components.request_handling.post_forms import PostForms
     from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
     from test_app.components.rendering.flags import RenderingFlags
@@ -30,6 +31,13 @@ def configure_app(add_route, add_static_dir):
 
     # static files
     add_static_dir("./static/")
+
+    # routes: request handling
+    add_route(
+        r"/request-handling/post-forms(/)",
+        PostForms,
+        name="request_handling__post_forms",
+    )
 
     # routes: rendering
     add_route(
