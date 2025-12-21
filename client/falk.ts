@@ -370,7 +370,7 @@ class Falk {
         decodeURIComponent(options.optionsString),
       );
 
-      options = Object.assign(optionsOverrides);
+      options = Object.assign(options, optionsOverrides);
     }
 
     // find nodes
