@@ -1,15 +1,40 @@
-def HTML5Base(props):
+def HTML5Base(props, context):
+    html_attribute_string = ""
+    body_attribute_string = ""
+
+    for key, value in props.items():
+        if key.startswith("html_"):
+            html_attribute_string += (
+                f'{key[5:]}="{value}" '
+            )
+
+        elif key.startswith("body_"):
+            body_attribute_string += (
+                f'{key[5:]}="{value}" '
+            )
+
+    context.update({
+        "html_attribute_string": html_attribute_string,
+        "body_attribute_string": body_attribute_string,
+    })
+
     return """
       <!DOCTYPE html>
-      <html lang="{{ props.get('lang', 'en') }}">
+      <html
+          lang="{{ props.get('lang', 'en') }}"
+          _="{{ html_attribute_string }}">
+
         <head>
           <meta charset="{{ props.get('charset', 'UTF-8') }}">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+          <meta
+            name="viewport" content="width=device-width, initial-scale=1.0">
+
           <title>{{ props.get("title", "") }}</title>
           {{ falk_styles() }}
         </head>
-        <body>
+        <body _="{{ body_attribute_string }}">
           {{ props.children }}
           {{ falk_scripts() }}
         </body>

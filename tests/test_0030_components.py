@@ -160,3 +160,47 @@ def test_dynamic_attribute_rendering(page, start_falk_app):
     # run test
     page.goto(base_url)
     page.inner_text("#component[a=aaa][b=bbb][c=ccc]") == "Component Text"
+
+
+@pytest.mark.only_browser("chromium")
+def test_html5_base_component(page, start_falk_app):
+    """
+    This test tests `falk.components.HTML5Base` with custom styles, custom
+    scripts and custom html- and body classes and ids.
+    """
+
+    from falk.components import HTML5Base
+
+    def View(HTML5Base=HTML5Base):
+        return """
+            <style data-falk-id="test-style"></style>
+
+            <HTML5Base
+              title="Test Title"
+              html_id="html-id"
+              html_class="html-class-1 html-class-2"
+              body_id="body-id"
+              body_class="body-class-1 body-class-2">
+
+              Test Text
+            </HTML5Base>
+
+            <script data-falk-id="test-script"></script>
+        """
+
+    def configure_app(add_route):
+        add_route(r"/", View)
+
+    _, base_url = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # run test
+    page.goto(base_url)
+    page.inner_text("body") == "Test Text"
+    page.wait_for_selector("html#html-id.html-class-1.html-class-2")
+    page.wait_for_selector("body#body-id.body-class-1.body-class-2")
+    page.wait_for_selector("style[data-falk-id=test-style]", state="hidden")
+    page.wait_for_selector("script[data-falk-id=test-script]", state="hidden")
+
+    assert page.title() == "Test Title"
