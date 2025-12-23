@@ -122,3 +122,41 @@ def test_prop_passing(page, start_falk_app):
     # run test
     page.goto(base_url)
     page.inner_text("#inner-component[foo=bar]") == "Outer Component Text"
+
+
+@pytest.mark.only_browser("chromium")
+def test_dynamic_attribute_rendering(page, start_falk_app):
+    """
+    This test tests dynamic attribute rendering (templating syntax within
+    a tag using the `_` meta attribute) by rendering a simple component that
+    has one static attribute and a list of attributes generated in a
+    Jinja loop.
+    The test component does not use the HTML5Base component on purpose. This
+    ensures that this rendering mechanism works without any
+    client side hydration.
+
+    The test is successful if the test component shows up in the browser
+    with all static and dynamic attributes and the test text.
+    """
+
+    def Component():
+        return """
+            <div id="component" _='
+                {% for i in ["a", "b", "c"] %}
+                    {{ i }}="{{ i * 3 }}"
+                {% endfor %}
+            '>
+                Component Text
+            </div>
+        """
+
+    def configure_app(add_route):
+        add_route(r"/", Component)
+
+    _, base_url = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # run test
+    page.goto(base_url)
+    page.inner_text("#component[a=aaa][b=bbb][c=ccc]") == "Component Text"

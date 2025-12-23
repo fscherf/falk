@@ -84,7 +84,10 @@ class ComponentTemplateParser(HTMLParser):
             items = sorted(items, key=lambda item: item[0])
 
         for key, value in items:
-            if value is None:
+            if key == "_":
+                attribute_string_parts.append(value)
+
+            elif value is None:
                 attribute_string_parts.append(key)
 
             else:
