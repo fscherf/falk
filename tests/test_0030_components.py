@@ -71,3 +71,54 @@ def test_basic_component(interface, page, start_falk_app):
     page.wait_for_selector("#button-2")
 
     assert page.inner_text("#button-2") == "2"
+
+
+@pytest.mark.only_browser("chromium")
+def test_prop_passing(page, start_falk_app):
+    """
+    This test tests whether passing all props of a component to another
+    component works by defining three components: An outer component, a mid
+    component and an inner component.
+    The outer component calls the inner component with a prop, the mid
+    component is forwarding all props it is given and the inner component
+    is rendering the prop given by the outer component.
+
+    The test does not use the HTML5Base component on purpose. This ensures
+    that this rendering mechanism works without any client side hydration.
+
+    The test is successful if the inner component gets rendered with the outer
+    component text and attributes.
+
+    """
+
+    def InnerComponent(props):
+        return """
+            <div id="inner-component" foo="{{ props.foo }}">
+                {{ props.children }}
+            </div>
+        """
+
+    def MidComponent(props, InnerComponent=InnerComponent):
+        return """
+            <InnerComponent props="{{ props }}">
+                {{ props.children }}
+            </InnerComponent>
+        """
+
+    def OuterComponent(MidComponent=MidComponent):
+        return """
+            <MidComponent foo="bar">
+                Outer Component Text
+            </MidComponent>
+        """
+
+    def configure_app(add_route):
+        add_route(r"/", OuterComponent)
+
+    _, base_url = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # run test
+    page.goto(base_url)
+    page.inner_text("#inner-component[foo=bar]") == "Outer Component Text"
