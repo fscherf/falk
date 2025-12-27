@@ -53,18 +53,25 @@ def get_request(
         )
 
     # mutation requests
-    if (request["method"] == "POST" and
-            request["content_type"] == "application/json" and
-            request["json"].get("requestType", "") == "falk/mutation"):
-
-        request["is_mutation_request"] = True
-        request["callback_name"] = request["json"]["callbackName"]
-        request["callback_args"] = request["json"]["callbackArgs"]
-        request["event"] = request["json"]["event"]
-        request["node_id"] = request["json"]["nodeId"]
-        request["token"] = request["json"]["token"]
+    parse_mutation_fields(request)
 
     return request
+
+
+def parse_mutation_fields(request):
+    if (request["method"] != "POST" or
+            request["content_type"] != "application/json" or
+            request["json"].get("requestType", "") != "falk/mutation"):
+
+        return
+
+    request["callback_name"] = request["json"]["callbackName"]
+    request["callback_args"] = request["json"]["callbackArgs"]
+    request["event"] = request["json"]["event"]
+    request["node_id"] = request["json"]["nodeId"]
+    request["token"] = request["json"]["token"]
+
+    request["is_mutation_request"] = True
 
 
 def get_response(
