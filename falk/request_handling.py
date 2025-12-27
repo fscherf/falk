@@ -2,10 +2,10 @@ import logging
 import time
 
 from falk.errors import UnknownComponentIdError, InvalidTokenError
+from falk.http import get_header, set_header, set_status
 from falk.rendering import render_component, render_body
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
-from falk.http import set_header, set_status
 from falk.routing import get_component
 from falk.components import ItWorks
 
@@ -16,21 +16,26 @@ error_logger = logging.getLogger("falk.errors")
 def get_request(
         protocol="HTTP",
         headers=None,
+        content_type="",
+        content_length=0,
         method="GET",
         path="/",
-        content_type="",
         query=None,
         post=None,
         json=None,
 ):
 
     request = {
+
+        # headers
+        "headers": {},
+        "content_type": content_type,
+        "content_length": content_length,
+
         # basic HTTP fields
         "protocol": protocol,
-        "headers": {},
         "method": method,
         "path": path,
-        "content_type": content_type,
         "query": query or {},
         "post": post or {},
         "json": json or {},
@@ -44,13 +49,46 @@ def get_request(
         "token": "",
     }
 
-    # headers
-    for name, value in (headers or {}).items():
-        set_header(
+    # headers as list of tuples (asgi)
+    if isinstance(headers, list):
+        for name, value in headers:
+            set_header(
+                headers=request["headers"],
+                name=name.decode(),
+                value=value.decode(),
+            )
+
+    # headers as dict (creating a new request form a base request (websockets))
+    elif isinstance(headers, dict):
+        for name, value in headers.items():
+            set_header(
+                headers=request["headers"],
+                name=name,
+                value=value,
+            )
+
+    # headers: Content-Type
+    if not request["content_type"]:
+        request["content_type"] = get_header(
             headers=request["headers"],
-            name=name,
-            value=value,
+            name="content-type",
+            default="",
         )
+
+    # headers: Content-Length
+    if not request["content_length"]:
+        _content_length = get_header(
+            headers=request["headers"],
+            name="content-length",
+            default="0",
+        )
+
+        if not _content_length.isnumeric():
+            raise ValueError(
+                f"Header Content-Length needs to be numeric. Got {repr(_content_length)}",  # NOQA
+            )
+
+        request["content_length"] = int(_content_length)
 
     # mutation requests
     parse_mutation_fields(request)
