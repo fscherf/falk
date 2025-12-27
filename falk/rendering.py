@@ -340,7 +340,7 @@ def render_component(
 
         token = mutable_app["settings"]["encode_token"](
             component_id=component_id,
-            component_state=component_state,
+            data=component_state,
             mutable_app=mutable_app,
         )
 

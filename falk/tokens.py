@@ -6,7 +6,7 @@ import json
 from falk.errors import InvalidSettingsError, InvalidTokenError
 
 
-def encode_token(component_id, component_state, mutable_app):
+def encode_token(component_id, data, mutable_app):
     if "token_key" not in mutable_app["settings"]:
         raise InvalidSettingsError(
             "'token_key' needs to be configured to encode tokens",
@@ -15,7 +15,7 @@ def encode_token(component_id, component_state, mutable_app):
     key = mutable_app["settings"]["token_key"]
 
     component_data = json.dumps(
-        [component_id, component_state],
+        [component_id, data],
         separators=(",", ":"),
         sort_keys=True,
     ).encode()
@@ -57,8 +57,8 @@ def decode_token(token, mutable_app):
     if not hmac.compare_digest(signature, expected_signature):
         raise InvalidTokenError()
 
-    component_id, component_state = json.loads(
+    component_id, data = json.loads(
         component_data.decode(),
     )
 
-    return component_id, component_state
+    return component_id, data

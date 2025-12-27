@@ -20,7 +20,7 @@ def test_state_encoding_and_decoding():
 
     token = encode_token(
         component_id=component_id,
-        component_state=component_state,
+        data=component_state,
         mutable_app=app,
     )
 
@@ -101,7 +101,7 @@ def test_tampered_with_tokens():
 
     token = encode_token(
         component_id=component_id,
-        component_state=component_state,
+        data=component_state,
         mutable_app=app,
     )
 
@@ -143,7 +143,7 @@ def test_invalid_settings_errors():
     with pytest.raises(InvalidSettingsError):
         encode_token(
             component_id="foo.bar.baz",
-            component_state={},
+            data={},
             mutable_app={
                 "settings": {},
             },
