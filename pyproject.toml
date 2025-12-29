@@ -20,6 +20,8 @@ dependencies = [
   "jinja2",
   "simple-logging-setup",
   "aiofiles",
+  "python-multipart",
+  "starlette",
 ]
 
 

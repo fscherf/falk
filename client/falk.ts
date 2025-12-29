@@ -1,21 +1,20 @@
+import { WebsocketTransport } from "./websocket-transport";
+import { HTTPTransport } from "./http-transport";
+import { dumpEvent } from "./events";
 import morphdom from "morphdom";
 
 class Falk {
-  private websocketsAvailable: boolean;
-  private websocket: WebSocket;
-  private websocketMessageIdCounter: number;
-
-  private pendingWebsocketRequests: Map<
-    number,
-    {
-      resolve: (value: unknown) => void;
-      reject: (reason?: unknown) => void;
-    }
-  >;
+  private httpTransport: HTTPTransport;
+  private websocketTransport: WebsocketTransport;
 
   public init = async () => {
-    this.websocketsAvailable = await this.connectWebsocket();
+    // setup transports
+    this.httpTransport = new HTTPTransport();
+    this.websocketTransport = new WebsocketTransport();
 
+    await this.websocketTransport.init();
+
+    // dispatch initialRender events
     if (document.readyState === "complete") {
       this.dispatchRenderEvents(document.body, {
         initial: true,
@@ -56,100 +55,6 @@ class Falk {
       return value * 60 * 60 * 1000;
     } else {
       throw new Error("Unknown unit: " + unit);
-    }
-  };
-
-  // request handling: AJAX
-  public sendHttpRequest = async (data): Promise<any> => {
-    return new Promise(async (resolve, reject) => {
-      const response = await fetch(window.location + "", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        redirect: "manual",
-      });
-
-      if (!response.ok) {
-        reject(`HTTP error! Status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-
-      // handle reloads
-      if (responseData.flags.reload) {
-        window.location.reload();
-      }
-
-      resolve(responseData);
-    });
-  };
-
-  // request handling: websockets
-  private handleWebsocketMessage = (event: MessageEvent) => {
-    const [messageId, messageData] = JSON.parse(event.data);
-    const responseData = messageData.json;
-    const promiseCallbacks = this.pendingWebsocketRequests.get(messageId);
-
-    // handle reloads
-    if (responseData.flags.reload) {
-      window.location.reload();
-    }
-
-    // HTML responses
-    promiseCallbacks["resolve"](responseData);
-
-    this.pendingWebsocketRequests.delete(messageData);
-  };
-
-  public connectWebsocket = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      this.websocket = new WebSocket(window.location + "");
-
-      this.websocket.addEventListener("message", this.handleWebsocketMessage);
-
-      this.websocket.addEventListener("open", () => {
-        this.websocketMessageIdCounter = 1;
-        this.pendingWebsocketRequests = new Map();
-
-        resolve(true);
-      });
-
-      this.websocket.addEventListener("error", (event) => {
-        resolve(false);
-      });
-    });
-  };
-
-  public sendWebsocketRequest = async (data): Promise<any> => {
-    return new Promise(async (resolve, reject) => {
-      // connect websocket if necessary
-      if (this.websocket.readyState !== this.websocket.OPEN) {
-        await this.connectWebsocket();
-      }
-
-      // send request
-      const messageId: number = this.websocketMessageIdCounter;
-      const message: string = JSON.stringify([messageId, data]);
-
-      this.websocketMessageIdCounter += 1;
-
-      this.websocket.send(message);
-
-      this.pendingWebsocketRequests.set(messageId, {
-        resolve: resolve,
-        reject: reject,
-      });
-    });
-  };
-
-  // request handling
-  public sendRequest = async (data): Promise<any> => {
-    if (this.websocketsAvailable) {
-      return await this.sendWebsocketRequest(data);
-    } else {
-      return await this.sendHttpRequest(data);
     }
   };
 
@@ -209,56 +114,6 @@ class Falk {
       },
       rootNode,
     );
-  };
-
-  // events
-  public dumpEvent = (event: Event) => {
-    const eventData = {
-      type: "",
-      data: undefined,
-      formData: {},
-    };
-
-    // The event is `undefined` when handling non-standard event handler
-    // like `onRender`.
-    if (!event) {
-      return eventData;
-    }
-
-    eventData.type = event.type;
-
-    // input, change, submit
-    if (
-      event.type == "input" ||
-      event.type == "change" ||
-      event.type == "submit"
-    ) {
-      // forms
-      if (event.currentTarget instanceof HTMLFormElement) {
-        const formData: FormData = new FormData(event.currentTarget);
-
-        for (const [key, value] of formData.entries()) {
-          eventData.formData[key] = value;
-        }
-
-        // inputs
-      } else {
-        const inputElement: HTMLInputElement =
-          event.currentTarget as HTMLInputElement;
-
-        eventData.data = inputElement.value;
-
-        if (inputElement.hasAttribute("name")) {
-          const inputName: string = inputElement.getAttribute("name");
-
-          if (inputName) {
-            eventData.formData[inputName] = inputElement.value;
-          }
-        }
-      }
-    }
-
-    return eventData;
   };
 
   // node patching
@@ -408,21 +263,11 @@ class Falk {
 
     // iter nodes
     for (const node of nodes) {
-      const token = node.getAttribute("data-falk-token");
+      const eventData = dumpEvent(options.event);
       const nodeId = node.getAttribute("data-falk-id");
-
-      const data = {
-        requestType: "falk/mutation",
-        nodeId: nodeId,
-        token: token,
-        callbackName: options.callbackName || "",
-        callbackArgs: options.callbackArgs || {},
-        event: {},
-      };
-
-      if (options.event) {
-        data.event = this.dumpEvent(options.event);
-      }
+      const token = node.getAttribute("data-falk-token");
+      const callbackName = options.callbackName || "";
+      const callbackArgs = options.callbackArgs || {};
 
       // The event is `undefined` when handling non-standard event handler
       // like `onRender`.
@@ -437,7 +282,41 @@ class Falk {
           this.dispatchEvent("beforerequest", node);
 
           // send mutation request
-          const responseData = await this.sendRequest(data);
+          let responseData;
+
+          // HTTP multipart POST (file uploads)
+          if (eventData.files.length > 0) {
+            responseData =
+              await this.httpTransport.sendMultipartMutationRequest({
+                nodeId: nodeId,
+                token: token,
+                callbackName: callbackName,
+                callbackArgs: callbackArgs,
+                eventData: eventData,
+              });
+
+            // websocket
+          } else if (this.websocketTransport.available) {
+            responseData = await this.websocketTransport.sendMutationRequest({
+              nodeId: nodeId,
+              token: token,
+              callbackName: callbackName,
+              callbackArgs: callbackArgs,
+              eventData: eventData,
+            });
+
+            // HTTP POST
+          } else {
+            responseData = await this.httpTransport.sendMutationRequest({
+              nodeId: nodeId,
+              token: token,
+              callbackName: callbackName,
+              callbackArgs: callbackArgs,
+              eventData: eventData,
+            });
+          }
+
+          // parse response HTML
           const domParser = new DOMParser();
 
           const newDocument = domParser.parseFromString(

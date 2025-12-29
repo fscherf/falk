@@ -6,8 +6,9 @@ from uvicorn.middleware.wsgi import WSGIMiddleware
 import uvicorn
 import pytest
 
-from falk.apps import run_configure_app
+from falk.asgi2 import get_asgi2_app
 from falk.asgi import get_asgi_app
+from falk.apps import run_configure_app
 from falk.wsgi import get_wsgi_app
 
 
@@ -31,14 +32,14 @@ def start_falk_app():
             configure_app,
             host="127.0.0.1",
             port=0,
-            interface="asgi",
+            interface="asgi2",
             startup_retry_delay_in_s=0.01,
             startup_timeout_in_s=5.0,
     ):
 
-        if interface not in ("wsgi", "asgi"):
+        if interface not in ("wsgi", "asgi", "asgi2"):
             raise ValueError(
-                f'Unknwon interface "{interface}". Supported interfaces: asgi, wsgi',
+                f'Unknwon interface "{interface}". Supported interfaces: asgi, wsgi, asgi2',
             )
 
         # configure falk app
@@ -46,6 +47,11 @@ def start_falk_app():
 
         if interface == "asgi":
             uvicorn_app = get_asgi_app(
+                mutable_app=mutable_app,
+            )
+
+        elif interface == "asgi2":
+            uvicorn_app = get_asgi2_app(
                 mutable_app=mutable_app,
             )
 

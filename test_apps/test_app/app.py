@@ -1,8 +1,9 @@
-from falk.wsgi import get_wsgi_app
+from falk.asgi2 import get_asgi2_app
 from falk.asgi import get_asgi_app
+from falk.wsgi import get_wsgi_app
 
 
-def configure_app(add_route, add_static_dir):
+def configure_app(mutable_app, add_route, add_static_dir, settings):
     from test_app.components.rendering.styles_and_scripts import (
         StylesAndScripts,
         CodeSplitting,
@@ -21,6 +22,10 @@ def configure_app(add_route, add_static_dir):
     from test_app.components.events.input import Input
     from test_app.components.index import Index
 
+    from test_app.components.request_handling.multipart_forms import (
+        MultipartForms,
+    )
+
     from test_app.components.client.run_callback_in_javascript import (
         RunCallbackInJavascript,
     )
@@ -28,6 +33,11 @@ def configure_app(add_route, add_static_dir):
     from test_app.components.client.run_callback_in_python import (
         RunCallbackInPython,
     )
+
+    # settings
+    mutable_app["settings"].update({
+        "debug": True,
+    })
 
     # static files
     add_static_dir("./static/")
@@ -37,6 +47,12 @@ def configure_app(add_route, add_static_dir):
         r"/request-handling/post-forms(/)",
         PostForms,
         name="request_handling__post_forms",
+    )
+
+    add_route(
+        r"/request-handling/multipart-forms(/)",
+        MultipartForms,
+        name="request_handling__multipart_forms",
     )
 
     # routes: rendering
@@ -114,3 +130,4 @@ def configure_app(add_route, add_static_dir):
 
 wsgi_app = get_wsgi_app(configure_app, lazy=True)
 asgi_app = get_asgi_app(configure_app)
+asgi2_app = get_asgi2_app(configure_app)

@@ -1,3 +1,16 @@
+import traceback
+import html
+
+
+def format_exception(exception):
+    lines = traceback.format_exception(exception)
+
+    return (
+        html.escape(lines[-1]),
+        html.escape("".join(lines)),
+    )
+
+
 def HTML5Base(props, context):
     html_attribute_string = ""
     body_attribute_string = ""
@@ -50,13 +63,71 @@ def ItWorks(HTML5Base=HTML5Base):
     """
 
 
+def Error400(
+        request,
+        response,
+        settings,
+        exception,
+        context,
+        set_response_status,
+        HTML5Base=HTML5Base,
+):
+
+    # reset response
+    response.update({
+        "is_finished": False,
+        "content_type": "text/html",
+        "body": None,
+        "file_path": "",
+        "json": None,
+    })
+
+    if not request["is_mutation_request"]:
+        set_response_status(400)
+
+    if settings["debug"]:
+        short_exception_string, exception_string = format_exception(exception)
+
+        context.update({
+            "short_exception_string": short_exception_string,
+            "exception_string": exception_string,
+        })
+
+    if request["is_mutation_request"]:
+        return """
+            <div class="falk-error">
+                Error 400:
+                {% if settings.debug %}
+                    {{ short_exception_string }}
+                {% else %}
+                    Invalid Request
+                {% endif %}
+            </div>
+        """
+
+    return """
+        <HTML5Base title="400 Invalid Request">
+            <h1>Error 500</h1>
+            <div class="falk-error">
+                {% if settings.debug %}
+                    <pre>{{ exception_string }}</pre>
+                {% else %}
+                    <p>Invalid Request</p>
+                {% endif %}
+            </div>
+        </HTML5Base>
+    """
+
+
 def Error404(set_response_status, HTML5Base=HTML5Base):
     set_response_status(404)
 
     return """
         <HTML5Base title="404 Not Found">
             <h1>Error 404</h1>
-            <p>Not Found</p>
+            <div class="falk-error">
+                <p>Not Found</p>
+            </div>
         </HTML5Base>
     """
 
@@ -64,6 +135,9 @@ def Error404(set_response_status, HTML5Base=HTML5Base):
 def Error500(
         request,
         response,
+        settings,
+        exception,
+        context,
         set_response_status,
         HTML5Base=HTML5Base,
 ):
@@ -80,14 +154,35 @@ def Error500(
     if not request["is_mutation_request"]:
         set_response_status(500)
 
+    if settings["debug"]:
+        short_exception_string, exception_string = format_exception(exception)
+
+        context.update({
+            "short_exception_string": short_exception_string,
+            "exception_string": exception_string,
+        })
+
     if request["is_mutation_request"]:
         return """
-            <div>Error 500: Internal Error</div>
+            <div class="falk-error">
+                Error 500:
+                {% if settings.debug %}
+                    {{ short_exception_string }}
+                {% else %}
+                    Internal Error
+                {% endif %}
+            </div>
         """
 
     return """
         <HTML5Base title="500 Internal Error">
             <h1>Error 500</h1>
-            <p>Internal Error</p>
+            <div class="falk-error">
+                {% if settings.debug %}
+                    <pre>{{ exception_string }}</pre>
+                {% else %}
+                    <p>Internal Error</p>
+                {% endif %}
+            </div>
         </HTML5Base>
     """

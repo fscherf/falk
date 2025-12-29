@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "wsgi"])
+@pytest.mark.parametrize("interface", ["asgi", "asgi2", "wsgi"])
 def test_request_parsing(interface, start_falk_app):
     import requests
 

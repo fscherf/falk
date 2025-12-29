@@ -88,6 +88,10 @@ class InvalidStatusCodeError(HTTPError):
     pass
 
 
+class InvalidRequestError(HTTPError):
+    pass
+
+
 # routing
 class RoutingError(FalkError):
     pass

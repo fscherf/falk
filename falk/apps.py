@@ -6,12 +6,12 @@ from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.providers.callbacks import run_callback_provider
+from falk.components import Error400, Error404, Error500
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
 from falk.request_handling import handle_request
 from falk.extra_template_context import get_url
-from falk.components import Error404, Error500
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
 from falk.keys import get_random_key
@@ -53,6 +53,7 @@ from falk.providers.flags import (
 def get_default_app():
     mutable_app = {
         "settings": {
+            "debug": get_integer("FALK_DEBUG", False),
             "workers": get_integer("FALK_WORKERS", 4),
             "run_coroutine_sync": run_coroutine_sync,
             "hash_string": get_md5_hash,
@@ -65,6 +66,7 @@ def get_default_app():
         },
         "executor": None,
         "components": {},
+        "file_upload_settings": {},
         "routes": [],
     }
 
@@ -105,6 +107,7 @@ def get_default_app():
 
     # settings: error components
     mutable_app["settings"].update({
+        "error_400_component": Error400,
         "error_404_component": Error404,
         "error_500_component": Error500,
     })

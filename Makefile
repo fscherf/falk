@@ -17,7 +17,7 @@ define DOCKER_COMPOSE_RUN
 		$1 $2
 endef
 
-all: asgi-test-app
+all: asgi2-test-app
 
 # python
 python-shell:
@@ -76,6 +76,9 @@ wsgi-test-app: node-build
 
 asgi-test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi-test-app ${args})
+
+asgi2-test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi2-test-app ${args})
 
 # releases
 _pypi-upload:

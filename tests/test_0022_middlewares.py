@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "wsgi"])
+@pytest.mark.parametrize("interface", ["asgi", "asgi2", "wsgi"])
 def test_middleware_headers(interface, start_falk_app):
     import requests
 

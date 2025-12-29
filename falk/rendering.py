@@ -102,6 +102,32 @@ def _callback(
 
 
 @pass_context
+def _upload_token(context, max_files=0, max_file_size=1024*1024, plain=False):
+    # defaults taken from https://starlette.dev/requests/#request-files
+
+    mutable_app = context["mutable_app"]
+
+    component_id = mutable_app["settings"]["get_component_id"](
+        component=context["caller"],
+        mutable_app=context["mutable_app"],
+    )
+
+    token = mutable_app["settings"]["encode_token"](
+        component_id=component_id,
+        data={
+            "max_files": max_files,
+            "max_file_size": max_file_size,
+        },
+        mutable_app=mutable_app,
+    )
+
+    if plain:
+        return token
+
+    return f'<input type="hidden" name="falk/upload-token" value="{token}">'
+
+
+@pass_context
 def _falk_styles(context):
     return render_styles(
         app=context["app"],
@@ -156,6 +182,7 @@ def render_component(
         token=None,
         component_state=None,
         component_props=None,
+        exception=None,
         is_root=True,
         run_component_callback="",
         parts=None,
@@ -243,6 +270,7 @@ def render_component(
         "node_id": node_id,
         "state": component_state,
         "response": response,
+        "exception": exception,
     }
 
     template_context = {
@@ -256,6 +284,7 @@ def render_component(
         "_render_component": _render_component,
         "_parts": parts,
         "callback": _callback,
+        "upload_token": _upload_token,
         "falk_styles": _falk_styles,
         "falk_scripts": _falk_scripts,
 
@@ -292,8 +321,8 @@ def render_component(
     # it will most likely mutate the template context.
     if run_component_callback:
         dependencies.update({
-            "args": request["callback_args"],
-            "event": request["event"],
+            "args": request["json"].get("callbackArgs", []),
+            "event": request["json"].get("event", {"formData": {}}),
         })
 
         run_callback(

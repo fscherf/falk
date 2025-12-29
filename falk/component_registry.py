@@ -50,6 +50,15 @@ def register_component(component, mutable_app):
                     abs_path,
                 )
 
+        # file uploads
+        if name in ("file_upload_max_files", "file_upload_max_file_size"):
+            if component_id not in mutable_app["file_upload_settings"]:
+                mutable_app["file_upload_settings"][component_id] = {}
+
+            mutable_app["file_upload_settings"][component_id][name] = (
+                dependency
+            )
+
         # components
         elif callable(dependency):
             register_component(

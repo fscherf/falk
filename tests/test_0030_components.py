@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "wsgi"])
+@pytest.mark.parametrize("interface", ["asgi", "asgi2", "wsgi"])
 def test_basic_component(interface, page, start_falk_app):
     """
     This test tests basic requests handling and partial re rendering by setting
