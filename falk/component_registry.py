@@ -50,7 +50,7 @@ def register_component(component, mutable_app):
                     abs_path,
                 )
 
-        # file uploads
+        # file uploads settings
         if name in ("file_upload_max_files", "file_upload_max_file_size"):
             if component_id not in mutable_app["file_upload_settings"]:
                 mutable_app["file_upload_settings"][component_id] = {}
@@ -58,6 +58,10 @@ def register_component(component, mutable_app):
             mutable_app["file_upload_settings"][component_id][name] = (
                 dependency
             )
+
+        # file upload handler
+        elif name == "handle_file_upload":
+            mutable_app["file_upload_handler"][component_id] = dependency
 
         # components
         elif callable(dependency):
@@ -73,3 +77,10 @@ def get_component(component_id, mutable_app):
 
     except KeyError as exception:
         raise UnknownComponentIdError() from exception
+
+
+def get_file_upload_handler(component_id, mutable_app):
+    return mutable_app["file_upload_handler"].get(
+        component_id,
+        mutable_app["settings"]["default_file_upload_handler"],
+    )

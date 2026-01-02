@@ -47,6 +47,8 @@ def get_request(
         "event": {},
         "node_id": "",
         "token": "",
+
+        "exception": None,
     }
 
     # headers as list of tuples (asgi)
@@ -97,19 +99,22 @@ def get_request(
 
 
 def parse_mutation_fields(request):
-    if (request["method"] != "POST" or
-            request["content_type"] != "application/json" or
-            request["json"].get("requestType", "") != "falk/mutation"):
+    mutation_request_header = get_header(
+        headers=request["headers"],
+        name="X-Falk-Mutation-Request",
+        default="",
+    )
 
-        return
+    request_type = request["json"].get("requestType", "")
 
-    request["callback_name"] = request["json"]["callbackName"]
-    request["callback_args"] = request["json"]["callbackArgs"]
-    request["event"] = request["json"]["event"]
-    request["node_id"] = request["json"]["nodeId"]
-    request["token"] = request["json"]["token"]
+    if mutation_request_header or request_type == "falk/mutation":
+        request["is_mutation_request"] = True
 
-    request["is_mutation_request"] = True
+        request["callback_name"] = request["json"].get("callbackName", "")
+        request["callback_args"] = request["json"].get("callbackArgs", [])
+        request["event"] = request["json"].get("event", {})
+        request["node_id"] = request["json"].get("nodeId", "")
+        request["token"] = request["json"].get("token", "")
 
 
 def get_response(
@@ -211,6 +216,23 @@ def handle_request(request, mutable_app):
     component_state = None
     parts = {}
 
+    def get_parts_for_exception(exception):
+        component = mutable_app["settings"]["error_500_component"]
+
+        component_props = {
+            "exception": exception,
+        }
+
+        parts = render_component(
+            component=component,
+            mutable_app=mutable_app,
+            request=request,
+            response=response,
+            component_props=component_props,
+        )
+
+        return parts
+
     try:
         # pre component middlewares
         run_middlewares(
@@ -220,9 +242,18 @@ def handle_request(request, mutable_app):
             mutable_app=mutable_app,
         )
 
+        # handle exceptions that were raised while parsing the request
+        if request["exception"]:
+            parts = get_parts_for_exception(
+                exception=request["exception"],
+            )
+
+            import rlpython
+            rlpython.embed()
+
         # we run the component code only if the response was not finished
         # by a middleware before.
-        if not response["is_finished"]:
+        elif not response["is_finished"]:
 
             # mutation request (JSON response)
             if request["is_mutation_request"]:
@@ -315,19 +346,7 @@ def handle_request(request, mutable_app):
         )
 
         # render error 500 component
-        component = mutable_app["settings"]["error_500_component"]
-
-        component_props = {
-            "exception": exception,
-        }
-
-        parts = render_component(
-            component=component,
-            mutable_app=mutable_app,
-            request=request,
-            response=response,
-            component_props=component_props,
-        )
+        parts = get_parts_for_exception(exception)
 
     # set response body
     if parts:

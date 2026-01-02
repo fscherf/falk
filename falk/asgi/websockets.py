@@ -2,36 +2,44 @@ from urllib.parse import parse_qs
 import asyncio
 import json
 
-from falk.request_handling import get_request
+from falk.request_handling2 import get_request, handle_request
+from falk.http import set_header
 
 
 def _handle_websocket_message(mutable_app, scope, text):
 
     # setup request
-    request_id, json_data = json.loads(text)
-    query = parse_qs(scope["query_string"].decode())
-    headers = {}
+    request = get_request()
+    exception = None
+
+    request["path"] = scope["path"]
+    request["query"] = parse_qs(scope["query_string"].decode())
 
     for name, value in scope.get("headers", []):
-        headers[name.decode("utf-8")] = value.decode("utf-8")
+        set_header(
+            request["headers"],
+            name=name.decode(),
+            value=value.decode(),
+        )
 
-    request = get_request(
-        protocol="WS",
-        headers=headers,
-        method="POST",
-        path=scope["path"],
-        content_type="application/json",
-        query=query,
-        json=json_data,
-    )
+    # we only accept mutation requests as websocket messages
+    request["is_mutation_request"] = True
 
-    # handle request
-    response = mutable_app["entry_points"]["handle_request"](
-        request=request,
+    try:
+        message_id, message_data = json.loads(text)
+
+        request["json"] = message_data
+
+    except Exception as _exception:
+        exception = _exception
+
+    response = handle_request(
         mutable_app=mutable_app,
+        request=request,
+        exception=exception,
     )
 
-    return json.dumps([request_id, response])
+    return json.dumps([message_id, response])
 
 
 async def handle_websocket(mutable_app, scope, receive, send):

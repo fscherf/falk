@@ -26,6 +26,10 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
         MultipartForms,
     )
 
+    from test_app.components.request_handling.multipart_forms2 import (
+        MultipartForms2,
+    )
+
     from test_app.components.client.run_callback_in_javascript import (
         RunCallbackInJavascript,
     )
@@ -53,6 +57,12 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
         r"/request-handling/multipart-forms(/)",
         MultipartForms,
         name="request_handling__multipart_forms",
+    )
+
+    add_route(
+        r"/request-handling/multipart-forms-2(/)",
+        MultipartForms2,
+        name="request_handling__multipart_forms_2",
     )
 
     # routes: rendering

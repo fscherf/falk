@@ -96,3 +96,50 @@ def test_component_id_collisions():
     component_2_id = get_component_id(get_component_2(), app)
 
     assert component_1_id != component_2_id
+
+
+def test_file_upload_handler_dependencies():
+    from falk.component_registry import (
+        get_file_upload_handler,
+        register_component,
+        get_component_id,
+    )
+
+    from falk.apps import get_default_app
+
+    mutable_app = get_default_app()
+
+    def handle_file_upload():
+        pass
+
+    def Component1(handle_file_upload=handle_file_upload):
+        pass
+
+    def Component2():
+        pass
+
+    register_component(
+        component=Component1,
+        mutable_app=mutable_app,
+    )
+
+    register_component(
+        component=Component2,
+        mutable_app=mutable_app,
+    )
+
+    assert get_file_upload_handler(
+        component_id=get_component_id(
+            component=Component1,
+            mutable_app=mutable_app,
+        ),
+        mutable_app=mutable_app,
+    ) is handle_file_upload
+
+    assert get_file_upload_handler(
+        component_id=get_component_id(
+            component=Component2,
+            mutable_app=mutable_app,
+        ),
+        mutable_app=mutable_app,
+    ) is mutable_app["settings"]["default_file_upload_handler"]

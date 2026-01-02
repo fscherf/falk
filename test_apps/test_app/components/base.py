@@ -18,6 +18,7 @@ def Base(context, props, HTML5Base=HTML5Base):
                         <ul>
                             <li><a href="{{ get_url('request_handling__post_forms') }}">POST Forms</a></li>
                             <li><a href="{{ get_url('request_handling__multipart_forms', query={"max_files": 1, "max_file_size": 1024*1024}) }}">Multipart Forms</a></li>
+                            <li><a href="{{ get_url('request_handling__multipart_forms_2') }}">Multipart Forms 2</a></li>
                         </ul>
                     </li>
                     <li>

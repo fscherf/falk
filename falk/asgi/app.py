@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import logging
 
-from falk.asgi.http_requests import handle_http_request
+from falk.asgi.request_handling import handle_http_request
 from falk.asgi.websockets import handle_websocket
 from falk.asgi.lifespans import handle_lifespan
 from falk.apps import run_configure_app

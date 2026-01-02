@@ -6,6 +6,7 @@ from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.providers.callbacks import run_callback_provider
+from falk.file_uploads import default_file_upload_handler
 from falk.components import Error400, Error404, Error500
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
@@ -17,6 +18,7 @@ from falk.hashing import get_md5_hash
 from falk.keys import get_random_key
 
 from falk.component_registry import (
+    get_file_upload_handler,
     register_component,
     get_component_id,
     get_component,
@@ -58,6 +60,7 @@ def get_default_app():
             "run_coroutine_sync": run_coroutine_sync,
             "hash_string": get_md5_hash,
             "websockets": get_boolean("FALK_WEBSOCKETS", True),
+            "default_file_upload_handler": default_file_upload_handler,
         },
         "entry_points": {
             "handle_request": handle_request,
@@ -67,6 +70,7 @@ def get_default_app():
         "executor": None,
         "components": {},
         "file_upload_settings": {},
+        "file_upload_handler": {},
         "routes": [],
     }
 
@@ -124,6 +128,7 @@ def get_default_app():
         "get_component_id": get_component_id,
         "register_component": register_component,
         "get_component": get_component,
+        "get_file_upload_handler": get_file_upload_handler,
     })
 
     # settings: dependencies
