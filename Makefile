@@ -6,7 +6,8 @@ PYPIRC=~/.pypirc.fscherf
 	python-shell python-test python-build \
 	node-shell node-build node-watch node-lint \
 	clean build test ci-test lint \
-	docs docs-server grip
+	docs docs-server grip \
+	test-app
 
 define DOCKER_COMPOSE_RUN
 	docker compose run \
@@ -17,7 +18,7 @@ define DOCKER_COMPOSE_RUN
 		$1 $2
 endef
 
-all: asgi2-test-app
+all: test-app
 
 # python
 python-shell:
@@ -71,11 +72,8 @@ grip:
 	$(call DOCKER_COMPOSE_RUN,python,tox -e grip ${args})
 
 # test apps
-asgi-test-app: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi-test-app ${args})
-
-asgi2-test-app: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi2-test-app ${args})
+test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e test-app ${args})
 
 # releases
 _pypi-upload:

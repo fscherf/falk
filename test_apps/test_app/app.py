@@ -1,4 +1,3 @@
-from falk.asgi2 import get_asgi2_app
 from falk.asgi import get_asgi_app
 
 
@@ -23,10 +22,6 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
 
     from test_app.components.request_handling.multipart_forms import (
         MultipartForms,
-    )
-
-    from test_app.components.request_handling.multipart_forms2 import (
-        MultipartForms2,
     )
 
     from test_app.components.client.run_callback_in_javascript import (
@@ -56,12 +51,6 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
         r"/request-handling/multipart-forms(/)",
         MultipartForms,
         name="request_handling__multipart_forms",
-    )
-
-    add_route(
-        r"/request-handling/multipart-forms-2(/)",
-        MultipartForms2,
-        name="request_handling__multipart_forms_2",
     )
 
     # routes: rendering
@@ -138,4 +127,3 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
 
 
 asgi_app = get_asgi_app(configure_app)
-asgi2_app = get_asgi2_app(configure_app)

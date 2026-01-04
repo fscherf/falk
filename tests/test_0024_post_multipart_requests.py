@@ -2,10 +2,9 @@ import pytest
 
 
 @pytest.mark.parametrize("args", [
+    # form 1: 1 file, 1024 bytes (valid)
     {
-        "token": 1,
-        "max_files": 2,
-        "max_file_size": 2048,
+        "html_id": "form-1",
         "form_data": {
             "field-1": "value-1",
             "field-2": "value-2",
@@ -14,20 +13,34 @@ import pytest
             "file-1": {
                 "filename": "file-1.txt",
                 "size": 1024,
-            },
-            "file-2": {
-                "filename": "file-2.txt",
-                "size": 2048,
+                "md5": "c9a34cfc85d982698c6ac89f76071abd",
             },
         },
         "error_message_parts": [],
     },
 
-    # no token provided
+    # form 1: 1 files, 2048 bytes (invalid)
     {
-        "token": 0,
-        "max_files": 1,
-        "max_file_size": 2048,
+        "html_id": "form-1",
+        "form_data": {
+            "field-1": "value-1",
+            "field-2": "value-2",
+        },
+        "file_data": {
+            "file-1": {
+                "filename": "file-1.txt",
+                "size": 2048,
+            },
+        },
+        "error_message_parts": [
+            "Error 400:",
+            '"file-1" (file-1.txt) exceeds the size limit of 1024 bytes',
+        ],
+    },
+
+    # form 1: 2 files, 1024 bytes (invalid)
+    {
+        "html_id": "form-1",
         "form_data": {
             "field-1": "value-1",
             "field-2": "value-2",
@@ -36,19 +49,45 @@ import pytest
             "file-1": {
                 "filename": "file-1.txt",
                 "size": 1024,
+                "md5": "c9a34cfc85d982698c6ac89f76071abd",
+            },
+            "file-2": {
+                "filename": "file-2.txt",
+                "size": 1024,
+                "md5": "c9a34cfc85d982698c6ac89f76071abd",
             },
         },
         "error_message_parts": [
             "Error 400:",
-            "Upload token is not set",
+            "max_files of 1 exceeded",
         ],
     },
 
-    # max_files exceeded
+    # form 2: 2 file, 1024 bytes (valid)
     {
-        "token": 1,
-        "max_files": 1,
-        "max_file_size": 2048,
+        "html_id": "form-2",
+        "form_data": {
+            "field-1": "value-1",
+            "field-2": "value-2",
+        },
+        "file_data": {
+            "file-1": {
+                "filename": "file-1.txt",
+                "size": 1024,
+                "md5": "c9a34cfc85d982698c6ac89f76071abd",
+            },
+            "file-2": {
+                "filename": "file-2.txt",
+                "size": 1024,
+                "md5": "c9a34cfc85d982698c6ac89f76071abd",
+            },
+        },
+        "error_message_parts": [],
+    },
+
+    # form 2: 2 file, 1024 bytes and 2048 bytes (invalid)
+    {
+        "html_id": "form-2",
         "form_data": {
             "field-1": "value-1",
             "field-2": "value-2",
@@ -65,12 +104,54 @@ import pytest
         },
         "error_message_parts": [
             "Error 400:",
-            "Too many files.",
+            '"file-2" (file-2.txt) exceeds the size limit of 1024 bytes',
+        ],
+    },
+
+    # form 3: no token (invalid)
+    {
+        "html_id": "form-3",
+        "form_data": {
+            "field-1": "value-1",
+            "field-2": "value-2",
+        },
+        "file_data": {
+            "file-1": {
+                "filename": "file-1.txt",
+                "size": 1024,
+            },
+        },
+        "error_message_parts": [
+            "Error 400:",
+            "X-Falk-Upload-Token header is not set",
+        ],
+    },
+
+    # form 3: no handler (invalid)
+    {
+        "html_id": "form-4",
+        "form_data": {
+            "field-1": "value-1",
+            "field-2": "value-2",
+        },
+        "file_data": {
+            "file-1": {
+                "filename": "file-1.txt",
+                "size": 1024,
+            },
+        },
+        "error_message_parts": [
+            "Error 400:",
+            "component does not accept file uploads",
         ],
     },
 ])
 def test_post_multipart_requests(args, page, start_falk_app):
-    from urllib.parse import urlencode
+    """
+    This test tests file uploads using `/request-handling/multipart-forms`
+    in the test app.
+    """
+
     import tempfile
     import json
     import os
@@ -79,8 +160,9 @@ def test_post_multipart_requests(args, page, start_falk_app):
 
     _, base_url = start_falk_app(
         configure_app=configure_app,
-        interface="asgi2",
     )
+
+    html_id = args["html_id"]
 
     def get_values(page):
         return {
@@ -99,13 +181,7 @@ def test_post_multipart_requests(args, page, start_falk_app):
         # go to form
         url = base_url + "/request-handling/multipart-forms"
 
-        query_string = urlencode({
-            "token": args["token"],
-            "max_files": args["max_files"],
-            "max_file_size": args["max_file_size"],
-        }, doseq=True)
-
-        page.goto(f"{url}?{query_string}")
+        page.goto(url)
         page.wait_for_selector("h2:text('Multipart Forms')")
 
         # setup files
@@ -116,16 +192,16 @@ def test_post_multipart_requests(args, page, start_falk_app):
                 file_handle.write("a" * value["size"])
 
             with page.expect_file_chooser() as fc_info:
-                page.click(f"input[name={name}]")
+                page.click(f"#{html_id} input[name={name}]")
 
                 fc_info.value.set_files(abs_path)
 
         # form data
         for name, value in args["form_data"].items():
-            page.fill(f"input[name={name}]", value)
+            page.fill(f"#{html_id} input[name={name}]", value)
 
         # submit
-        page.click("input[type=submit]")
+        page.click(f"#{html_id} input[type=submit]")
 
         # errors
         if args["error_message_parts"]:

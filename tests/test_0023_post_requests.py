@@ -1,15 +1,10 @@
-import pytest
-
-
-@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
-def test_post_requests(interface, page, start_falk_app):
+def test_post_requests(page, start_falk_app):
     import json
 
     from test_app.app import configure_app
 
     _, base_url = start_falk_app(
         configure_app=configure_app,
-        interface=interface,
     )
 
     url = base_url + "/request-handling/post-forms"

@@ -21,7 +21,6 @@ dependencies = [
   "simple-logging-setup",
   "aiofiles",
   "python-multipart",
-  "starlette",
 ]
 
 

@@ -1,8 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
-def test_basic_component(interface, page, start_falk_app):
+def test_basic_component(page, start_falk_app):
     """
     This test tests basic requests handling and partial re rendering by setting
     up a counter component that can be incremented if a button is clicked.
@@ -53,7 +52,6 @@ def test_basic_component(interface, page, start_falk_app):
 
     _, base_url = start_falk_app(
         configure_app=configure_app,
-        interface=interface,
     )
 
     # run test

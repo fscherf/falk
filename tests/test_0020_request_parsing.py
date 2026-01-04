@@ -1,8 +1,4 @@
-import pytest
-
-
-@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
-def test_request_parsing(interface, start_falk_app):
+def test_request_parsing(start_falk_app):
     import requests
 
     def Index(request, set_response_json):
@@ -13,7 +9,6 @@ def test_request_parsing(interface, start_falk_app):
 
     mutable_app, base_url = start_falk_app(
         configure_app=configure_app,
-        interface=interface,
     )
 
     # headers

@@ -1,8 +1,4 @@
-import pytest
-
-
-@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
-def test_middleware_headers(interface, start_falk_app):
+def test_middleware_headers(start_falk_app):
     import requests
 
     def pre_component_middleware(get_response_header, set_response_header):
@@ -34,7 +30,6 @@ def test_middleware_headers(interface, start_falk_app):
 
     mutable_app, base_url = start_falk_app(
         configure_app=configure_app,
-        interface=interface,
     )
 
     response = requests.get(base_url)
@@ -87,7 +82,6 @@ def test_middleware_responses(start_falk_app):
 
     mutable_app, base_url = start_falk_app(
         configure_app=configure_app,
-        interface="asgi",
     )
 
     # pre component middleware

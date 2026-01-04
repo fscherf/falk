@@ -5,9 +5,8 @@ import time
 import uvicorn
 import pytest
 
-from falk.asgi2 import get_asgi2_app
-from falk.asgi import get_asgi_app
 from falk.apps import run_configure_app
+from falk.asgi import get_asgi_app
 
 
 @pytest.fixture
@@ -30,28 +29,16 @@ def start_falk_app():
             configure_app,
             host="127.0.0.1",
             port=0,
-            interface="asgi2",
             startup_retry_delay_in_s=0.01,
             startup_timeout_in_s=5.0,
     ):
 
-        if interface not in ("asgi", "asgi2"):
-            raise ValueError(
-                f'Unknwon interface "{interface}". Supported interfaces: asgi, asgi2',
-            )
-
         # configure falk app
         mutable_app = run_configure_app(configure_app)
 
-        if interface == "asgi":
-            uvicorn_app = get_asgi_app(
-                mutable_app=mutable_app,
-            )
-
-        elif interface == "asgi2":
-            uvicorn_app = get_asgi2_app(
-                mutable_app=mutable_app,
-            )
+        uvicorn_app = get_asgi_app(
+            mutable_app=mutable_app,
+        )
 
         # start uvicorn server
         state["uvicorn_server"] = uvicorn.Server(

@@ -2,7 +2,7 @@ from urllib.parse import parse_qs
 import asyncio
 import json
 
-from falk.request_handling2 import get_request, handle_request
+from falk.request_handling import get_request, handle_request
 from falk.http import set_header
 
 
