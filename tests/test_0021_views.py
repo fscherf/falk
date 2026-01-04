@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "asgi2", "wsgi"])
+@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
 def test_responses(interface, start_falk_app):
     import requests
 
@@ -39,8 +39,7 @@ def test_responses(interface, start_falk_app):
     assert response.text == "I'm a teapot"
 
 
-@pytest.mark.parametrize("interface", ["asgi", "wsgi"])
-def test_error_responses(interface, start_falk_app):
+def test_error_responses(start_falk_app):
     import requests
 
     def Index():
@@ -51,7 +50,7 @@ def test_error_responses(interface, start_falk_app):
 
     mutable_app, base_url = start_falk_app(
         configure_app=configure_app,
-        interface=interface,
+        interface="asgi",
     )
 
     response = requests.get(base_url)

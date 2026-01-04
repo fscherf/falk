@@ -2,14 +2,12 @@ from threading import Thread
 import contextlib
 import time
 
-from uvicorn.middleware.wsgi import WSGIMiddleware
 import uvicorn
 import pytest
 
 from falk.asgi2 import get_asgi2_app
 from falk.asgi import get_asgi_app
 from falk.apps import run_configure_app
-from falk.wsgi import get_wsgi_app
 
 
 @pytest.fixture
@@ -37,9 +35,9 @@ def start_falk_app():
             startup_timeout_in_s=5.0,
     ):
 
-        if interface not in ("wsgi", "asgi", "asgi2"):
+        if interface not in ("asgi", "asgi2"):
             raise ValueError(
-                f'Unknwon interface "{interface}". Supported interfaces: asgi, wsgi, asgi2',
+                f'Unknwon interface "{interface}". Supported interfaces: asgi, asgi2',
             )
 
         # configure falk app
@@ -53,13 +51,6 @@ def start_falk_app():
         elif interface == "asgi2":
             uvicorn_app = get_asgi2_app(
                 mutable_app=mutable_app,
-            )
-
-        else:
-            uvicorn_app = WSGIMiddleware(
-                get_wsgi_app(
-                    mutable_app=mutable_app,
-                ),
             )
 
         # start uvicorn server

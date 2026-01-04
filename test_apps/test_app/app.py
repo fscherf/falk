@@ -1,6 +1,5 @@
 from falk.asgi2 import get_asgi2_app
 from falk.asgi import get_asgi_app
-from falk.wsgi import get_wsgi_app
 
 
 def configure_app(mutable_app, add_route, add_static_dir, settings):
@@ -138,6 +137,5 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
     add_route(r"/", Index, name="index")
 
 
-wsgi_app = get_wsgi_app(configure_app, lazy=True)
 asgi_app = get_asgi_app(configure_app)
 asgi2_app = get_asgi2_app(configure_app)

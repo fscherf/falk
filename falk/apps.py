@@ -11,7 +11,6 @@ from falk.components import Error400, Error404, Error500
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
-from falk.request_handling import handle_request
 from falk.extra_template_context import get_url
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
@@ -63,7 +62,6 @@ def get_default_app():
             "default_file_upload_handler": default_file_upload_handler,
         },
         "entry_points": {
-            "handle_request": handle_request,
             "on_startup": lambda mutable_app: None,
             "on_shutdown": lambda mutable_app: None,
         },

@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("interface", ["asgi", "asgi2", "wsgi"])
+@pytest.mark.parametrize("interface", ["asgi", "asgi2"])
 def test_post_requests(interface, page, start_falk_app):
     import json
 

@@ -71,9 +71,6 @@ grip:
 	$(call DOCKER_COMPOSE_RUN,python,tox -e grip ${args})
 
 # test apps
-wsgi-test-app: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox -e wsgi-test-app ${args})
-
 asgi-test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e asgi-test-app ${args})
 
