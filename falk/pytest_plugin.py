@@ -26,19 +26,33 @@ def start_falk_app():
         state["uvicorn_thread"].join()
 
     def _start_falk_app(
-            configure_app,
+            configure_app=None,
+            asgi_app=None,
             host="127.0.0.1",
             port=0,
             startup_retry_delay_in_s=0.01,
             startup_timeout_in_s=5.0,
     ):
 
-        # configure falk app
-        mutable_app = run_configure_app(configure_app)
+        if ((configure_app and asgi_app) or
+                (not configure_app and not asgi_app)):
 
-        uvicorn_app = get_asgi_app(
-            mutable_app=mutable_app,
-        )
+            raise RuntimeError(
+                "Either configure_app or asgi_app need to be defined",
+            )
+
+        mutable_app = None
+
+        # configure falk app
+        if configure_app:
+            mutable_app = run_configure_app(configure_app)
+
+            uvicorn_app = get_asgi_app(
+                mutable_app=mutable_app,
+            )
+
+        else:
+            uvicorn_app = asgi_app
 
         # start uvicorn server
         state["uvicorn_server"] = uvicorn.Server(

@@ -41,6 +41,7 @@ test = [
   "pytest-playwright==0.7.1",
   "requests",
   "rlpython",
+  "Django~=5.2",
 ]
 
 docs = [

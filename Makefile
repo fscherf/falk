@@ -7,7 +7,7 @@ PYPIRC=~/.pypirc.fscherf
 	node-shell node-build node-watch node-lint \
 	clean build test ci-test lint \
 	docs docs-server grip \
-	test-app
+	test-app django52-test-app
 
 define DOCKER_COMPOSE_RUN
 	docker compose run \
@@ -74,6 +74,9 @@ grip:
 # test apps
 test-app: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e test-app ${args})
+
+django52-test-app: node-build
+	$(call DOCKER_COMPOSE_RUN,python,tox -e django52-test-app ${args})
 
 # releases
 _pypi-upload:
