@@ -1,3 +1,6 @@
+from http import HTTPStatus
+
+
 class FalkError(Exception):
     pass
 
@@ -79,17 +82,29 @@ class UnknownComponentIdError(ComponentError):
     pass
 
 
+class InvalidStatusCodeError(ComponentError):
+    pass
+
+
 # HTTP
 class HTTPError(FalkError):
-    pass
+    STATUS = HTTPStatus.INTERNAL_SERVER_ERROR
+    COMPONENT_NAME = "internal_server_error_component"
 
 
-class InvalidStatusCodeError(HTTPError):
-    pass
+class BadRequestError(HTTPError):
+    STATUS = HTTPStatus.BAD_REQUEST
+    COMPONENT_NAME = "bad_request_error_component"
 
 
-class InvalidRequestError(HTTPError):
-    pass
+class ForbiddenError(HTTPError):
+    STATUS = HTTPStatus.FORBIDDEN
+    COMPONENT_NAME = "forbidden_error_component"
+
+
+class NotFoundError(HTTPError):
+    STATUS = HTTPStatus.NOT_FOUND
+    COMPONENT_NAME = "not_found_error_component"
 
 
 # routing

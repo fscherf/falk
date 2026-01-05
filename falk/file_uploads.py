@@ -2,14 +2,14 @@ import tempfile
 import logging
 import os
 
-from falk.errors import InvalidRequestError
+from falk.errors import BadRequestError
 
 logger = logging.getLogger("falk.file-uploads")
 
 
 def default_file_upload_handler():
     # reject all files
-    raise InvalidRequestError("component does not accept file uploads")
+    raise BadRequestError("component does not accept file uploads")
 
 
 def get_tempfile_upload_handler(
@@ -44,7 +44,7 @@ def get_tempfile_upload_handler(
 
                 # check if new file exceeds `max_files`
                 if upload_state["files_written"] + 1 > max_files:
-                    raise InvalidRequestError(
+                    raise BadRequestError(
                         f"max_files of {max_files} exceeded",
                     )
 
@@ -70,7 +70,7 @@ def get_tempfile_upload_handler(
                 if bytes_written + len(chunk) > max_file_size_in_bytes:
                     file_handle.close()
 
-                    raise InvalidRequestError(
+                    raise BadRequestError(
                         f'file "{name}" ({filename}) exceeds the size limit of {max_file_size_in_bytes} bytes',  # NOQA
                     )
 

@@ -1,4 +1,4 @@
-from falk.errors import InvalidRequestError
+from falk.errors import BadRequestError
 
 
 async def get_body_chunks(event, receive, content_length):
@@ -7,7 +7,7 @@ async def get_body_chunks(event, receive, content_length):
 
     def _check_content_length():
         if read_bytes > content_length:
-            raise InvalidRequestError("body exceeds content length")
+            raise BadRequestError("body exceeds content length")
 
     _check_content_length()
 

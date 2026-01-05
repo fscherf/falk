@@ -4,7 +4,7 @@ from multipart.multipart import parse_options_header
 from multipart import MultipartParser
 
 from falk.dependency_injection import get_dependencies, run_callback
-from falk.errors import InvalidRequestError, UnknownComponentIdError
+from falk.errors import BadRequestError, UnknownComponentIdError
 from falk.immutable_proxy import get_immutable_proxy
 from falk.asgi.helper import get_body_chunks
 from falk.http import get_header
@@ -78,7 +78,7 @@ async def handle_multipart_body(
     )
 
     if not token:
-        raise InvalidRequestError("X-Falk-Upload-Token header is not set")
+        raise BadRequestError("X-Falk-Upload-Token header is not set")
 
     component_id, _ = mutable_app["settings"]["decode_token"](
         token=token,
@@ -92,7 +92,7 @@ async def handle_multipart_body(
         )
 
     except UnknownComponentIdError as exception:
-        raise InvalidRequestError("Uknown component id") from exception
+        raise BadRequestError("Uknown component id") from exception
 
     # find file upload component
     handler = mutable_app["settings"]["get_file_upload_handler"](

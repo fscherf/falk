@@ -6,7 +6,7 @@ from falk.request_handling import get_request, handle_request
 from falk.asgi.file_responses import handle_file_response
 from falk.asgi.multipart import handle_multipart_body
 from falk.http import set_header, get_header
-from falk.errors import InvalidRequestError
+from falk.errors import BadRequestError
 from falk.asgi.helper import get_body
 
 
@@ -48,7 +48,7 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
         )
 
         if not content_length.isnumeric():
-            raise InvalidRequestError(
+            raise BadRequestError(
                 "header Content-Length has to be a number",
             )
 

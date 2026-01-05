@@ -3,7 +3,7 @@ import logging
 from falk.rendering import render_component, render_body
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
-from falk.errors import InvalidRequestError
+from falk.errors import HTTPError, BadRequestError
 from falk.routing import get_component
 from falk.components import ItWorks
 
@@ -158,7 +158,7 @@ def handle_request(mutable_app, request, exception=None):
 
                 for key in ("token", "nodeId"):
                     if key not in request["json"]:
-                        raise InvalidRequestError(f"no {key} provided")
+                        raise BadRequestError(f"no {key} provided")
 
                 # decode token
                 component_id, component_state = (
@@ -191,7 +191,7 @@ def handle_request(mutable_app, request, exception=None):
                 # falling back to the configured 404 component
                 if not component:
                     component = (
-                        mutable_app["settings"]["error_404_component"]
+                        mutable_app["settings"]["not_found_error_component"]
                     )
 
             run_component(
@@ -214,22 +214,33 @@ def handle_request(mutable_app, request, exception=None):
             mutable_app=mutable_app,
         )
 
-    except InvalidRequestError as exception:
-        error_component = mutable_app["settings"]["error_400_component"]
-
-        run_component(
-            component=error_component,
-            mutable_app=mutable_app,
-            request=request,
-            response=response,
-            exception=exception,
-        )
-
     except Exception as exception:
-        logger.exception("exception raised while handling request")
+        if isinstance(exception, HTTPError):
+            status = exception.STATUS.value
+            error_component = mutable_app["settings"][exception.COMPONENT_NAME]
 
-        error_component = mutable_app["settings"]["error_500_component"]
+        else:
+            logger.exception("exception raised while handling request")
 
+            status = 500
+
+            error_component = (
+                mutable_app["settings"]["internal_server_error_component"]
+            )
+
+        # reset response
+        response.update({
+            "is_finished": False,
+            "content_type": "text/html",
+            "body": None,
+            "file_path": "",
+            "json": None,
+        })
+
+        if not request["is_mutation_request"]:
+            response["status"] = status
+
+        # run error component
         run_component(
             component=error_component,
             mutable_app=mutable_app,

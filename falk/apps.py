@@ -7,7 +7,6 @@ from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.providers.callbacks import run_callback_provider
 from falk.file_uploads import default_file_upload_handler
-from falk.components import Error400, Error404, Error500
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
@@ -15,6 +14,13 @@ from falk.extra_template_context import get_url
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
 from falk.keys import get_random_key
+
+from falk.components import (
+    InternalServerError,
+    BadRequest,
+    Forbidden,
+    NotFound,
+)
 
 from falk.component_registry import (
     get_file_upload_handler,
@@ -109,9 +115,10 @@ def get_default_app():
 
     # settings: error components
     mutable_app["settings"].update({
-        "error_400_component": Error400,
-        "error_404_component": Error404,
-        "error_500_component": Error500,
+        "bad_request_error_component": BadRequest,
+        "forbidden_error_component": Forbidden,
+        "not_found_error_component": NotFound,
+        "internal_server_error_component": InternalServerError,
     })
 
     # settings: component registry

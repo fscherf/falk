@@ -63,27 +63,13 @@ def ItWorks(HTML5Base=HTML5Base):
     """
 
 
-def Error400(
+def BadRequest(
         request,
-        response,
         settings,
         exception,
         context,
-        set_response_status,
         HTML5Base=HTML5Base,
 ):
-
-    # reset response
-    response.update({
-        "is_finished": False,
-        "content_type": "text/html",
-        "body": None,
-        "file_path": "",
-        "json": None,
-    })
-
-    if not request["is_mutation_request"]:
-        set_response_status(400)
 
     if settings["debug"]:
         short_exception_string, exception_string = format_exception(exception)
@@ -100,28 +86,68 @@ def Error400(
                 {% if settings.debug %}
                     {{ short_exception_string }}
                 {% else %}
-                    Invalid Request
+                    Bad Request
                 {% endif %}
             </div>
         """
 
     return """
-        <HTML5Base title="400 Invalid Request">
-            <h1>Error 500</h1>
+        <HTML5Base title="400 Bad Request">
+            <h1>Error 400</h1>
             <div class="falk-error">
                 {% if settings.debug %}
                     <pre>{{ exception_string }}</pre>
                 {% else %}
-                    <p>Invalid Request</p>
+                    <p>Bad Request</p>
                 {% endif %}
             </div>
         </HTML5Base>
     """
 
 
-def Error404(set_response_status, HTML5Base=HTML5Base):
-    set_response_status(404)
+def Forbidden(
+        request,
+        settings,
+        exception,
+        context,
+        HTML5Base=HTML5Base,
+):
 
+    if settings["debug"]:
+        short_exception_string, exception_string = format_exception(exception)
+
+        context.update({
+            "short_exception_string": short_exception_string,
+            "exception_string": exception_string,
+        })
+
+    if request["is_mutation_request"]:
+        return """
+            <div class="falk-error">
+                Error 403:
+                {% if settings.debug %}
+                    {{ short_exception_string }}
+                {% else %}
+                    Forbidden
+                {% endif %}
+            </div>
+        """
+
+    return """
+        <HTML5Base title="403 Forbidden">
+            <h1>Error 403</h1>
+            <div class="falk-error">
+                {% if settings.debug %}
+                    <pre>{{ exception_string }}</pre>
+                {% else %}
+                    <p>Forbidden</p>
+                {% endif %}
+            </div>
+        </HTML5Base>
+    """
+
+
+def NotFound(HTML5Base=HTML5Base):
     return """
         <HTML5Base title="404 Not Found">
             <h1>Error 404</h1>
@@ -132,27 +158,13 @@ def Error404(set_response_status, HTML5Base=HTML5Base):
     """
 
 
-def Error500(
+def InternalServerError(
         request,
-        response,
         settings,
         exception,
         context,
-        set_response_status,
         HTML5Base=HTML5Base,
 ):
-
-    # reset response
-    response.update({
-        "is_finished": False,
-        "content_type": "text/html",
-        "body": None,
-        "file_path": "",
-        "json": None,
-    })
-
-    if not request["is_mutation_request"]:
-        set_response_status(500)
 
     if settings["debug"]:
         short_exception_string, exception_string = format_exception(exception)
@@ -169,19 +181,19 @@ def Error500(
                 {% if settings.debug %}
                     {{ short_exception_string }}
                 {% else %}
-                    Internal Error
+                    Internal Server Error
                 {% endif %}
             </div>
         """
 
     return """
-        <HTML5Base title="500 Internal Error">
+        <HTML5Base title="500 Internal Server Error">
             <h1>Error 500</h1>
             <div class="falk-error">
                 {% if settings.debug %}
                     <pre>{{ exception_string }}</pre>
                 {% else %}
-                    <p>Internal Error</p>
+                    <p>Internal Server Error</p>
                 {% endif %}
             </div>
         </HTML5Base>
