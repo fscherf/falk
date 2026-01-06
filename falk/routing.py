@@ -14,6 +14,32 @@ DEFAULT_PART_PATTERN = r"[^/]+"
 OPTIONAL_TRAILING_SLASH_PATTERN = r"(/)"
 
 
+def encode_query(url="", query=None):
+    query = query or {}
+    query_args = []
+    query_string = ""
+
+    for key, values in query.items():
+        if not isinstance(values, list):
+            values = [values]
+
+        for value in values:
+            query_args.append(
+                (key, value),
+            )
+
+    if query_args:
+        query_string = urlencode(query_args, doseq=True)
+
+    if url and query_string:
+        return f"{url}?{query_string}"
+
+    if query_string:
+        return query_string
+
+    return url
+
+
 def get_route(pattern, component, name=""):
     if not pattern.startswith("/"):
         raise InvalidRouteError(
@@ -113,8 +139,9 @@ def get_url(routes, route_name, route_args=None, query=None, checks=True):
 
     # append URL query
     if query:
-        query_string = urlencode(query, doseq=True)
-
-        url = f"{url}?{query_string}"
+        url = encode_query(
+            url=url,
+            query=query,
+        )
 
     return url
