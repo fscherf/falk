@@ -88,8 +88,13 @@ def del_response_cookie_provider(response):
 
 
 # content
-def set_response_content_type_provider(response):
+def set_response_content_type_provider(response, is_root):
     def set_response_content_type(content_type):
+        if not is_root:
+            raise RuntimeError(
+                "set_response_content_type can only be used in root components",  # NOQA
+            )
+
         if not isinstance(content_type, str):
             raise RuntimeError(
                 "content types need to be strings",
@@ -100,8 +105,13 @@ def set_response_content_type_provider(response):
     return set_response_content_type
 
 
-def set_response_body_provider(response):
+def set_response_body_provider(response, is_root):
     def set_respones_body(response_body):
+        if not is_root:
+            raise RuntimeError(
+                "set_response_body can only be used in root components",
+            )
+
         response["body"] = response_body
         response["is_finished"] = True
 
