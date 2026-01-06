@@ -105,6 +105,37 @@ def set_response_content_type_provider(response, is_root):
     return set_response_content_type
 
 
+def set_response_redirect_provider(response, is_root):
+    def set_response_redirect(location, permanent=False):
+        if not is_root:
+            raise RuntimeError(
+                "set_response_redirect can only be used in root components",
+            )
+
+        if not isinstance(location, str):
+            raise RuntimeError(
+                "locations need to be strings",
+            )
+
+        status = 302
+
+        if permanent:
+            status = 301
+
+        response.update({
+            "status": status,
+            "is_finished": True,
+        })
+
+        set_header(
+            headers=response["headers"],
+            name="location",
+            value=location,
+        )
+
+    return set_response_redirect
+
+
 def set_response_body_provider(response, is_root):
     def set_respones_body(response_body):
         if not is_root:
