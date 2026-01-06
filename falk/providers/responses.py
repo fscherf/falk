@@ -1,5 +1,14 @@
-from falk.http import set_status, get_header, set_header, del_header
 from falk.utils.path import get_abs_path
+
+from falk.http import (
+    set_status,
+    get_header,
+    set_header,
+    del_header,
+    get_cookie,
+    set_cookie,
+    del_cookie,
+)
 
 
 # status
@@ -44,6 +53,38 @@ def del_response_header_provider(response):
         )
 
     return del_response_header
+
+
+# cookies
+def get_response_cookie_provider(response):
+    def get_response_cookie(name):
+        return get_cookie(
+            simple_cookie=response["cookie"],
+            name=name,
+        )
+
+    return get_response_cookie
+
+
+def set_response_cookie_provider(response):
+    def set_response_cookie(name, **attributes):
+        return set_cookie(
+            simple_cookie=response["cookie"],
+            name=name,
+            **attributes,
+        )
+
+    return set_response_cookie
+
+
+def del_response_cookie_provider(response):
+    def del_response_cookie(name):
+        return del_cookie(
+            simple_cookie=response["cookie"],
+            name=name,
+        )
+
+    return del_response_cookie
 
 
 # content

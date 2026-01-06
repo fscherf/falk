@@ -7,6 +7,8 @@ CHUNK_SIZE = 64 * 1024  # 64 KiB
 
 
 async def handle_file_response(response, send):
+    # TODO: set statuscode, headers, and cookies correctly
+
     abs_path = response["file_path"]
     rel_path = os.path.basename(abs_path)
     file_size = os.path.getsize(abs_path)

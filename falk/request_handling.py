@@ -1,3 +1,4 @@
+from http.cookies import SimpleCookie
 import logging
 
 from falk.rendering import render_component, render_body
@@ -12,9 +13,9 @@ logger = logging.getLogger("falk")
 
 def get_request():
     return {
-
         # header
         "headers": {},
+        "cookie": SimpleCookie(),
         "method": "GET",
         "path": "",
         "query": {},
@@ -33,6 +34,7 @@ def get_response():
     return {
         # basic HTTP fields
         "headers": {},
+        "cookie": SimpleCookie(),
         "status": 200,
         "charset": "utf-8",
         "content_type": "text/html",

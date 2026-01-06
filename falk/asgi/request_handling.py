@@ -29,22 +29,19 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
         )
 
     try:
+
+        # Content-Type
         content_type = get_header(
             headers=request["headers"],
             name="content-type",
             default="",
         )
 
+        # Content-Length
         content_length = get_header(
             headers=request["headers"],
             name="content-length",
             default="0",
-        )
-
-        request_type = get_header(
-            headers=request["headers"],
-            name="x-falk-request-type",
-            default="",
         )
 
         if not content_length.isnumeric():
@@ -54,8 +51,25 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
 
         content_length = int(content_length)
 
+        # X-Falk-Request-Type
+        request_type = get_header(
+            headers=request["headers"],
+            name="x-falk-request-type",
+            default="",
+        )
+
         if request_type == "mutation":
             request["is_mutation_request"] = True
+
+        # cookie
+        cookie = get_header(
+            headers=request["headers"],
+            name="cookie",
+            default="",
+        )
+
+        if cookie:
+            request["cookie"].load(cookie)
 
         # POST
         if scope["method"] == "POST":
@@ -116,11 +130,19 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
 
     # JSON / binary / text responses
     else:
+
+        # headers
         headers = [
             (name.encode(), value.encode())
             for name, value in response["headers"].items()
         ]
 
+        for morsel in response["cookie"].values():
+            headers.append(
+                (b"Set-Cookie", morsel.OutputString().encode()),
+            )
+
+        # body
         if response["json"]:
             body = json.dumps(response["json"])
 
