@@ -27,6 +27,10 @@ def get_request():
 
         # flags
         "is_mutation_request": False,
+
+        # user defined
+        "user": None,
+        "state": {},
     }
 
 
@@ -45,6 +49,9 @@ def get_response():
 
         # flags
         "is_finished": False,
+
+        # user defined
+        "state": {},
     }
 
 

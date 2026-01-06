@@ -83,6 +83,9 @@ def get_default_app():
         "file_upload_settings": {},
         "file_upload_handler": {},
         "routes": [],
+
+        # user defined
+        "state": {},
     }
 
     # settings: middlewares
