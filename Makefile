@@ -58,7 +58,7 @@ test: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e ${PYTHON} ${args})
 
 ci-test: node-build
-	$(call DOCKER_COMPOSE_RUN,python,tox ${args})
+	$(call DOCKER_COMPOSE_RUN,python,tox -r ${args})
 
 lint: node-lint
 
