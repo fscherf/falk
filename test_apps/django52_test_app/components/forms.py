@@ -20,7 +20,7 @@ def DjangoFormComponent(request, context, HTML5Base=HTML5Base):
     form = DjangoForm()
 
     def handle_submit(event):
-        form = DjangoForm(event["formData"])
+        form = DjangoForm(event["form_data"])
 
         if form.is_valid():
             value = form.cleaned_data["character_field"]

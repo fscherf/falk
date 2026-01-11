@@ -311,7 +311,7 @@ def render_component(
     if run_component_callback:
         dependencies.update({
             "args": request["json"].get("callbackArgs", []),
-            "event": request["json"].get("event", {"formData": {}}),
+            "event": request["json"].get("event", {"form_data": {}}),
         })
 
         run_callback(

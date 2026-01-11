@@ -33,10 +33,10 @@ def get_component(
 
         def handle_submit(event):
             context.update({
-                "form_data": event["formData"],
+                "form_data": event["form_data"],
 
                 "form_data_string": json.dumps(
-                    event["formData"],
+                    event["form_data"],
                     indent=2,
                 ),
 

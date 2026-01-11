@@ -6,20 +6,20 @@ from test_app.components.base import Base
 def PostForms(context, Base=Base):
     def handle_submit(event):
         context.update({
-            "form_data": event["formData"],
+            "form_data": event["form_data"],
 
             "form_data_string": json.dumps(
-                event["formData"],
+                event["form_data"],
                 indent=2,
             ),
         })
 
-        if "update_form" in event["formData"]:
+        if "update_form" in event["form_data"]:
             context["form_data"]["text_field"] = (
                 context["form_data"]["text_field"][::-1]
             )
 
-        if "clear_form" in event["formData"]:
+        if "clear_form" in event["form_data"]:
             context["form_data"] = {}
 
     context.update({

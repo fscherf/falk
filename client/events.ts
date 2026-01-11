@@ -1,6 +1,8 @@
 export const dumpEvent = (event: Event) => {
   // TODO: add a proper `EventData` type
   const eventData = {
+    // keys in `eventData` contain underscores so they are consistent with
+    // other data structures on the server
     eventData: {
       // contains a name like "submit" or "click"
       type: "",
@@ -11,7 +13,7 @@ export const dumpEvent = (event: Event) => {
 
       // If the target element of the event is a form, this contains the
       // full form data.
-      formData: {},
+      form_data: {},
     },
 
     // multipart
@@ -58,7 +60,7 @@ export const dumpEvent = (event: Event) => {
           }
         } else {
           // form data
-          eventData.eventData.formData[key] = value;
+          eventData.eventData.form_data[key] = value;
         }
       }
 
@@ -73,7 +75,7 @@ export const dumpEvent = (event: Event) => {
         const inputName: string = inputElement.getAttribute("name");
 
         if (inputName) {
-          eventData.eventData.formData[inputName] = inputElement.value;
+          eventData.eventData.form_data[inputName] = inputElement.value;
         }
       }
     }
