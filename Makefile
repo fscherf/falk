@@ -55,6 +55,7 @@ clean:
 	rm -rf build dist *.egg-info && \
 	rm -rf .tox && \
 	rm -rf node_modules && \
+	rm -rf playwright && \
 	rm -rf falk/static
 
 build: docker-build node-build python-build
