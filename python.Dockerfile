@@ -34,7 +34,13 @@ RUN pip${PYTHON_VERSION} install \
 	tox
 
 # playwright
-# TODO: add explanation why this is necessary
+# In order to install the correct playwright dependencies for the playwright
+# release we are using, we need the `playwright install-deps` command which
+# is part of the playwright package itself. The playwright release version is
+# tracked in the `pyproject.toml` file and pip won't let us install
+# dependencies from it if the project is not present. Therefore, we need to
+# copy the whole project into the image before we can
+# run `playwright install-deps`.
 COPY . /app
 
 RUN cd /app && \
