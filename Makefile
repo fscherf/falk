@@ -3,6 +3,7 @@ PYPIRC=~/.pypirc.fscherf
 
 .PHONY: \
 	all \
+	docker-build \
 	python-shell python-test python-build \
 	node-shell node-build node-watch node-lint \
 	clean build test ci-test lint \
@@ -19,6 +20,10 @@ define DOCKER_COMPOSE_RUN
 endef
 
 all: test-app
+
+# docker
+docker-build:
+	docker compose build --no-cache ${args}
 
 # python
 python-shell:
@@ -52,12 +57,12 @@ clean:
 	rm -rf node_modules && \
 	rm -rf falk/static
 
-build: node-build python-build
+build: docker-build node-build python-build
 
 test: node-build
 	$(call DOCKER_COMPOSE_RUN,python,tox -e ${PYTHON} ${args})
 
-ci-test: node-build
+ci-test: clean build
 	$(call DOCKER_COMPOSE_RUN,python,tox -r ${args})
 
 lint: node-lint
