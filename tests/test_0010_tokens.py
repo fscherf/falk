@@ -3,13 +3,13 @@ import pytest
 
 def test_state_encoding_and_decoding():
     from falk.tokens import decode_token, encode_token
+    from falk.secrets import get_random_secret
     from falk.errors import InvalidTokenError
     from falk.apps import get_default_app
-    from falk.keys import get_random_key
 
     app = get_default_app()
 
-    app["settings"]["token_key"] = get_random_key()
+    app["settings"]["token_secret"] = get_random_secret()
     component_id = "foo.bar.baz"
 
     component_state = {
@@ -24,7 +24,7 @@ def test_state_encoding_and_decoding():
         mutable_app=app,
     )
 
-    # valid key
+    # valid secret
     _component_identifier, _component_state = decode_token(
         token=token,
         mutable_app=app,
@@ -33,8 +33,8 @@ def test_state_encoding_and_decoding():
     assert _component_identifier == component_id
     assert _component_state == component_state
 
-    # invalid key
-    app["settings"]["token_key"] = "invalid-key"
+    # invalid secret
+    app["settings"]["token_secret"] = "invalid-secret"
 
     with pytest.raises(InvalidTokenError):
         decode_token(
@@ -47,7 +47,6 @@ def test_invalid_tokens():
     from falk.errors import InvalidTokenError
     from falk.apps import get_default_app
     from falk.tokens import decode_token
-    from falk.keys import get_random_key
 
     app = get_default_app()
 
@@ -63,9 +62,9 @@ def test_tampered_with_tokens():
     import json
 
     from falk.tokens import decode_token, encode_token
+    from falk.secrets import get_random_secret
     from falk.errors import InvalidTokenError
     from falk.apps import get_default_app
-    from falk.keys import get_random_key
 
     app = get_default_app()
     component_id = "foo.bar.baz"

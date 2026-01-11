@@ -7,12 +7,12 @@ from falk.errors import InvalidSettingsError, InvalidTokenError
 
 
 def encode_token(component_id, data, mutable_app):
-    if "token_key" not in mutable_app["settings"]:
+    if "token_secret" not in mutable_app["settings"]:
         raise InvalidSettingsError(
-            "'token_key' needs to be configured to encode tokens",
+            "'token_secret' needs to be configured to encode tokens",
         )
 
-    key = mutable_app["settings"]["token_key"]
+    secret = mutable_app["settings"]["token_secret"]
 
     component_data = json.dumps(
         [component_id, data],
@@ -21,7 +21,7 @@ def encode_token(component_id, data, mutable_app):
     ).encode()
 
     signature = hmac.new(
-        key=key.encode(),
+        key=secret.encode(),
         msg=component_data,
         digestmod=hashlib.sha256,
     )
@@ -33,12 +33,12 @@ def encode_token(component_id, data, mutable_app):
 
 
 def decode_token(token, mutable_app):
-    if "token_key" not in mutable_app["settings"]:
+    if "token_secret" not in mutable_app["settings"]:
         raise InvalidSettingsError(
-            "'token_key' needs to be configured to decode tokens",
+            "'token_secret' needs to be configured to decode tokens",
         )
 
-    key = mutable_app["settings"]["token_key"]
+    secret = mutable_app["settings"]["token_secret"]
 
     try:
         decoded = base64.urlsafe_b64decode(token.encode())
@@ -49,7 +49,7 @@ def decode_token(token, mutable_app):
         raise InvalidTokenError() from exception
 
     expected_signature = hmac.new(
-        key=key.encode(),
+        key=secret.encode(),
         msg=component_data,
         digestmod=hashlib.sha256,
     ).digest()

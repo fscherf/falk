@@ -11,9 +11,9 @@ from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
 from falk.extra_template_context import get_url
+from falk.secrets import get_random_secret
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
-from falk.keys import get_random_key
 
 from falk.components import (
     InternalServerError,
@@ -105,14 +105,14 @@ def get_default_app():
     })
 
     # settings: tokens
-    if "FALK_TOKEN_KEY" in os.environ:
-        token_key = os.environ["FALK_TOKEN_KEY"]
+    if "FALK_TOKEN_SECRET" in os.environ:
+        token_secret = os.environ["FALK_TOKEN_SECRET"]
 
     else:
-        token_key = get_random_key()
+        token_secret = get_random_secret()
 
     mutable_app["settings"].update({
-        "token_key": token_key,
+        "token_secret": token_secret,
         "encode_token": encode_token,
         "decode_token": decode_token,
     })
@@ -136,7 +136,7 @@ def get_default_app():
         component_id_salt = os.environ["FALK_COMPONENT_ID_SALT"]
 
     else:
-        component_id_salt = get_random_key()
+        component_id_salt = get_random_secret()
 
     mutable_app["settings"].update({
         "component_id_salt": component_id_salt,
