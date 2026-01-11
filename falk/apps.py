@@ -132,14 +132,7 @@ def get_default_app():
     })
 
     # settings: component registry
-    if "FALK_COMPONENT_ID_SALT" in os.environ:
-        component_id_salt = os.environ["FALK_COMPONENT_ID_SALT"]
-
-    else:
-        component_id_salt = get_random_secret()
-
     mutable_app["settings"].update({
-        "component_id_salt": component_id_salt,
         "get_component_id": get_component_id,
         "register_component": register_component,
         "get_component": get_component,

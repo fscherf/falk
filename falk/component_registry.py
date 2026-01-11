@@ -1,4 +1,6 @@
 import hashlib
+import base64
+import hmac
 
 from falk.dependency_injection import get_dependencies
 from falk.utils.iterables import add_unique_value
@@ -10,14 +12,18 @@ def get_component_id(component, mutable_app):
     if component in mutable_app["components"]:
         return mutable_app["components"][component]
 
-    salt = mutable_app["settings"].get("component_id_salt", "")
+    secret = mutable_app["settings"]["token_secret"]
     import_string = f"{component.__module__}.{component.__qualname__}"
-    md5_hash = hashlib.md5()
 
-    md5_hash.update(import_string.encode())
-    md5_hash.update(salt.encode())
+    signature = hmac.new(
+        key=secret.encode(),
+        msg=import_string.encode(),
+        digestmod=hashlib.sha256,
+    )
 
-    return md5_hash.hexdigest()
+    component_id = base64.urlsafe_b64encode(signature.digest()).decode()
+
+    return component_id
 
 
 def register_component(component, mutable_app):
