@@ -1,13 +1,10 @@
-FROM ubuntu:focal
+FROM ubuntu:noble
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSIONS="3.9 3.10 3.11 3.12 3.13"
 ARG PYTHON_VERSION="3.13"
 
 ENV PYTHONUNBUFFERED=1
-
-RUN groupadd -g 1000 user && \
-	useradd -u 1000 -g 1000 -m user
 
 RUN apt update && \
 	apt install -y \
