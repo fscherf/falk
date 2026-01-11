@@ -50,7 +50,7 @@ clean:
 	rm -rf build dist *.egg-info && \
 	rm -rf .tox && \
 	rm -rf node_modules && \
-	rm -rf falk/client
+	rm -rf falk/static
 
 build: node-build python-build
 
