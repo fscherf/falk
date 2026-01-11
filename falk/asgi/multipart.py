@@ -71,19 +71,14 @@ async def handle_multipart_body(
 ):
 
     # find component from header X-Falk-Upload-Token
-    token = get_header(
+    component_id = get_header(
         headers=request["headers"],
         name="X-Falk-Upload-Token",
         default="",
     )
 
-    if not token:
+    if not component_id:
         raise BadRequestError("X-Falk-Upload-Token header is not set")
-
-    component_id, _ = mutable_app["settings"]["decode_token"](
-        token=token,
-        mutable_app=mutable_app,
-    )
 
     try:
         mutable_app["settings"]["get_component"](

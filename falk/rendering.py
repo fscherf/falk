@@ -102,9 +102,7 @@ def _callback(
 
 
 @pass_context
-def _upload_token(context, max_files=0, max_file_size=1024*1024, plain=False):
-    # defaults taken from https://starlette.dev/requests/#request-files
-
+def _upload_token(context, plain=False):
     mutable_app = context["mutable_app"]
 
     component_id = mutable_app["settings"]["get_component_id"](
@@ -112,19 +110,10 @@ def _upload_token(context, max_files=0, max_file_size=1024*1024, plain=False):
         mutable_app=context["mutable_app"],
     )
 
-    token = mutable_app["settings"]["encode_token"](
-        component_id=component_id,
-        data={
-            "max_files": max_files,
-            "max_file_size": max_file_size,
-        },
-        mutable_app=mutable_app,
-    )
-
     if plain:
-        return token
+        return component_id
 
-    return f'<input type="hidden" name="falk/upload-token" value="{token}">'
+    return f'<input type="hidden" name="falk/upload-token" value="{component_id}">'  # NOQA
 
 
 @pass_context
