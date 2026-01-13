@@ -188,9 +188,6 @@ def render_component(
     # TODO: add dependency caching once `uncachable_dependencies`
     # is implemented.
 
-    # TODO: Since mutation requests return HTML now, it would be much nicer if
-    # this method would return an HTML document as a string.
-
     if parts is None:
         parts = {
             "html": "",
