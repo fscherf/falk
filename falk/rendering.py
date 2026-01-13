@@ -10,6 +10,7 @@ from falk.errors import InvalidComponentError, UnknownComponentError
 from falk.component_templates import parse_component_template
 from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
+from falk.import_strings import get_import_string
 
 
 @pass_context
@@ -24,10 +25,10 @@ def _render_component(
 
     # find component in context
     if _component_name not in context["_components"]:
+        caller_import_string = get_import_string(context["caller"])
 
-        # TODO: state which component is lacking the dependency
         raise UnknownComponentError(
-            f'component "{_component_name}" was not found in the dependencies',
+            f'{caller_import_string}: component "{_component_name}" was not found in the dependencies',  # NOQA
         )
 
     component = context["_components"][_component_name]
@@ -76,8 +77,10 @@ def _callback(
     callback_name = ""
 
     if not context["_parts"]["flags"]["state"]:
+        caller_import_string = get_import_string(context["caller"])
+
         raise InvalidComponentError(
-            "callbacks can not be used if component state is disabled",
+            f"{caller_import_string}: callbacks can not be used if component state is disabled",  # NOQA
         )
 
     if isinstance(callback_or_callback_name, str):
@@ -203,8 +206,10 @@ def render_component(
 
     # check component
     if not callable(component):
+        component_import_string = get_import_string(component)
+
         raise InvalidComponentError(
-            "components have to be callable",
+            f"{component_import_string}: components have to be callable",
         )
 
     # setup component state
