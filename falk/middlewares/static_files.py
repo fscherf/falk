@@ -1,5 +1,7 @@
 import os
 
+from falk.errors import NotFoundError
+
 
 def serve_static_files(
         request,
@@ -38,9 +40,4 @@ def serve_static_files(
 
         return
 
-    # no matching file found
-    set_response_status(404)
-
-    # TODO: setting the status code to 404 should trigger the
-    # Error404 component
-    set_response_body("Error 404: Not found")
+    raise NotFoundError()
