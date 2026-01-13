@@ -4,6 +4,7 @@ import hmac
 
 from falk.dependency_injection import get_dependencies
 from falk.utils.iterables import add_unique_value
+from falk.import_strings import get_import_string
 from falk.errors import UnknownComponentIdError
 from falk.utils.path import get_abs_path
 
@@ -13,7 +14,7 @@ def get_component_id(component, mutable_app):
         return mutable_app["components"][component]
 
     secret = mutable_app["settings"]["token_secret"]
-    import_string = f"{component.__module__}.{component.__qualname__}"
+    import_string = get_import_string(component)
 
     signature = hmac.new(
         key=secret.encode(),
