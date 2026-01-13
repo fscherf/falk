@@ -74,15 +74,32 @@ def Wrapper(
     """
 
 
+def Container(disable_state):
+    disable_state()
+
+    return """
+        <div class="container" _='
+            {%- for key, value in props.items() -%}
+                {% if key != "children" %} {{ key }}="{{ value }}"{% endif %}
+            {%- endfor -%}
+        '>
+
+            {{ props.children }}
+        </div>
+    """
+
+
 def RenderingFlags(
     Base=Base,
     Wrapper=Wrapper,
     Counter=Counter,
+    Container=Container,
 ):
 
     return """
         <Base title="Skip Rerender Attribute">
             <h2>Rendering Flags</h2>
+            <h3>skip_renderering, force_rendering</h3>
 
             <Wrapper id="outer-wrapper">
                 <Counter id="counter-1" initial_value="{{ 1 }}" />
@@ -95,5 +112,13 @@ def RenderingFlags(
                     <Counter id="counter-4" initial_value="{{ 4 }}" />
                 </Wrapper>
             </Wrapper>
+
+            <h3>disable_state</h3>
+
+            <Container id="disable-state">
+                <Container>
+                    <Counter id="counter-5" />
+                </Container>
+            </Container>
         </Base>
     """

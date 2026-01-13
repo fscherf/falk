@@ -1,7 +1,7 @@
 def test_rendering_flags(page, start_falk_app):
     """
     This test uses `/rendering/rendering-flags` of the test app to test
-    rendering skips and rendering enforcing.
+    skip_rendering, force_rendering, and disable_state.
     """
 
     import time
@@ -93,7 +93,7 @@ def test_rendering_flags(page, start_falk_app):
 
     assert get_counter_states() == ["2", "2", "4", "4"]
 
-    # skip rendering
+    # skip_rendering
     # nothing should happen
     outer_wrapper_timestamp = get_text("#outer-wrapper > .timestamp")
     inner_wrapper_timestamp = get_text("#inner-wrapper > .timestamp")
@@ -116,8 +116,26 @@ def test_rendering_flags(page, start_falk_app):
 
     assert get_counter_states() == ["2", "2", "4", "4"]
 
-    # force rendering
+    # force_rendering
     # the inner wrapper should disapear
     page.click("#outer-wrapper > .force-rendering")
 
     await_text("#outer-wrapper > .wrapper-component-body", "")
+
+    # disable_state
+    # The container with the id "container" should not have a token set but the
+    # counter in it should still work as expected.
+    # check token
+    container = page.locator("div.container#disable-state")
+
+    container_attributes = container.evaluate(
+        "el => Object.fromEntries([...el.attributes].map(a => [a.name, a.value]))",
+    )
+
+    assert "data-falk-id" not in container_attributes
+    assert "data-falk-token" not in container_attributes
+
+    # use counter
+    await_text(".container #counter-5 .state", "0")
+    increment_counter(4)
+    await_text(".container #counter-5 .state", "1")

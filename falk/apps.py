@@ -61,6 +61,7 @@ from falk.providers.responses import (
 from falk.providers.flags import (
     force_rendering_provider,
     skip_rendering_provider,
+    disable_state_provider,
 )
 
 
@@ -144,6 +145,7 @@ def get_default_app():
         "providers": {
             "skip_rendering": skip_rendering_provider,
             "force_rendering": force_rendering_provider,
+            "disable_state": disable_state_provider,
             "get_request_header": get_request_header_provider,
             "set_request_header": set_request_header_provider,
             "del_request_header": del_request_header_provider,

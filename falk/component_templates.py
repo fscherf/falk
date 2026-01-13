@@ -62,6 +62,9 @@ class ComponentTemplateParser(HTMLParser):
             "only external and static URLs are supported",
         )
 
+    def render_state_attributes_string(self):
+        return """{% if _token %}data-falk-id="{{ node_id }}" data-falk-token="{{ _token }}"{% endif %}"""  # NOQA
+
     def render_attribute_string(
             self,
             attribute_list=None,
@@ -238,23 +241,21 @@ class ComponentTemplateParser(HTMLParser):
 
         # HTML tags
         else:
-            overrides = {}
-
-            if is_root_node:
-                overrides.update({
-                    "data-falk-id": "{{ node_id }}",
-                    "data-falk-token": "{{ _token }}",
-                })
-
             self.write(
                 "<",
                 tag_name,
                 self.render_attribute_string(
                     attribute_list=attribute_list,
-                    overrides=overrides,
                 ),
-                ">",
             )
+
+            if is_root_node:
+                self.write(
+                    " ",
+                    self.render_state_attributes_string(),
+                )
+
+            self.write(">")
 
     def handle_startendtag(self, normalized_tag_name, attribute_list):
         is_root_node = self.run_root_node_checks(

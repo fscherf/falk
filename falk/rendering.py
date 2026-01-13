@@ -75,6 +75,11 @@ def _callback(
 
     callback_name = ""
 
+    if not context["_parts"]["flags"]["state"]:
+        raise InvalidComponentError(
+            "callbacks can not be used if component state is disabled",
+        )
+
     if isinstance(callback_or_callback_name, str):
         callback_name = callback_or_callback_name
 
@@ -190,6 +195,7 @@ def render_component(
             "scripts": [],
             "callbacks": [],
             "flags": {
+                "state": True,
                 "force_rendering": False,
                 "skip_rendering": False,
             },
@@ -350,7 +356,7 @@ def render_component(
     )
 
     # generate token
-    if not token:
+    if not token and parts["flags"]["state"]:
         component_id = mutable_app["settings"]["get_component_id"](
             component=component,
             mutable_app=mutable_app,
