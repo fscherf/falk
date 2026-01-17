@@ -34,7 +34,7 @@ dev = [
 test = [
   "coverage==7.10.4",
   "pytest==8.4.1",
-  "pytest-playwright==0.7.1",
+  "pytest-playwright==0.7.2",
   "requests",
   "rlpython",
   "uvicorn[standard]",
