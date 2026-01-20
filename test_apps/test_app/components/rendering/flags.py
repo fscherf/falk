@@ -115,9 +115,13 @@ def RenderingFlags(
 
             <h3>disable_state</h3>
 
-            <Container id="disable-state">
+            <Container id="disable-state-1">
                 <Container>
-                    <Counter id="counter-5" />
+                    <Counter id="counter-5">
+                        <Container id="disable-state-2">
+                            stateless component in stateful component
+                        </Container>
+                    </Counter>
                 </Container>
             </Container>
         </Base>

@@ -44,6 +44,8 @@ def Counter(context, state, initial_render, props):
               class="reset"
               onclick="{{ callback(reset) }}"
               >Reset</button>
+
+              {{ props.children }}
         </div>
     """
 

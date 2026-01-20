@@ -201,6 +201,10 @@ def render_component(
             },
         }
 
+    else:
+        # reset component local flags
+        parts["flags"]["state"] = True
+
     # check component
     if not callable(component):
         component_import_string = get_import_string(component)

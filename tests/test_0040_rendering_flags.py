@@ -123,17 +123,18 @@ def test_rendering_flags(page, start_falk_app):
     await_text("#outer-wrapper > .wrapper-component-body", "")
 
     # disable_state
-    # The container with the id "container" should not have a token set but the
-    # counter in it should still work as expected.
+    # The containers with the ids "container-1" and "container-2" an should not
+    # have a token set but the counter should stil work.
     # check token
-    container = page.locator("div.container#disable-state")
+    for i in list(range(1, 3)):
+        container = page.locator(f"div.container#disable-state-{i}")
 
-    container_attributes = container.evaluate(
-        "el => Object.fromEntries([...el.attributes].map(a => [a.name, a.value]))",
-    )
+        container_attributes = container.evaluate(
+            "el => Object.fromEntries([...el.attributes].map(a => [a.name, a.value]))",
+        )
 
-    assert "data-falk-id" not in container_attributes
-    assert "data-falk-token" not in container_attributes
+        assert "data-falk-id" not in container_attributes
+        assert "data-falk-token" not in container_attributes
 
     # use counter
     await_text(".container #counter-5 .state", "0")
