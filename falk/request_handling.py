@@ -13,12 +13,16 @@ logger = logging.getLogger("falk")
 
 def get_request():
     return {
-        # header
+        # scope
         "headers": {},
         "cookie": SimpleCookie(),
-        "method": "GET",
+        "scheme": "http",
+        "root_path": "",
         "path": "",
+        "method": "GET",
         "query": {},
+        "client": None,
+        "server": None,
 
         # body
         "post": {},

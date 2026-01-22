@@ -17,9 +17,15 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
     request = get_request()
     exception = None
 
-    request["method"] = scope["method"]
-    request["path"] = scope["path"]
-    request["query"] = parse_qs(scope["query_string"].decode())
+    request.update({
+        "scheme": scope["scheme"],
+        "root_path": scope["root_path"],
+        "path": scope["path"],
+        "method": scope["method"],
+        "query": parse_qs(scope["query_string"].decode()),
+        "client": scope["client"],
+        "server": scope["server"],
+    })
 
     for name, value in scope.get("headers", []):
         set_header(
