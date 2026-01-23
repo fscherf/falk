@@ -108,7 +108,14 @@ def get_component(routes, path):
     return None, None
 
 
-def get_url(routes, route_name, route_args=None, query=None, checks=True):
+def get_url(
+        routes,
+        route_name,
+        route_args=None,
+        query=None,
+        prefix="",
+        checks=True,
+):
 
     # find route by name
     route = None
@@ -143,5 +150,12 @@ def get_url(routes, route_name, route_args=None, query=None, checks=True):
             url=url,
             query=query,
         )
+
+    # add prefix
+    if prefix:
+        if prefix.endswith("/"):
+            prefix = prefix[:-1]
+
+        url = prefix + url
 
     return url

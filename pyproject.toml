@@ -38,6 +38,7 @@ test = [
   "requests",
   "rlpython",
   "uvicorn[standard]",
+  "starlette",
   "Django~=5.2",
 ]
 

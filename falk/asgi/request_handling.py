@@ -19,6 +19,7 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
 
     request.update({
         "scheme": scope["scheme"],
+        "raw_path": scope["path"],
         "root_path": scope["root_path"],
         "path": scope["path"],
         "method": scope["method"],
@@ -26,6 +27,19 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
         "client": scope["client"],
         "server": scope["server"],
     })
+
+    # split root_path from path
+    if request["root_path"]:
+        if request["root_path"].endswith("/"):
+            request["root_path"] = request["root_path"][:-1]
+
+        if (request["path"] == request["root_path"] or
+                request["path"].startswith(request["root_path"] + "/")):
+
+            request["path"] = request["path"][len(request["root_path"]):]
+
+            if not request["path"].startswith("/"):
+                request["path"] = "/" + request["path"]
 
     for name, value in scope.get("headers", []):
         set_header(

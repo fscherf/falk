@@ -18,6 +18,7 @@ def get_request():
         "cookie": SimpleCookie(),
         "scheme": "http",
         "root_path": "",
+        "raw_path": "",
         "path": "",
         "method": "GET",
         "query": {},

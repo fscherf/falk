@@ -14,13 +14,14 @@ def add_route_provider(mutable_app):
     return add_route
 
 
-def get_url_provider(app):
+def get_url_provider(app, request):
     def get_url(route_name, route_args=None, query=None, checks=True):
         return routing.get_url(
             routes=app["routes"],
             route_name=route_name,
             route_args=route_args,
             query=query,
+            prefix=request["root_path"],
             checks=checks,
         )
 
