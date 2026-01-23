@@ -1,10 +1,10 @@
 from http.cookies import SimpleCookie
 import logging
 
+from falk.errors import HTTPError, BadRequestError, NotFoundError
 from falk.rendering import render_component, render_body
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
-from falk.errors import HTTPError, BadRequestError
 from falk.routing import get_component
 from falk.components import ItWorks
 
@@ -202,11 +202,9 @@ def handle_request(mutable_app, request, exception=None):
 
                     request["match_info"] = match_info
 
-                # falling back to the configured 404 component
+                # no component found
                 if not component:
-                    component = (
-                        mutable_app["settings"]["not_found_error_component"]
-                    )
+                    raise NotFoundError()
 
             run_component(
                 component=component,
