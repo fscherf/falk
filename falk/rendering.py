@@ -136,6 +136,7 @@ def _falk_styles(context):
 def _falk_scripts(context):
     return render_scripts(
         app=context["app"],
+        request=context["request"],
         scripts=context["_parts"]["scripts"],
     )
 
@@ -144,9 +145,15 @@ def render_styles(app, styles):
     return "\n".join(styles)
 
 
-def render_scripts(app, scripts):
+def render_scripts(app, request, scripts):
+    static_url_prefix = app["settings"]["static_url_prefix"]
+
+    if static_url_prefix.startswith("/"):
+        static_url_prefix = static_url_prefix[1:]
+
     client_url = os.path.join(
-        app["settings"]["static_url_prefix"],
+        request["root_path"] or "/",
+        static_url_prefix,
         "falk/falk.js",
     )
 
@@ -156,7 +163,7 @@ def render_scripts(app, scripts):
     ])
 
 
-def render_body(app, parts):
+def render_body(app, request, parts):
     return (
         render_styles(
             app=app,
@@ -165,6 +172,7 @@ def render_body(app, parts):
         parts["html"] +
         render_scripts(
             app=app,
+            request=request,
             scripts=parts["scripts"],
         )
     )
@@ -343,6 +351,7 @@ def render_component(
     component_blocks = parse_component_template(
         component_template=component_template,
         component=component,
+        root_path=request["root_path"],
         static_url_prefix=mutable_app["settings"]["static_url_prefix"],
         hash_string=_hash_string,
     )

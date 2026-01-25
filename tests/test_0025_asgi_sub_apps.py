@@ -1,11 +1,7 @@
-def test_asgi_sub_apps(start_falk_app):
-    """
-    This test tests mounting falk apps behind prefixes in other ASGI apps,
-    by mounting the same falk app behind different prefixes into a starlette
-    app and checking whether the ASGI `root_path` for every request is set
-    correctly, and whether it is used correctly in reverse resolved URLs.
-    """
+import pytest
 
+
+def test_request_attributes(start_falk_app):
     from starlette.applications import Starlette
     from starlette.routing import Mount
     import requests
@@ -70,3 +66,75 @@ def test_asgi_sub_apps(start_falk_app):
         "path": "/",
         "sub_page": "/prefix2/sub-page/",
     }
+
+
+@pytest.mark.only_browser("chromium")
+def test_urls(start_falk_app, page):
+    import os
+
+    from playwright.sync_api import expect
+    from starlette.applications import Starlette
+    from starlette.routing import Mount
+    import requests
+
+    from test_app.app import configure_app
+    import test_app
+
+    from falk.static_files import get_falk_static_dir
+    from falk.asgi import get_asgi_app
+
+    falk_app = get_asgi_app(configure_app)
+
+    starlette_app = Starlette(
+        routes=[
+            Mount("/prefix1", app=falk_app),
+            Mount("/prefix2/", app=falk_app),
+            Mount("/", app=falk_app),
+        ]
+    )
+
+    _, base_url = start_falk_app(
+        asgi_app=starlette_app,
+    )
+
+    # find test app base.css content
+    base_css_path = os.path.join(
+        os.path.dirname(test_app.__file__),
+        "static/base.css",
+    )
+
+    base_css_content = open(base_css_path, "r").read()
+
+    # find falk client content
+    falk_client_path = get_falk_static_dir() + "/falk/falk.js"
+    falk_client_content = open(falk_client_path, "r").read()
+
+    # test prefixes
+    prefixes = ["/", "/prefix1/", "/prefix2/"]
+
+    for prefix in prefixes:
+
+        # prefix in links
+        page.goto(base_url + prefix)
+        locator = page.locator("a#home")
+        expect(locator).to_have_attribute("href", prefix)
+
+        # CSS URLs
+        page.wait_for_selector(
+            f'link[href="{prefix}static/base.css"]',
+            state="attached",
+        )
+
+        requests.get(
+            f"{base_url}/{prefix}static/base.css",
+        ).text == base_css_content
+
+        # prefix in script URLs
+        page.wait_for_selector(
+            f'script[src="{prefix}static/falk/falk.js"]',
+            state="attached",
+        )
+
+        requests.get(
+            f"{base_url}/{prefix}static/falk/falk.js",
+        ).text == falk_client_content

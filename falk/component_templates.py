@@ -54,7 +54,7 @@ class ComponentTemplateParser(HTMLParser):
 
         if url.startswith(prefix):
             return os.path.join(
-                self._static_url_prefix,
+                self._static_prefix,
                 url[len(prefix):],
             )
 
@@ -362,13 +362,22 @@ class ComponentTemplateParser(HTMLParser):
     def parse(
             self,
             component_template,
-            component, static_url_prefix,
+            component,
+            root_path,
+            static_url_prefix,
             hash_string,
     ):
 
         self._component_template = component_template
         self._component = component
-        self._static_url_prefix = static_url_prefix
+
+        if static_url_prefix.startswith("/"):
+            static_url_prefix = static_url_prefix[1:]
+
+        self._static_prefix = os.path.join(
+            root_path or "/",
+            static_url_prefix,
+        )
 
         self._output = {
             "styles": [],
@@ -500,6 +509,7 @@ class ComponentTemplateParser(HTMLParser):
 def parse_component_template(
         component_template,
         component,
+        root_path,
         static_url_prefix,
         hash_string,
 ):
@@ -514,6 +524,7 @@ def parse_component_template(
     return ComponentTemplateParser().parse(
         component_template=component_template,
         component=component,
+        root_path=root_path,
         static_url_prefix=static_url_prefix,
         hash_string=hash_string,
     )

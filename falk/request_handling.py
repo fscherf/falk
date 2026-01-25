@@ -138,6 +138,7 @@ def run_component(
             },
             "body": render_body(
                 app=mutable_app,
+                request=request,
                 parts=parts,
             ),
             "callbacks": parts["callbacks"],

@@ -10,5 +10,6 @@ def get_url(context, route_name, route_args=None, query=None, checks=True):
         route_name=route_name,
         route_args=route_args,
         query=query,
+        prefix=context["request"]["root_path"],
         checks=checks,
     )

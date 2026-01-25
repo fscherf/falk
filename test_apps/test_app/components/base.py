@@ -11,7 +11,7 @@ def Base(context, props, HTML5Base=HTML5Base):
 
         <HTML5Base props="{{ props }}">
             {% if props.get("menu", True) %}
-                <h1><a href="{{ get_url('index') }}">falk Test App</a></h1>
+                <h1><a id="home" href="{{ get_url('index') }}">falk Test App</a></h1>
                 <ul class="menu">
                     <li>
                         Request Handling
