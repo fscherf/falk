@@ -12,18 +12,24 @@ class Falk {
     this.httpTransport = new HTTPTransport();
     this.websocketTransport = new WebsocketTransport();
 
-    await this.websocketTransport.init();
+    const _init = async () => {
+      // run beforeinit event handler
+      this.dispatchEvent("beforeinit", document.querySelector("html"));
 
-    // dispatch initialRender events
-    if (document.readyState === "complete") {
+      // try to connect websocket
+      await this.websocketTransport.init();
+
+      // dispatch initialRender events
       this.dispatchRenderEvents(document.body, {
         initial: true,
       });
+    };
+
+    if (document.readyState === "complete") {
+      await _init();
     } else {
-      window.addEventListener("load", () => {
-        this.dispatchRenderEvents(document.body, {
-          initial: true,
-        });
+      window.addEventListener("load", async () => {
+        await _init();
       });
     }
   };
