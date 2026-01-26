@@ -1,4 +1,13 @@
 export class HTTPTransport {
+  private headers = {
+    "Content-Type": "application/json",
+    "X-Falk-Request-Type": "mutation",
+  };
+
+  public setHeader = (name: string, value: string): void => {
+    this.headers[name] = value;
+  };
+
   public sendMutationRequest = async (args: {
     nodeId: string;
     token: string;
@@ -19,10 +28,7 @@ export class HTTPTransport {
 
       const response = await fetch(window.location + "", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Falk-Request-Type": "mutation",
-        },
+        headers: this.headers,
         body: JSON.stringify(data),
         redirect: "manual",
       });

@@ -4,8 +4,8 @@ import { dumpEvent } from "./events";
 import morphdom from "morphdom";
 
 class Falk {
-  private httpTransport: HTTPTransport;
-  private websocketTransport: WebsocketTransport;
+  public httpTransport: HTTPTransport;
+  public websocketTransport: WebsocketTransport;
 
   public init = async () => {
     // setup transports
