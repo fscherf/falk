@@ -16,7 +16,12 @@ def HTML5Base(props, context):
     body_attribute_string = ""
 
     for key, value in props.items():
-        if key.startswith("html_"):
+        if key.startswith("on"):
+            html_attribute_string += (
+                f'{key}="{value}" '
+            )
+
+        elif key.startswith("html_"):
             html_attribute_string += (
                 f'{key[5:]}="{value}" '
             )
