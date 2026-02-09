@@ -35,7 +35,7 @@ def test_styles_and_scripts(url, page, start_falk_app):
         # falk client script.
         assert len(page.query_selector_all("link")) == 1
         assert len(page.query_selector_all("style")) == 0
-        assert len(page.query_selector_all("script")) == 1
+        assert len(page.query_selector_all("script")) == 2
 
         # load component
         page.click("button#load-component")
@@ -50,7 +50,7 @@ def test_styles_and_scripts(url, page, start_falk_app):
     #  - One additional inline scripts
     assert len(page.query_selector_all("link")) == 3
     assert len(page.query_selector_all("style")) == 1
-    assert len(page.query_selector_all("script")) == 4
+    assert len(page.query_selector_all("script")) == 5
 
     # check if loaded styles and scripts got applied or executed correctly
     def await_css_content(selector, text):

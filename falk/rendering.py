@@ -12,6 +12,22 @@ from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
 from falk.import_strings import get_import_string
 
+SCRIPTS_TEMPLATE_STRING = """
+<script src="{{ client_url }}"></script>
+
+{% for script in scripts %}
+    {{ script }}
+{% endfor %}
+
+{% if not request.is_mutation_request %}
+    <script data-falk-id="falk/init">
+        falk.tokens = JSON.parse(`{{ token_string }}`);
+
+        falk.init();
+    </script>
+{% endif %}
+"""
+
 
 @pass_context
 def _render_component(
@@ -137,7 +153,7 @@ def _falk_scripts(template_context):
     return render_scripts(
         app=template_context["app"],
         request=template_context["request"],
-        scripts=template_context["_parts"]["scripts"],
+        parts=template_context["_parts"],
     )
 
 
@@ -145,7 +161,17 @@ def render_styles(app, styles):
     return "\n".join(styles)
 
 
-def render_scripts(app, request, scripts):
+def render_scripts(app, request, parts):
+
+    # token_string
+    # If the request is a mutation request, we don't need to serialize the
+    # tokens because we send them as part of the JSON body anyway.
+    token_string = ""
+
+    if not request["is_mutation_request"]:
+        token_string = json.dumps(parts["tokens"])
+
+    # client_url
     static_url_prefix = app["settings"]["static_url_prefix"]
 
     if static_url_prefix.startswith("/"):
@@ -157,10 +183,12 @@ def render_scripts(app, request, scripts):
         "falk/falk.js",
     )
 
-    return "\n".join([
-        f'<script src="{client_url}"></script>',
-        *scripts,
-    ])
+    return Template(SCRIPTS_TEMPLATE_STRING).render({
+        "request": request,
+        "scripts": parts["scripts"],
+        "client_url": client_url,
+        "token_string": token_string,
+    })
 
 
 def render_body(app, request, parts):
@@ -173,7 +201,7 @@ def render_body(app, request, parts):
         render_scripts(
             app=app,
             request=request,
-            scripts=parts["scripts"],
+            parts=parts,
         )
     )
 
@@ -202,6 +230,7 @@ def render_component(
             "styles": [],
             "scripts": [],
             "callbacks": [],
+            "tokens": {},
             "flags": {
                 "state": True,
                 "force_rendering": False,
@@ -382,6 +411,8 @@ def render_component(
             data=component_state,
             mutable_app=mutable_app,
         )
+
+        parts["tokens"][node_id] = token
 
     template_context["_token"] = token
 

@@ -62,9 +62,6 @@ class ComponentTemplateParser(HTMLParser):
             "only external and static URLs are supported",
         )
 
-    def render_state_attributes_string(self):
-        return """{% if _token %}data-falk-id="{{ node_id }}" data-falk-token="{{ _token }}"{% endif %}"""  # NOQA
-
     def render_attribute_string(
             self,
             attribute_list=None,
@@ -251,8 +248,7 @@ class ComponentTemplateParser(HTMLParser):
 
             if is_root_node:
                 self.write(
-                    " ",
-                    self.render_state_attributes_string(),
+                    '{% if _token %} data-falk-id="{{ node_id }}"{% endif %}',
                 )
 
             self.write(">")

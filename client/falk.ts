@@ -6,6 +6,7 @@ import morphdom from "morphdom";
 class Falk {
   public httpTransport: HTTPTransport;
   public websocketTransport: WebsocketTransport;
+  public tokens: Object;
 
   public init = async () => {
     // setup transports
@@ -157,17 +158,32 @@ class Falk {
       },
 
       onBeforeNodeDiscarded: (node) => {
-        // ignore styles and scripts
         if (node.nodeType !== Node.ELEMENT_NODE) {
           return true;
         }
 
+        // ignore styles and scripts
         const tagName: string = (node as HTMLElement).tagName;
 
         if (["SCRIPT", "LINK", "STYLE"].includes(tagName)) {
           return false;
         }
 
+        // components
+        // remove tokens from `falk.tokens` recursively
+        this.iterNodes(
+          "[data-falk-id]",
+          (_node) => {
+            const nodeId = _node.getAttribute("data-falk-id");
+
+            if (nodeId) {
+              delete this.tokens[nodeId];
+            }
+          },
+          node as HTMLElement,
+        );
+
+        // rendering flags
         if (nodeShouldBeSkipped(node)) {
           return false;
         }
@@ -271,7 +287,7 @@ class Falk {
     for (const node of nodes) {
       const eventData = dumpEvent(options.event);
       const nodeId = node.getAttribute("data-falk-id");
-      const token = node.getAttribute("data-falk-token");
+      const token = this.tokens[nodeId];
       const callbackName = options.callbackName || "";
       const callbackArgs = options.callbackArgs || {};
 
@@ -446,6 +462,15 @@ class Falk {
             );
           }
 
+          // update tokens
+          // NOTE: this needs to happen after we patched the DOM because
+          // morphdom removes all tokens for us that are not needed anymore,
+          // and before we run the hooks because the hooks need the tokens to
+          // be updated.
+          for (const [key, value] of Object.entries(responseData.tokens)) {
+            this.tokens[key] = value;
+          }
+
           // run hooks
           this.dispatchRenderEvents(node);
 
@@ -499,5 +524,3 @@ class Falk {
 }
 
 window["falk"] = new Falk();
-
-window["falk"].init();

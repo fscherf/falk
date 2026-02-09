@@ -141,6 +141,7 @@ def run_component(
                 request=request,
                 parts=parts,
             ),
+            "tokens": parts["tokens"],
             "callbacks": parts["callbacks"],
         }
 
