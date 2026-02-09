@@ -1,8 +1,8 @@
 from test_app.components.base import Base
 
 
-def Index(context, Base=Base):
-    context.update({
+def Index(template_context, Base=Base):
+    template_context.update({
         "Base": Base,
     })
 

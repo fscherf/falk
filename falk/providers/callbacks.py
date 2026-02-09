@@ -1,4 +1,4 @@
-def run_callback_provider(context):
+def run_callback_provider(template_context):
     def run_callback(
             selector,
             callback_name,
@@ -11,7 +11,7 @@ def run_callback_provider(context):
                 "args and kwargs can not be used at the same time",
             )
 
-        context["_parts"]["callbacks"].append(
+        template_context["_parts"]["callbacks"].append(
             [selector, callback_name, callback_args or callback_kwargs],
         )
 

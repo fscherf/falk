@@ -24,7 +24,7 @@ def get_component(
 
     def component(
             request,
-            context,
+            template_context,
             handle_file_upload=get_tempfile_upload_handler(
                 max_files=max_files,
                 max_file_size_in_bytes=max_file_size_in_bytes,
@@ -32,7 +32,7 @@ def get_component(
     ):
 
         def handle_submit(event):
-            context.update({
+            template_context.update({
                 "form_data": event["form_data"],
 
                 "form_data_string": json.dumps(
@@ -49,7 +49,7 @@ def get_component(
                 }),
             })
 
-        context.update({
+        template_context.update({
             "handle_submit": handle_submit,
             "html_id": html_id,
             "html_name": html_name,

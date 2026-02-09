@@ -2,13 +2,18 @@ def test_component_registry():
     from falk.component_registry import get_component_id, register_component
     from falk.apps import get_default_app
 
-    def Component1(context):
+    def Component1(template_context):
         pass
 
-    def Component2(context):
+    def Component2(template_context):
         pass
 
-    def Component3(context, Component1=Component1, Component2=Component2):
+    def Component3(
+            template_context,
+            Component1=Component1,
+            Component2=Component2,
+    ):
+
         pass
 
     mutable_app = get_default_app()

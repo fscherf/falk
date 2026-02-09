@@ -16,7 +16,7 @@ class DjangoForm(forms.Form):
     )
 
 
-def DjangoFormComponent(request, context, HTML5Base=HTML5Base):
+def DjangoFormComponent(request, template_context, HTML5Base=HTML5Base):
     form = DjangoForm()
 
     def handle_submit(event):
@@ -25,18 +25,18 @@ def DjangoFormComponent(request, context, HTML5Base=HTML5Base):
         if form.is_valid():
             value = form.cleaned_data["character_field"]
 
-            context.update({
+            template_context.update({
                 "form": DjangoForm(),
                 "message": f"Value: {value}",
             })
 
         else:
-            context.update({
+            template_context.update({
                 "form": form,
                 "message": "Invalid value",
             })
 
-    context.update({
+    template_context.update({
         "message": "No value",
         "handle_submit": handle_submit,
         "form": form,

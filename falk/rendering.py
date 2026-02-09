@@ -15,7 +15,7 @@ from falk.import_strings import get_import_string
 
 @pass_context
 def _render_component(
-        context,
+        template_context,
         caller=None,
         _component_name="",
         _node_id=None,
@@ -23,15 +23,15 @@ def _render_component(
         **props,
 ):
 
-    # find component in context
-    if _component_name not in context["_components"]:
-        caller_import_string = get_import_string(context["caller"])
+    # find component in template_context
+    if _component_name not in template_context["_components"]:
+        caller_import_string = get_import_string(template_context["caller"])
 
         raise UnknownComponentError(
             f'{caller_import_string}: component "{_component_name}" was not found in the dependencies',  # NOQA
         )
 
-    component = context["_components"][_component_name]
+    component = template_context["_components"][_component_name]
 
     # prepare props
     if "props" in props:
@@ -52,14 +52,14 @@ def _render_component(
 
     parts = render_component(
         component=component,
-        mutable_app=context["mutable_app"],
-        request=context["mutable_request"],
-        response=context["response"],
+        mutable_app=template_context["mutable_app"],
+        request=template_context["mutable_request"],
+        response=template_context["response"],
         component_props=props,
         node_id=_node_id,
         token=_token,
         is_root=False,
-        parts=context["_parts"],
+        parts=template_context["_parts"],
     )
 
     return parts["html"]
@@ -67,7 +67,7 @@ def _render_component(
 
 @pass_context
 def _callback(
-        context,
+        template_context,
         callback_or_callback_name,
         callback_args=None,
         stop_event=True,
@@ -76,8 +76,8 @@ def _callback(
 
     callback_name = ""
 
-    if not context["_parts"]["flags"]["state"]:
-        caller_import_string = get_import_string(context["caller"])
+    if not template_context["_parts"]["flags"]["state"]:
+        caller_import_string = get_import_string(template_context["caller"])
 
         raise InvalidComponentError(
             f"{caller_import_string}: callbacks can not be used if component state is disabled",  # NOQA
@@ -87,17 +87,17 @@ def _callback(
         callback_name = callback_or_callback_name
 
     elif callable(callback_or_callback_name):
-        for key, value in context.items():
+        for key, value in template_context.items():
             if value is callback_or_callback_name:
                 callback_name = key
 
                 break
 
     # provoke a KeyError if the callback does not exist
-    context[callback_name]
+    template_context[callback_name]
 
     options = {
-        "nodeId": context["node_id"],
+        "nodeId": template_context["node_id"],
         "callbackName": callback_name,
         "callbackArgs": callback_args,
         "stopEvent": stop_event,
@@ -110,12 +110,12 @@ def _callback(
 
 
 @pass_context
-def _upload_token(context, plain=False):
-    mutable_app = context["mutable_app"]
+def _upload_token(template_context, plain=False):
+    mutable_app = template_context["mutable_app"]
 
     component_id = mutable_app["settings"]["get_component_id"](
-        component=context["caller"],
-        mutable_app=context["mutable_app"],
+        component=template_context["caller"],
+        mutable_app=template_context["mutable_app"],
     )
 
     if plain:
@@ -125,19 +125,19 @@ def _upload_token(context, plain=False):
 
 
 @pass_context
-def _falk_styles(context):
+def _falk_styles(template_context):
     return render_styles(
-        app=context["app"],
-        styles=context["_parts"]["styles"],
+        app=template_context["app"],
+        styles=template_context["_parts"]["styles"],
     )
 
 
 @pass_context
-def _falk_scripts(context):
+def _falk_scripts(template_context):
     return render_scripts(
-        app=context["app"],
-        request=context["request"],
-        scripts=context["_parts"]["scripts"],
+        app=template_context["app"],
+        request=template_context["request"],
+        scripts=template_context["_parts"]["scripts"],
     )
 
 
@@ -306,7 +306,7 @@ def render_component(
 
     dependencies = {
         **data,
-        "context": template_context,
+        "template_context": template_context,
     }
 
     # run component

@@ -1,8 +1,8 @@
 from falk.components import HTML5Base
 
 
-def Base(context, props, HTML5Base=HTML5Base):
-    context.update({
+def Base(template_context, props, HTML5Base=HTML5Base):
+    template_context.update({
         "HTML5Base": HTML5Base,
     })
 

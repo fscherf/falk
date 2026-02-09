@@ -25,14 +25,14 @@ def Iframe(
     """
 
 
-def Iframes(context, state, initial_render, Base=Base):
+def Iframes(template_context, state, initial_render, Base=Base):
     if initial_render:
         state["active_index"] = 0
 
     def set_active_index(args):
         state["active_index"] = args[0]
 
-    context.update({
+    template_context.update({
         "set_active_index": set_active_index,
     })
 

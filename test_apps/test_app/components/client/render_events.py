@@ -3,11 +3,11 @@ import time
 from test_app.components.base import Base
 
 
-def RenderEventTestComponent(props, state, initial_render, context):
+def RenderEventTestComponent(props, state, initial_render, template_context):
     if initial_render:
         state["id"] = props.get("id", None)
 
-    context.update({
+    template_context.update({
         "slow_render": lambda: time.sleep(0.5),
     })
 

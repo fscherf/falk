@@ -85,7 +85,7 @@ def get_forbidden_component(base_component):
             request,
             settings,
             exception,
-            context,
+            template_context,
             set_response_redirect,
             BaseComponent=base_component,
     ):
@@ -112,7 +112,7 @@ def get_forbidden_component(base_component):
                 exception_string,
             ) = format_exception(exception)
 
-            context.update({
+            template_context.update({
                 "short_exception_string": short_exception_string,
                 "exception_string": exception_string,
             })

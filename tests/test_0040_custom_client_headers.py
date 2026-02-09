@@ -55,8 +55,8 @@ def test_custom_client_headers(start_falk_app, page):
             </script>
         """
 
-    def ShowCustomHeaderComponent(context, get_request_header):
-        context.update({
+    def ShowCustomHeaderComponent(template_context, get_request_header):
+        template_context.update({
             "custom_header": get_request_header("x-custom-header", "[NONE]"),
         })
 

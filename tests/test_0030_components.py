@@ -19,14 +19,14 @@ def test_basic_component(page, start_falk_app):
 
     from falk.components import HTML5Base
 
-    def Counter(context, state, initial_render):
+    def Counter(template_context, state, initial_render):
         if initial_render:
             state["counter"] = 1
 
         def increment():
             state["counter"] += 1
 
-        context.update({
+        template_context.update({
             "increment": increment,
         })
 
@@ -39,7 +39,7 @@ def test_basic_component(page, start_falk_app):
             </button>
         """
 
-    def Index(context, HTML5Base=HTML5Base, Counter=Counter):
+    def Index(template_context, HTML5Base=HTML5Base, Counter=Counter):
         return """
             <HTML5Base title="Counter">
                 <h1 id="title">Counter</h1>

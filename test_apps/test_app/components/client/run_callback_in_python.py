@@ -1,7 +1,7 @@
 from test_app.components.base import Base
 
 
-def Counter(props, state, context, initial_render, run_callback):
+def Counter(props, state, template_context, initial_render, run_callback):
     if initial_render:
         state.update({
             "id": props.get("id", ""),
@@ -29,7 +29,7 @@ def Counter(props, state, context, initial_render, run_callback):
 
         run_callback(selector, callback_name, *_args)
 
-    context.update({
+    template_context.update({
         "update": update,
         "reset": reset,
         "_run_callback": _run_callback,

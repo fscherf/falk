@@ -3,13 +3,13 @@ from pprint import pformat
 from test_app.components.base import Base
 
 
-def Input(context, Base=Base):
+def Input(template_context, Base=Base):
     def format_event_data(event):
-        context.update({
+        template_context.update({
             "event_data_string": pformat(event),
         })
 
-    context.update({
+    template_context.update({
         "event_data_string": "{}",
         "format_event_data": format_event_data,
     })

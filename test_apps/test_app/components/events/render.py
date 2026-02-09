@@ -3,11 +3,11 @@ import datetime
 from test_app.components.base import Base
 
 
-def Clock(context, props, initial_render, state):
+def Clock(template_context, props, initial_render, state):
     if initial_render:
         state["refresh_rate"] = props.get("refresh_rate", "1")
 
-    context.update({
+    template_context.update({
         "datetime": datetime,
     })
 

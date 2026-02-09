@@ -11,7 +11,7 @@ def format_exception(exception):
     )
 
 
-def HTML5Base(props, context):
+def HTML5Base(props, template_context):
     html_attribute_string = ""
     body_attribute_string = ""
 
@@ -31,7 +31,7 @@ def HTML5Base(props, context):
                 f'{key[5:]}="{value}" '
             )
 
-    context.update({
+    template_context.update({
         "html_attribute_string": html_attribute_string,
         "body_attribute_string": body_attribute_string,
     })
@@ -72,14 +72,14 @@ def BadRequest(
         request,
         settings,
         exception,
-        context,
+        template_context,
         HTML5Base=HTML5Base,
 ):
 
     if settings["debug"]:
         short_exception_string, exception_string = format_exception(exception)
 
-        context.update({
+        template_context.update({
             "short_exception_string": short_exception_string,
             "exception_string": exception_string,
         })
@@ -114,14 +114,14 @@ def Forbidden(
         request,
         settings,
         exception,
-        context,
+        template_context,
         HTML5Base=HTML5Base,
 ):
 
     if settings["debug"]:
         short_exception_string, exception_string = format_exception(exception)
 
-        context.update({
+        template_context.update({
             "short_exception_string": short_exception_string,
             "exception_string": exception_string,
         })
@@ -167,14 +167,14 @@ def InternalServerError(
         request,
         settings,
         exception,
-        context,
+        template_context,
         HTML5Base=HTML5Base,
 ):
 
     if settings["debug"]:
         short_exception_string, exception_string = format_exception(exception)
 
-        context.update({
+        template_context.update({
             "short_exception_string": short_exception_string,
             "exception_string": exception_string,
         })

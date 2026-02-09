@@ -3,9 +3,9 @@ import json
 from test_app.components.base import Base
 
 
-def PostForms(context, Base=Base):
+def PostForms(template_context, Base=Base):
     def handle_submit(event):
-        context.update({
+        template_context.update({
             "form_data": event["form_data"],
 
             "form_data_string": json.dumps(
@@ -15,14 +15,14 @@ def PostForms(context, Base=Base):
         })
 
         if "update_form" in event["form_data"]:
-            context["form_data"]["text_field"] = (
-                context["form_data"]["text_field"][::-1]
+            template_context["form_data"]["text_field"] = (
+                template_context["form_data"]["text_field"][::-1]
             )
 
         if "clear_form" in event["form_data"]:
-            context["form_data"] = {}
+            template_context["form_data"] = {}
 
-    context.update({
+    template_context.update({
         "handle_submit": handle_submit,
         "form_data": {},
         "form_data_string": "",

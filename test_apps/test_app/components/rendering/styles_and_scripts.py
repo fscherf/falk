@@ -68,7 +68,7 @@ def StylesAndScripts(Base=Base, Component=Component):
 
 
 def CodeSplitting(
-        context,
+        template_context,
         state,
         initial_render,
         Base=Base,
@@ -81,7 +81,7 @@ def CodeSplitting(
     def load_component():
         state["load_component"] = True
 
-    context.update({
+    template_context.update({
         "load_component": load_component,
     })
 

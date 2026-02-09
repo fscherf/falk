@@ -6,7 +6,7 @@ from test_app.components.base import Base
 
 def Wrapper(
         props,
-        context,
+        template_context,
         state,
         skip_rendering,
         force_rendering,
@@ -22,7 +22,7 @@ def Wrapper(
     def _force_rendering():
         force_rendering()
 
-    context.update({
+    template_context.update({
         "skip_rendering": _skip_rendering,
         "force_rendering": _force_rendering,
         "timestamp": str(datetime.now()),
