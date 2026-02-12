@@ -11,6 +11,7 @@ from falk.component_templates import parse_component_template
 from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
 from falk.import_strings import get_import_string
+from falk.static_files import get_static_url
 
 SCRIPTS_TEMPLATE_STRING = """
 <script src="{{ client_url }}"></script>
@@ -123,6 +124,21 @@ def _callback(
     options_string = quote(json.dumps(options))
 
     return f"falk.runCallback({{event: event, optionsString: '{options_string}'}});"
+
+
+@pass_context
+def _get_static_url(
+    template_context,
+    rel_path,
+):
+
+    settings = template_context["mutable_app"]["settings"]
+
+    return get_static_url(
+        root_path=template_context["request"]["root_path"] or "/",
+        static_url_prefix=settings["static_url_prefix"],
+        rel_path=rel_path,
+    )
 
 
 @pass_context
@@ -321,6 +337,7 @@ def render_component(
 
         "_render_component": _render_component,
         "_parts": parts,
+        "get_static_url": _get_static_url,
         "callback": _callback,
         "upload_token": _upload_token,
         "falk_styles": _falk_styles,
