@@ -51,6 +51,10 @@ class ComponentTemplateParser(HTMLParser):
         if "://" in url:
             return url
 
+        # verbatim URLs
+        if url.startswith("!"):
+            return url[1:]
+
         # static URLs
         prefix = "/static/"
 
@@ -61,7 +65,7 @@ class ComponentTemplateParser(HTMLParser):
             )
 
         raise NotImplementedError(
-            f"{get_import_string(self._component)}: '{url}': only external and static URLs are supported",  # NOQA
+            f"{get_import_string(self._component)}: '{url}': only external, verbatim, and static URLs are supported",  # NOQA
         )
 
     def render_attribute_string(
