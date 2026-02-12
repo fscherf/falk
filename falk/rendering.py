@@ -346,6 +346,9 @@ def render_component(
         run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
     )
 
+    if not component_template:
+        component_template = ""
+
     # Check if the component finished the response. If so, we can skip all
     # parsing and post processing.
     # This happens when files, binary data, or JSON is returned.

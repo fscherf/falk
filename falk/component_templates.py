@@ -1,6 +1,8 @@
 from html.parser import HTMLParser
 import os
 
+from falk.import_strings import get_import_string
+
 from falk.errors import (
     InvalidStyleBlockError,
     MultipleRootNodesError,
@@ -59,7 +61,7 @@ class ComponentTemplateParser(HTMLParser):
             )
 
         raise NotImplementedError(
-            "only external and static URLs are supported",
+            f"{get_import_string(self._component)}: '{url}': only external and static URLs are supported",  # NOQA
         )
 
     def render_attribute_string(
@@ -153,7 +155,7 @@ class ComponentTemplateParser(HTMLParser):
         if is_root_node:
             if self._has_root_node:
                 raise MultipleRootNodesError(
-                    "HTML blocks can not contain more than one root node",
+                    f"{get_import_string(self._component)}: HTML blocks can not contain more than one root node",  # NOQA
                 )
 
             self._has_root_node = True
@@ -183,7 +185,7 @@ class ComponentTemplateParser(HTMLParser):
 
                     if not href:
                         raise InvalidStyleBlockError(
-                            "link nodes need to define a href",
+                            f"{get_import_string(self._component)}: link nodes need to define a href",  # NOQA
                         )
 
                 else:
@@ -307,7 +309,9 @@ class ComponentTemplateParser(HTMLParser):
         # HTML
         else:
             if data.strip() and not self._has_root_node:
-                raise MissingRootNodeError()
+                raise MissingRootNodeError(
+                    get_import_string(self._component),
+                )
 
             self.write(data)
 
@@ -330,12 +334,12 @@ class ComponentTemplateParser(HTMLParser):
         # update stack
         if not self._stack:
             raise UnbalancedTagsError(
-                f"<{tag_name}> got closed before it got opened",
+                f"{get_import_string(self._component)}: <{tag_name}> got closed before it got opened",  # NOQA
             )
 
         if tag_name != self._stack[-1]:
             raise UnbalancedTagsError(
-                f"expected </{self._stack[-1]}>, got </{tag_name}>",
+                f"{get_import_string(self._component)}: expected </{self._stack[-1]}>, got </{tag_name}>",  # NOQA
             )
 
         self._stack.pop()
@@ -391,11 +395,13 @@ class ComponentTemplateParser(HTMLParser):
         self.feed(data=component_template)
 
         if not self._has_root_node:
-            raise MissingRootNodeError()
+            raise MissingRootNodeError(
+                get_import_string(self._component),
+            )
 
         if self._stack:
             raise UnclosedTagsError(
-                f"stack: {', '.join(self._stack)}",
+                f"{get_import_string(self._component)}: stack: {', '.join(self._stack)}",  # NOQA
             )
 
         # render styles and scripts
