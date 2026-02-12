@@ -14,14 +14,16 @@ class Falk {
     this.websocketTransport = new WebsocketTransport();
 
     const _init = async () => {
+      const htmlElement = document.querySelector("html");
+
       // run beforeinit event handler
-      this.dispatchEvent("beforeinit", document.querySelector("html"));
+      this.dispatchEvent("beforeinit", htmlElement);
 
       // try to connect websocket
       await this.websocketTransport.init();
 
       // dispatch initialRender events
-      this.dispatchRenderEvents(document.body, {
+      this.dispatchRenderEvents(htmlElement, {
         initial: true,
       });
     };
