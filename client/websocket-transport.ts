@@ -34,7 +34,15 @@ export class WebsocketTransport {
 
   private connect = (): Promise<boolean> => {
     return new Promise((resolve) => {
-      this.websocket = new WebSocket(window.location + "");
+      try {
+        this.websocket = new WebSocket(
+          `${window.location.protocol}:/${window.location.host}${window.location.pathname}`,
+        );
+      } catch {
+        resolve(false);
+
+        return;
+      }
 
       this.websocket.addEventListener("message", this.handleMessage);
 
