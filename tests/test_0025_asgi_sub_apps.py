@@ -8,12 +8,13 @@ def test_request_attributes(start_falk_app):
 
     from falk.asgi import get_asgi_app
 
-    def Index(request, set_response_json, get_url):
+    def Index(request, set_response_json, get_url, get_static_url):
         set_response_json({
             "raw_path": request["raw_path"],
             "root_path": request["root_path"],
             "path": request["path"],
             "sub_page": get_url("sub-page"),
+            "static_url": get_static_url("foo/bar.png"),
         })
 
     def SubPage(set_response_json):
@@ -45,6 +46,7 @@ def test_request_attributes(start_falk_app):
         "root_path": "",
         "path": "/",
         "sub_page": "/sub-page/",
+        "static_url": "/static/foo/bar.png",
     }
 
     # prefix1
@@ -55,6 +57,7 @@ def test_request_attributes(start_falk_app):
         "root_path": "/prefix1",
         "path": "/",
         "sub_page": "/prefix1/sub-page/",
+        "static_url": "/prefix1/static/foo/bar.png",
     }
 
     # prefix2
@@ -65,6 +68,7 @@ def test_request_attributes(start_falk_app):
         "root_path": "/prefix2",
         "path": "/",
         "sub_page": "/prefix2/sub-page/",
+        "static_url": "/prefix2/static/foo/bar.png",
     }
 
 

@@ -2,7 +2,6 @@ import os
 
 from falk.providers.routing import add_route_provider, get_url_provider
 from falk.dependency_injection import run_callback, run_coroutine_sync
-from falk.providers.static_files import add_static_dir_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.providers.callbacks import run_callback_provider
@@ -14,6 +13,11 @@ from falk.extra_template_context import get_url
 from falk.secrets import get_random_secret
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
+
+from falk.providers.static_files import (
+    add_static_dir_provider,
+    get_static_url_provider,
+)
 
 from falk.components import (
     InternalServerError,
@@ -166,6 +170,7 @@ def get_default_app():
             "set_response_json": set_response_json_provider,
             "run_callback": run_callback_provider,
             "get_url": get_url_provider,
+            "get_static_url": get_static_url_provider,
         },
     })
 
