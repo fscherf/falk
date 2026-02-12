@@ -74,8 +74,6 @@ export class WebsocketTransport {
 
       // send request
       const data = {
-        // TODO: `requestType` is obsolete because we use a header for this now
-        requestType: "falk/mutation",
         nodeId: args.nodeId,
         token: args.token,
         callbackName: args.callbackName,

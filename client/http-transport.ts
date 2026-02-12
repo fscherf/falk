@@ -17,8 +17,6 @@ export class HTTPTransport {
   }): Promise<any> => {
     return new Promise(async (resolve, reject) => {
       const data = {
-        // TODO: `requestType` is obsolete because we use a header for this now
-        requestType: "falk/mutation",
         nodeId: args.nodeId,
         token: args.token,
         callbackName: args.callbackName,
@@ -60,8 +58,6 @@ export class HTTPTransport {
 
       // data
       const data = {
-        // TODO: `requestType` is obsolete because we use a header for this now
-        requestType: "falk/mutation",
         nodeId: args.nodeId,
         token: args.token,
         callbackName: args.callbackName,
