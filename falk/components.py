@@ -45,9 +45,15 @@ def HTML5Base(props, template_context):
         <head>
           <meta charset="{{ props.get('charset', 'UTF-8') }}">
           <meta http-equiv="X-UA-Compatible" content="ie=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-          <meta
-            name="viewport" content="width=device-width, initial-scale=1.0">
+          {% if "theme_color" in props %}
+            <meta name="theme-color" content="{{ props.theme_color }}">
+          {% endif %}
+
+          {% if "favicon" in props %} 
+            <link rel="icon" href="{{ props.favicon }}">
+          {% endif %}
 
           <title>{{ props.get("title", "") }}</title>
           {{ falk_styles() }}
@@ -57,7 +63,7 @@ def HTML5Base(props, template_context):
           {{ falk_scripts() }}
         </body>
       </html>
-    """
+    """  # NOQA
 
 
 def ItWorks(HTML5Base=HTML5Base):
