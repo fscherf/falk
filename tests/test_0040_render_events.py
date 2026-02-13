@@ -17,6 +17,11 @@ def test_render_events(page, start_falk_app):
             f"#component-{index+1} button.render",
         )
 
+    def unmount(index):
+        page.click(
+            f"#component-{index+1} button.unmount",
+        )
+
     page.goto(url)
     page.wait_for_selector("h2:text('Render Events')")
 
@@ -25,30 +30,46 @@ def test_render_events(page, start_falk_app):
     assert_events(1, "initialRender,render")
     assert_events(2, "initialRender,render")
 
+    # render
     # click on "Render" of the first component
     render(0)
 
-    assert_events(0, "beforeRequest")
-    assert_events(0, "render")
-
+    assert_events(0, "initialRender,render,beforeRequest,response,render")
     assert_events(1, "initialRender,render")
     assert_events(2, "initialRender,render")
 
     # click on "Render" of the second component
     render(1)
 
-    assert_events(0, "render")
-
-    assert_events(1, "beforeRequest")
-    assert_events(1, "render")
-
+    assert_events(0, "initialRender,render,beforeRequest,response,render")
+    assert_events(1, "initialRender,render,beforeRequest,response,render")
     assert_events(2, "initialRender,render")
 
     # click on "Render" of the third component
     render(2)
 
-    assert_events(0, "render")
-    assert_events(1, "render")
+    assert_events(0, "initialRender,render,beforeRequest,response,render")
+    assert_events(1, "initialRender,render,beforeRequest,response,render")
+    assert_events(2, "initialRender,render,beforeRequest,response,render")
 
-    assert_events(2, "beforeRequest")
-    assert_events(2, "render")
+    # unmount
+    # click on "Unmount" of the first component
+    unmount(0)
+
+    assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render")  # NOQA
+
+    # click on "Unmount" of the second component
+    unmount(1)
+
+    assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render,unmount")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render,initialRender,render")  # NOQA
+
+    # click on "Unmount" of the third component
+    unmount(2)
+
+    assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render,unmount")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render,initialRender,render,unmount")  # NOQA

@@ -171,11 +171,19 @@ class Falk {
           return false;
         }
 
+        // rendering flags
+        if (nodeShouldBeSkipped(node)) {
+          return false;
+        }
+
         // components
-        // remove tokens from `falk.tokens` recursively
         this.iterNodes(
           "[data-falk-id]",
           (_node) => {
+            // run beforeunmount hook
+            this.dispatchEvent("beforeunmount", _node);
+
+            // remove token from `falk.tokens`
             const nodeId = _node.getAttribute("data-falk-id");
 
             if (nodeId) {
@@ -184,11 +192,6 @@ class Falk {
           },
           node as HTMLElement,
         );
-
-        // rendering flags
-        if (nodeShouldBeSkipped(node)) {
-          return false;
-        }
 
         return true;
       },
@@ -339,6 +342,9 @@ class Falk {
               eventData: eventData,
             });
           }
+
+          // run response hook
+          this.dispatchEvent("response", node);
 
           // parse response HTML
           const domParser = new DOMParser();
