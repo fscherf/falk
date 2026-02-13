@@ -202,3 +202,50 @@ def test_html5_base_component(page, start_falk_app):
     page.wait_for_selector("script[data-falk-id=test-script]", state="hidden")
 
     assert page.title() == "Test Title"
+
+
+@pytest.mark.only_browser("chromium")
+def test_component_event_checks(page, start_falk_app):
+    """
+    This test tests the component event checks by defining a component that
+    defines a `oninitialrender` event handler on non-root node.
+
+    The test is successful if the component raises a `InvalidComponentError`
+    when we try to render it.
+    """
+
+    from falk.components import HTML5Base
+
+    def TestComponent():
+        return """
+            <div>
+                <div oninitialrender="alert('this should not work');"></div>
+            </div>
+        """
+
+    def View(
+            HTML5Base=HTML5Base,
+            TestComponent=TestComponent,
+    ):
+
+        return """
+            <HTML5Base>
+                <TestComponent />
+            </HTML5Base>
+        """
+
+    def configure_app(add_route, mutable_settings):
+        mutable_settings["debug"] = True
+
+        add_route(r"/", View)
+
+    _, base_url = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # run test
+    page.goto(base_url)
+    exception_text = page.inner_html(".falk-error pre")
+
+    assert "InvalidComponentError: " in exception_text
+    assert "oninitialrender can only be used on the root node" in exception_text  # NOQA

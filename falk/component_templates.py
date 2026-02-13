@@ -6,6 +6,7 @@ from falk.import_strings import get_import_string
 from falk.errors import (
     InvalidStyleBlockError,
     MultipleRootNodesError,
+    InvalidComponentError,
     MissingRootNodeError,
     UnbalancedTagsError,
     UnclosedTagsError,
@@ -18,6 +19,14 @@ SINGLE_TAGS = [
     "br",
     "hr",
     "input",
+]
+
+FALK_EVENTS = [
+    "oninitialrender",
+    "onrender",
+    "onbeforerequest",
+    "onresponse",
+    "onbeforeunmount",
 ]
 
 
@@ -166,6 +175,16 @@ class ComponentTemplateParser(HTMLParser):
 
         return is_root_node
 
+    def run_falk_event_checks(self, attribute_list):
+        # We assume that this function is only called if `is_root_node`
+        # is False.
+
+        for name, _ in attribute_list:
+            if name.lower() in FALK_EVENTS:
+                raise InvalidComponentError(
+                    f"{get_import_string(self._component)}: {name} can only be used on the root node",  # NOQA
+                )
+
     # HTMLParser hooks
     def handle_decl(self, declaration):
         self.write("<!", declaration, ">")
@@ -178,6 +197,9 @@ class ComponentTemplateParser(HTMLParser):
         tag_name = self.get_current_tag_name(
             normalized_tag_name=normalized_tag_name,
         )
+
+        if not is_root_node and not self.is_component(tag_name):
+            self.run_falk_event_checks(attribute_list)
 
         # style and script blocks
         if not self._stack:
@@ -267,6 +289,9 @@ class ComponentTemplateParser(HTMLParser):
         tag_name = self.get_current_tag_name(
             normalized_tag_name=normalized_tag_name,
         )
+
+        if not is_root_node and not self.is_component(tag_name):
+            self.run_falk_event_checks(attribute_list)
 
         # components
         if self.is_component(tag_name):

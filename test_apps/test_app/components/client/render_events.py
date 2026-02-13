@@ -1,5 +1,3 @@
-import time
-
 from test_app.components.base import Base
 
 
@@ -10,10 +8,6 @@ def RenderEventTestComponent(props, state, initial_render, template_context):
             "unmount_callback": props.get("unmount_callback", ""),
         })
 
-    template_context.update({
-        "slow_render": lambda: time.sleep(0.5),
-    })
-
     return """
         <span
           onbeforerequest="renderEventTestComponentOnBeforeRequest(event, this)"
@@ -22,7 +16,7 @@ def RenderEventTestComponent(props, state, initial_render, template_context):
           onrender="renderEventTestComponentOnRender(event, this)"
           onbeforeunmount="renderEventTestComponentOnBeforeUnmount(event, this)">
 
-            <button class="render" onclick="{{ callback(slow_render) }}">
+            <button class="render" onclick="{{ callback(render) }}">
                 Render
             </button>
 
@@ -170,7 +164,12 @@ def RenderEvents(
 
             <h2>Recursive unmount Events</h2>
             <div id="recursive-unmount-log" data-skip-rerender></div>
-            <button onclick="{{ callback(unmount, [3]) }}">Unmount</button>
+
+            <button
+              id="recursive-unmount"
+              onclick="{{ callback(unmount, [3]) }}">
+                Unmount
+            </button>
 
             {% if state.render_components[3] %}
                 <UnmountTestComponent id="unmount-test-component-1">
