@@ -7,7 +7,7 @@ def test_request_parsing(start_falk_app):
     def configure_app(add_route):
         add_route("/", Index)
 
-    mutable_app, base_url = start_falk_app(
+    mutable_app, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 

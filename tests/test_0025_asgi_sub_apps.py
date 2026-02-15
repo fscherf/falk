@@ -34,7 +34,7 @@ def test_request_attributes(start_falk_app):
         ]
     )
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=starlette_app,
     )
 
@@ -97,7 +97,7 @@ def test_urls(start_falk_app, page):
         ]
     )
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=starlette_app,
     )
 

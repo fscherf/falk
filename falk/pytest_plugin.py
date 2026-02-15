@@ -90,7 +90,7 @@ def start_falk_app():
 
             time.sleep(startup_retry_delay_in_s)
 
-        return mutable_app, base_url
+        return mutable_app, base_url, _stop_falk_app
 
     # run test
     yield _start_falk_app

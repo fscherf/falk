@@ -3,7 +3,7 @@ def test_run_callback_in_javascript(page, start_falk_app):
 
     from test_app.app import configure_app
 
-    _, base_url = start_falk_app(configure_app)
+    _, base_url, _ = start_falk_app(configure_app)
 
     url = base_url + "/client/run-callback-in-javascript/"
 

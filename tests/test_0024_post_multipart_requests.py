@@ -158,7 +158,7 @@ def test_post_multipart_requests(args, page, start_falk_app):
 
     from test_app.app import configure_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 

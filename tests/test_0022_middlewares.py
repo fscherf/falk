@@ -28,7 +28,7 @@ def test_middleware_headers(start_falk_app):
         add_post_component_middleware(post_component_middleware)
         add_route("/", Index)
 
-    mutable_app, base_url = start_falk_app(
+    mutable_app, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -80,7 +80,7 @@ def test_middleware_responses(start_falk_app):
         add_post_component_middleware(post_component_middleware)
         add_route("/<path:.*>", Index)
 
-    mutable_app, base_url = start_falk_app(
+    mutable_app, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 

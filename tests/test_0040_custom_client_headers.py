@@ -107,7 +107,7 @@ def test_custom_client_headers(start_falk_app, page):
             SetCustomHeaderOnClickView,
         )
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 

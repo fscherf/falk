@@ -50,7 +50,7 @@ def test_basic_component(page, start_falk_app):
     def configure_app(add_route):
         add_route(r"/", Index)
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -113,7 +113,7 @@ def test_prop_passing(page, start_falk_app):
     def configure_app(add_route):
         add_route(r"/", OuterComponent)
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -151,7 +151,7 @@ def test_dynamic_attribute_rendering(page, start_falk_app):
     def configure_app(add_route):
         add_route(r"/", Component)
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -189,7 +189,7 @@ def test_html5_base_component(page, start_falk_app):
     def configure_app(add_route):
         add_route(r"/", View)
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -239,7 +239,7 @@ def test_component_event_checks(page, start_falk_app):
 
         add_route(r"/", View)
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 

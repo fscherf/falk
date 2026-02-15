@@ -5,7 +5,7 @@ import pytest
 def test_forms(page, start_falk_app):
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 

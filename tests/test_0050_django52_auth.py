@@ -72,7 +72,7 @@ def test_login_url_redirects(page, start_falk_app):
 
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 
@@ -107,7 +107,7 @@ def test_require_login(page, start_falk_app):
 
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 
@@ -134,7 +134,7 @@ def test_require_staff(page, start_falk_app):
 
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 
@@ -161,7 +161,7 @@ def test_require_permissions(page, start_falk_app):
 
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 
@@ -244,7 +244,7 @@ def test_require_groups(page, start_falk_app):
 
     from django52_test_app.app import asgi_app
 
-    _, base_url = start_falk_app(
+    _, base_url, _ = start_falk_app(
         asgi_app=asgi_app,
     )
 

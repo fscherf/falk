@@ -22,7 +22,7 @@ def test_responses(start_falk_app):
     def configure_app(add_route):
         add_route("/", Index)
 
-    mutable_app, base_url = start_falk_app(
+    mutable_app, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
@@ -57,7 +57,7 @@ def test_error_responses(start_falk_app):
         add_route("/not-found-error", NotFoundErrorComponent)
         add_route("/internal-server-error", InternalServerErrorComponent)
 
-    mutable_app, base_url = start_falk_app(
+    mutable_app, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
