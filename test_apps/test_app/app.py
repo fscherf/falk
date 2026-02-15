@@ -13,6 +13,7 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
     from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
     from test_app.components.rendering.flags import RenderingFlags
+    from test_app.components.client.timeouts import Timeouts
     from test_app.components.events.render import Render
     from test_app.components.events.change import Change
     from test_app.components.events.submit import Submit
@@ -121,6 +122,8 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
         RunCallbackInPython,
         name="client__run_callback_in_python",
     )
+
+    add_route(r"/client/timeouts(/)", Timeouts, name="client__timeouts")
 
     # routes: index
     add_route(r"/", Index, name="index")

@@ -8,7 +8,11 @@ class Falk {
   public websocketTransport: WebsocketTransport;
   public tokens: Object;
 
+  private requestId: number;
+
   public init = async () => {
+    this.requestId = 1;
+
     // setup transports
     this.httpTransport = new HTTPTransport();
     this.websocketTransport = new WebsocketTransport();
@@ -38,6 +42,14 @@ class Falk {
   };
 
   // helper
+  private getRequestId = () => {
+    const requestId: number = this.requestId;
+
+    this.requestId += 1;
+
+    return requestId;
+  };
+
   public parseDelay = (delay: string | number) => {
     if (typeof delay === "number") {
       return delay * 1000;
@@ -86,15 +98,25 @@ class Falk {
     }
   };
 
-  public dispatchEvent = (shortName: string, element: Element) => {
+  public dispatchEvent = (
+    shortName: string,
+    element: Element,
+    extraDetail?: Object,
+  ) => {
     const attributeName: string = `on${shortName}`;
     const eventName: string = `falk:${shortName}`;
     const attribute = element.getAttribute(attributeName);
     const fn: Function = new Function("event", attribute);
+    const nodeId: string = element.getAttribute("data-falk-id");
 
     const event = new CustomEvent(eventName, {
       bubbles: true,
       cancelable: true,
+      detail: {
+        nodeId: nodeId,
+        rootNode: element,
+        ...extraDetail,
+      },
     });
 
     // inline event handler
@@ -290,6 +312,7 @@ class Falk {
 
     // iter nodes
     for (const node of nodes) {
+      const requestId = this.getRequestId();
       const eventData = dumpEvent(options.event);
       const nodeId = node.getAttribute("data-falk-id");
       const token = this.tokens[nodeId];
@@ -306,7 +329,9 @@ class Falk {
       setTimeout(
         async () => {
           // run beforerequest hook
-          this.dispatchEvent("beforerequest", node);
+          this.dispatchEvent("beforerequest", node, {
+            requestId: requestId,
+          });
 
           // send mutation request
           let responseData;
@@ -344,7 +369,9 @@ class Falk {
           }
 
           // run response hook
-          this.dispatchEvent("response", node);
+          this.dispatchEvent("response", node, {
+            requestId: requestId,
+          });
 
           // parse response HTML
           const domParser = new DOMParser();
