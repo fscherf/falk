@@ -36,7 +36,7 @@ export class WebsocketTransport {
     return new Promise((resolve) => {
       try {
         this.websocket = new WebSocket(
-          `${window.location.protocol}:/${window.location.host}${window.location.pathname}`,
+          `${window.location.protocol}//${window.location.host}${window.location.pathname}`,
         );
       } catch {
         resolve(false);
