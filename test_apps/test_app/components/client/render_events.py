@@ -104,6 +104,68 @@ def UnmountTestComponent():
     """
 
 
+def ReplaceTestComponent1():
+    return """
+        <div
+          oninitialrender="replaceTestComponent1InitialRender(event)"
+          onbeforeunmount="replaceTestComponent1Unmount(event)">
+
+            <h3>Component 1</h3>
+            <button
+              id="replace-with-component-2"
+              onclick="{{ props.onclick }}">
+
+                Replace with Component 2
+            </button>
+        </div>
+
+        <script>
+            function replaceTestComponent1InitialRender(event) {
+                const log = document.querySelector("pre#replace-log");
+
+                log.innerHTML += "component 1: initialRender\\n";
+            }
+
+            function replaceTestComponent1Unmount(event) {
+                const log = document.querySelector("pre#replace-log");
+
+                log.innerHTML += "component 1: unmount\\n";
+            }
+        </script>
+    """  # NOQA
+
+
+def ReplaceTestComponent2():
+    return """
+        <div
+          oninitialrender="replaceTestComponent2InitialRender(event)"
+          onbeforeunmount="replaceTestComponent2Unmount(event)">
+
+            <h3>Component 2</h3>
+            <button
+              id="replace-with-component-1"
+              onclick="{{ props.onclick }}">
+
+                Replace with Component 1
+            </button>
+        </div>
+
+        <script>
+            function replaceTestComponent2InitialRender(event) {
+                const log = document.querySelector("pre#replace-log");
+
+                log.innerHTML += "component 2: initialRender\\n";
+            }
+
+            function replaceTestComponent2Unmount(event) {
+                const log = document.querySelector("pre#replace-log");
+
+                log.innerHTML += "component 2: unmount\\n";
+            }
+        </script>
+    """  # NOQA
+
+
 def RenderEvents(
         initial_render,
         state,
@@ -111,18 +173,25 @@ def RenderEvents(
         Base=Base,
         UnmountTestComponent=UnmountTestComponent,
         RenderEventTestComponent=RenderEventTestComponent,
+        ReplaceTestComponent1=ReplaceTestComponent1,
+        ReplaceTestComponent2=ReplaceTestComponent2,
 ):
 
     if initial_render:
         state.update({
-            "render_components": [True, True, True, True]
+            "render_components": [True, True, True, True],
+            "show": 1,
         })
 
     def unmount(args):
         state["render_components"][args[0]] = False
 
+    def replace(args):
+        state["show"] = args[0]
+
     template_context.update({
         "unmount": unmount,
+        "replace": replace,
     })
 
     return """
@@ -179,5 +248,14 @@ def RenderEvents(
                     </UnmountTestComponent>
                 </UnmountTestComponent>
             {% endif %}
+
+            <h2>Replace Components</h2>
+            <pre id="replace-log" data-skip-rerendering></pre>
+
+            {% if state.show == 1 %}
+                <ReplaceTestComponent1 onclick="{{ callback(replace, [2]) }}" />
+            {% elif state.show == 2 %}
+                <ReplaceTestComponent2 onclick="{{ callback(replace, [1]) }}" />
+            {% endif %}
         </Base>
-    """
+    """  # NOQA

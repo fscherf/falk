@@ -57,22 +57,22 @@ def test_render_events(page, start_falk_app):
     unmount(0)
 
     assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
-    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render")  # NOQA
-    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render")  # NOQA
 
     # click on "Unmount" of the second component
     unmount(1)
 
     assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
-    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render,unmount")  # NOQA
-    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render,initialRender,render")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render,unmount")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render,unmount,initialRender,render")  # NOQA
 
     # click on "Unmount" of the third component
     unmount(2)
 
     assert_events(0, "initialRender,render,beforeRequest,response,render,unmount")  # NOQA
-    assert_events(1, "initialRender,render,beforeRequest,response,render,initialRender,render,unmount")  # NOQA
-    assert_events(2, "initialRender,render,beforeRequest,response,render,initialRender,render,initialRender,render,unmount")  # NOQA
+    assert_events(1, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render,unmount")  # NOQA
+    assert_events(2, "initialRender,render,beforeRequest,response,render,unmount,initialRender,render,unmount,initialRender,render,unmount")  # NOQA
 
 
 def test_recursive_umount_events(page, start_falk_app):
@@ -100,3 +100,34 @@ def test_recursive_umount_events(page, start_falk_app):
 
     # all components should unmount recursively, inside-out
     assert_events("unmount-test-component-3,unmount-test-component-2,unmount-test-component-1")  # NOQA
+
+
+def test_component_replacing(page, start_falk_app):
+    from playwright.sync_api import expect
+
+    from test_app.app import configure_app
+
+    _, base_url, _ = start_falk_app(configure_app)
+
+    url = base_url + "/client/render-events/"
+
+    page.goto(url)
+    page.wait_for_selector("h2:text('Render Events')")
+
+    def assert_events(event_string):
+        locator = page.locator("#replace-log")
+
+        expect(locator).to_have_text(event_string)
+
+    # initially, component 1 should be rendered
+    assert_events("component 1: initialRender\n")
+
+    # replace with component 2
+    page.click("#replace-with-component-2")
+    page.wait_for_selector("h3:text('Component 2')")
+    assert_events("component 1: initialRender\ncomponent 1: unmount\ncomponent 2: initialRender\n")  # NOQA
+
+    # replace with component 1
+    page.click("#replace-with-component-1")
+    page.wait_for_selector("h3:text('Component 1')")
+    assert_events("component 1: initialRender\ncomponent 1: unmount\ncomponent 2: initialRender\ncomponent 2: unmount\ncomponent 1: initialRender\n")  # NOQA

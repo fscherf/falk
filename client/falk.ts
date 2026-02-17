@@ -162,8 +162,36 @@ class Falk {
     };
 
     return morphdom(node, newNode, {
-      onBeforeNodeAdded: (node) => {
+      getNodeKey: (node: HTMLElement) => {
+        // use `data-falk-id` as node key
+        //
+        // When a view decides to unmount a component and render another
+        // component with a similar markup in its place, morphdom can decide
+        // to update the first component until its markup matches the
+        // second component.
+        // This is pretty efficient but without morphdom properly discarding
+        // the components `onbeforeunmount` hooks don't work.
+
+        // ignore non-element nodes
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return false;
+        }
+
         // ignore styles and scripts
+        if (["SCRIPT", "LINK", "STYLE"].includes(node.tagName)) {
+          return false;
+        }
+
+        // use `data-falk-id` as node key
+        if (node.hasAttribute("data-falk-id")) {
+          return node.getAttribute("data-falk-id");
+        }
+
+        // fall back to `node.id`
+        return node.id;
+      },
+
+      onBeforeNodeAdded: (node) => {
         if (node.nodeType !== Node.ELEMENT_NODE) {
           return node;
         }
