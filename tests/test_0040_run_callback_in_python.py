@@ -27,14 +27,14 @@ def test_run_callback_in_python(page, start_falk_app):
     page.wait_for_selector("h2:text('run_callback in Python')")
 
     # initial render
-    assert_counter_values([0, 1, 2, 3, 4])
+    assert_counter_values([1, 2, 3, 4, 5])
 
     # increment the first counter
     # all counter counters should increment
     increment(0)
-    assert_counter_values([1, 2, 3, 4, 5])
+    assert_counter_values([2, 3, 4, 5, 6])
 
     # decrement the third counter
     # all counter counters should increment
     decrement(2)
-    assert_counter_values([0, 1, 2, 3, 4])
+    assert_counter_values([1, 2, 3, 4, 5])

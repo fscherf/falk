@@ -7,6 +7,7 @@ class Falk {
   public httpTransport: HTTPTransport;
   public websocketTransport: WebsocketTransport;
   public tokens: Object;
+  public initialCallbacks: Array<any>;
 
   private requestId: number;
 
@@ -30,6 +31,9 @@ class Falk {
       this.dispatchRenderEvents(htmlElement, {
         initial: true,
       });
+
+      // run initial callbacks
+      this.runCallbacks(this.initialCallbacks);
     };
 
     if (document.readyState === "complete") {
@@ -538,19 +542,24 @@ class Falk {
           this.dispatchRenderEvents(node);
 
           // run callbacks
-          for (const callback of responseData.callbacks) {
-            this.runCallback({
-              selector: callback[0],
-              callbackName: callback[1],
-              callbackArgs: callback[2],
-            });
-          }
+          this.runCallbacks(responseData.callbacks);
         },
         this.parseDelay(options.delay || 0),
       );
     }
   };
 
+  private runCallbacks = (callbacks: Array<any>) => {
+    for (const callback of callbacks) {
+      this.runCallback({
+        selector: callback[0],
+        callbackName: callback[1],
+        callbackArgs: callback[2],
+      });
+    }
+  };
+
+  // events
   public filterEvents = (selector: string, callback: (event) => any) => {
     return (event) => {
       if (!event.target.matches(selector)) {

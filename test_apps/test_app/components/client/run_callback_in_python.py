@@ -9,7 +9,7 @@ def Counter(props, state, template_context, initial_render, run_callback):
             "count": props.get("initial_value", 0),
         })
 
-        run_callback(".counter", "update", ["inc", 1])
+        run_callback(".counter", "update", "inc", 1)
 
     def update(args, event):
         operation, value = args
