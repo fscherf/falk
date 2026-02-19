@@ -559,7 +559,6 @@ class Falk {
     }
   };
 
-  // events
   public filterEvents = (selector: string, callback: (event) => any) => {
     return (event) => {
       if (!event.target.matches(selector)) {
