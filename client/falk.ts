@@ -555,6 +555,7 @@ class Falk {
         selector: callback[0],
         callbackName: callback[1],
         callbackArgs: callback[2],
+        delay: callback[3],
       });
     }
   };
