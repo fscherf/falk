@@ -9,7 +9,7 @@ def Counter(props, state, template_context, initial_render, run_callback):
             "count": props.get("initial_value", 0),
         })
 
-        run_callback(".counter", "update", "inc", 1)
+        run_callback(".counter", "update", ["inc", 1])
 
     def update(args, event):
         operation, value = args
@@ -24,10 +24,7 @@ def Counter(props, state, template_context, initial_render, run_callback):
         state["count"] = state["initial_value"]
 
     def _run_callback(args):
-        selector, callback_name = args[0:2]
-        _args = args[2:]
-
-        run_callback(selector, callback_name, *_args)
+        run_callback(*args)
 
     template_context.update({
         "update": update,
@@ -37,9 +34,9 @@ def Counter(props, state, template_context, initial_render, run_callback):
 
     return """
         <div id="{{ state.id }}" class="counter">
-            <button class="decrement" onclick="{{ callback(_run_callback, ['.counter', 'update', 'dec', 1]) }}">-</button>
+            <button class="decrement" onclick="{{ callback(_run_callback, ['.counter', 'update', ['dec', 1]]) }}">-</button>
             <span class="state">{{ state.count }}</span>
-            <button class="increment" onclick="{{ callback(_run_callback, ['.counter', 'update', 'inc', 1]) }}">+</button>
+            <button class="increment" onclick="{{ callback(_run_callback, ['.counter', 'update', ['inc', 1]]) }}">+</button>
             <button class="reset" onclick="{{ callback(_run_callback, ['.counter', 'reset']) }}">Reset</button>
         </div>
     """
