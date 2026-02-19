@@ -22,6 +22,7 @@ SCRIPTS_TEMPLATE_STRING = """
 
 {% if not request.is_mutation_request %}
     <script data-falk-id="falk/init">
+        falk.settings = JSON.parse('{{ settings_string }}');
         falk.tokens = JSON.parse(`{{ token_string }}`);
         falk.initialCallbacks = JSON.parse(`{{ callback_string }}`);
 
@@ -182,12 +183,17 @@ def render_scripts(app, request, parts):
 
     # token_string
     # If the request is a mutation request, we don't need to serialize the
-    # tokens and initial callbacks because we send them as part of the JSON
-    # body anyway.
+    # settings, tokens, initial callbacks because we send them as part of the
+    # JSON body anyway.
+    settings_string = ""
     token_string = ""
     callback_string = ""
 
     if not request["is_mutation_request"]:
+        settings_string = json.dumps({
+            "websockets": app["settings"]["websockets"],
+        })
+
         token_string = json.dumps(parts["tokens"])
         callback_string = json.dumps(parts["callbacks"])
 
@@ -207,6 +213,7 @@ def render_scripts(app, request, parts):
         "request": request,
         "scripts": parts["scripts"],
         "client_url": client_url,
+        "settings_string": settings_string,
         "token_string": token_string,
         "callback_string": callback_string,
     })

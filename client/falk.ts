@@ -6,6 +6,8 @@ import morphdom from "morphdom";
 class Falk {
   public httpTransport: HTTPTransport;
   public websocketTransport: WebsocketTransport;
+
+  public settings: Object;
   public tokens: Object;
   public initialCallbacks: Array<any>;
 
@@ -25,7 +27,9 @@ class Falk {
       this.dispatchEvent("beforeinit", htmlElement);
 
       // try to connect websocket
-      await this.websocketTransport.init();
+      if (this.settings["websockets"]) {
+        await this.websocketTransport.init();
+      }
 
       // dispatch initialRender events
       this.dispatchRenderEvents(htmlElement, {
@@ -380,7 +384,10 @@ class Falk {
               });
 
             // websocket
-          } else if (this.websocketTransport.available) {
+          } else if (
+            this.settings["websockets"] &&
+            this.websocketTransport.available
+          ) {
             responseData = await this.websocketTransport.sendMutationRequest({
               nodeId: nodeId,
               token: token,
