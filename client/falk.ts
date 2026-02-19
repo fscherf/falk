@@ -299,6 +299,9 @@ class Falk {
     stopEvent?: boolean;
     delay?: string | number;
   }) => {
+    // TODO: add test that checks whether the awaiting actually works
+
+    const callbacksDone = new Array();
     let nodes: Array<HTMLElement>;
 
     // parse options string
@@ -350,20 +353,34 @@ class Falk {
         options.event.preventDefault();
       }
 
-      setTimeout(
-        async () => {
-          // run beforerequest hook
-          this.dispatchEvent("beforerequest", node, {
-            requestId: requestId,
-          });
+      const promise = new Promise((resolve) => {
+        setTimeout(
+          async () => {
+            // run beforerequest hook
+            this.dispatchEvent("beforerequest", node, {
+              requestId: requestId,
+            });
 
-          // send mutation request
-          let responseData;
+            // send mutation request
+            let responseData;
 
-          // HTTP multipart POST (file uploads)
-          if (eventData.files.length > 0) {
-            responseData =
-              await this.httpTransport.sendMultipartMutationRequest({
+            // HTTP multipart POST (file uploads)
+            if (eventData.files.length > 0) {
+              responseData =
+                await this.httpTransport.sendMultipartMutationRequest({
+                  nodeId: nodeId,
+                  token: token,
+                  callbackName: callbackName,
+                  callbackArgs: callbackArgs,
+                  eventData: eventData,
+                });
+
+              // websocket
+            } else if (
+              this.settings["websockets"] &&
+              this.websocketTransport.available
+            ) {
+              responseData = await this.websocketTransport.sendMutationRequest({
                 nodeId: nodeId,
                 token: token,
                 callbackName: callbackName,
@@ -371,177 +388,173 @@ class Falk {
                 eventData: eventData,
               });
 
-            // websocket
-          } else if (
-            this.settings["websockets"] &&
-            this.websocketTransport.available
-          ) {
-            responseData = await this.websocketTransport.sendMutationRequest({
-              nodeId: nodeId,
-              token: token,
-              callbackName: callbackName,
-              callbackArgs: callbackArgs,
-              eventData: eventData,
-            });
-
-            // HTTP POST
-          } else {
-            responseData = await this.httpTransport.sendMutationRequest({
-              nodeId: nodeId,
-              token: token,
-              callbackName: callbackName,
-              callbackArgs: callbackArgs,
-              eventData: eventData,
-            });
-          }
-
-          // run response hook
-          this.dispatchEvent("response", node, {
-            requestId: requestId,
-          });
-
-          // parse response HTML
-          const domParser = new DOMParser();
-
-          const newDocument = domParser.parseFromString(
-            responseData.body as string,
-            "text/html",
-          );
-
-          // load linked styles
-          const linkNodes = newDocument.head.querySelectorAll(
-            "link[rel=stylesheet]",
-          );
-
-          linkNodes.forEach((node) => {
-            // check if style is already loaded
-            let selector: string;
-            const styleHref: string = node.getAttribute("href");
-
-            if (styleHref) {
-              selector = `link[href="${styleHref}"]`;
+              // HTTP POST
             } else {
-              const styleId: string = node.getAttribute("data-falk-id");
-
-              selector = `link[data-falk-id="${styleId}"]`;
-            }
-
-            if (document.querySelector(selector)) {
-              return;
-            }
-
-            // load style
-            document.head.appendChild(node);
-          });
-
-          // load styles
-          const styleNodes = newDocument.head.querySelectorAll("style");
-
-          styleNodes.forEach((node) => {
-            // check if style is already loaded
-            const styleId: string = node.getAttribute("data-falk-id");
-            const selector = `style[data-falk-id="${styleId}"]`;
-
-            if (document.querySelector(selector)) {
-              return;
-            }
-
-            // load style
-            document.head.appendChild(node);
-          });
-
-          // load scripts
-          const scriptNodes = newDocument.body.querySelectorAll("script");
-          const promises = new Array();
-
-          scriptNodes.forEach((node) => {
-            // check if script is already loaded
-            let selector: string;
-            const scriptSrc: string = node.getAttribute("src");
-
-            if (scriptSrc) {
-              selector = `script[src="${scriptSrc}"]`;
-            } else {
-              const scriptId: string = node.getAttribute("data-falk-id");
-
-              selector = `script[data-falk-id="${scriptId}"]`;
-            }
-
-            if (document.querySelector(selector)) {
-              return;
-            }
-
-            // load script
-            // We need to create a new node so our original document will run it.
-            const newNode = document.createElement("script");
-
-            for (const attribute of node.attributes) {
-              newNode.setAttribute(attribute.name, attribute.value);
-            }
-
-            if (!node.src) {
-              newNode.textContent = node.textContent;
-            } else {
-              const promise = new Promise((resolve) => {
-                newNode.addEventListener("load", () => {
-                  resolve(null);
-                });
+              responseData = await this.httpTransport.sendMutationRequest({
+                nodeId: nodeId,
+                token: token,
+                callbackName: callbackName,
+                callbackArgs: callbackArgs,
+                eventData: eventData,
               });
-
-              promises.push(promise);
             }
 
-            document.body.appendChild(newNode);
-          });
+            // run response hook
+            this.dispatchEvent("response", node, {
+              requestId: requestId,
+            });
 
-          await Promise.all(promises);
+            // parse response HTML
+            const domParser = new DOMParser();
 
-          // render HTML
-          // patch entire document
-          if (node.tagName == "HTML") {
-            // patch the attributes of the HTML node
-            // (node id, token, event handlers, ...)
-            this.patchNodeAttributes(node, newDocument.children[0]);
-
-            // patch title
-            document.title = newDocument.title;
-
-            // patch body
-            this.patchNode(
-              document.body,
-              newDocument.body,
-              eventType,
-              responseData.flags,
+            const newDocument = domParser.parseFromString(
+              responseData.body as string,
+              "text/html",
             );
 
-            // patch only one node in the body
-          } else {
-            this.patchNode(
-              node,
-              newDocument.body.firstChild,
-              eventType,
-              responseData.flags,
+            // load linked styles
+            const linkNodes = newDocument.head.querySelectorAll(
+              "link[rel=stylesheet]",
             );
-          }
 
-          // update tokens
-          // NOTE: this needs to happen after we patched the DOM because
-          // morphdom removes all tokens for us that are not needed anymore,
-          // and before we run the hooks because the hooks need the tokens to
-          // be updated.
-          for (const [key, value] of Object.entries(responseData.tokens)) {
-            this.tokens[key] = value;
-          }
+            linkNodes.forEach((node) => {
+              // check if style is already loaded
+              let selector: string;
+              const styleHref: string = node.getAttribute("href");
 
-          // run hooks
-          this.dispatchRenderEvents(node);
+              if (styleHref) {
+                selector = `link[href="${styleHref}"]`;
+              } else {
+                const styleId: string = node.getAttribute("data-falk-id");
 
-          // run callbacks
-          this.runCallbacks(responseData.callbacks);
-        },
-        parseTimedelta(options.delay || 0),
-      );
+                selector = `link[data-falk-id="${styleId}"]`;
+              }
+
+              if (document.querySelector(selector)) {
+                return;
+              }
+
+              // load style
+              document.head.appendChild(node);
+            });
+
+            // load styles
+            const styleNodes = newDocument.head.querySelectorAll("style");
+
+            styleNodes.forEach((node) => {
+              // check if style is already loaded
+              const styleId: string = node.getAttribute("data-falk-id");
+              const selector = `style[data-falk-id="${styleId}"]`;
+
+              if (document.querySelector(selector)) {
+                return;
+              }
+
+              // load style
+              document.head.appendChild(node);
+            });
+
+            // load scripts
+            const scriptNodes = newDocument.body.querySelectorAll("script");
+            const scriptsLoaded = new Array();
+
+            scriptNodes.forEach((node) => {
+              // check if script is already loaded
+              let selector: string;
+              const scriptSrc: string = node.getAttribute("src");
+
+              if (scriptSrc) {
+                selector = `script[src="${scriptSrc}"]`;
+              } else {
+                const scriptId: string = node.getAttribute("data-falk-id");
+
+                selector = `script[data-falk-id="${scriptId}"]`;
+              }
+
+              if (document.querySelector(selector)) {
+                return;
+              }
+
+              // load script
+              // We need to create a new node so our original document will run it.
+              const newNode = document.createElement("script");
+
+              for (const attribute of node.attributes) {
+                newNode.setAttribute(attribute.name, attribute.value);
+              }
+
+              if (!node.src) {
+                newNode.textContent = node.textContent;
+              } else {
+                const promise = new Promise((resolve) => {
+                  newNode.addEventListener("load", () => {
+                    resolve(null);
+                  });
+                });
+
+                scriptsLoaded.push(promise);
+              }
+
+              document.body.appendChild(newNode);
+            });
+
+            await Promise.all(scriptsLoaded);
+
+            // render HTML
+            // patch entire document
+            if (node.tagName == "HTML") {
+              // patch the attributes of the HTML node
+              // (node id, token, event handlers, ...)
+              this.patchNodeAttributes(node, newDocument.children[0]);
+
+              // patch title
+              document.title = newDocument.title;
+
+              // patch body
+              this.patchNode(
+                document.body,
+                newDocument.body,
+                eventType,
+                responseData.flags,
+              );
+
+              // patch only one node in the body
+            } else {
+              this.patchNode(
+                node,
+                newDocument.body.firstChild,
+                eventType,
+                responseData.flags,
+              );
+            }
+
+            // update tokens
+            // NOTE: this needs to happen after we patched the DOM because
+            // morphdom removes all tokens for us that are not needed anymore,
+            // and before we run the hooks because the hooks need the tokens to
+            // be updated.
+            for (const [key, value] of Object.entries(responseData.tokens)) {
+              this.tokens[key] = value;
+            }
+
+            // run hooks
+            this.dispatchRenderEvents(node);
+
+            // run callbacks
+            this.runCallbacks(responseData.callbacks);
+
+            // end callback
+            resolve(null);
+          },
+          parseTimedelta(options.delay || 0),
+        );
+      });
+
+      callbacksDone.push(promise);
     }
+
+    // wait for all callbacks to be done
+    return Promise.all(callbacksDone);
   };
 
   private runCallbacks = (callbacks: Array<any>) => {
