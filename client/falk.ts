@@ -1,4 +1,5 @@
 import { WebsocketTransport } from "./websocket-transport";
+import { parseTimedelta, iterNodes } from "./utils";
 import { HTTPTransport } from "./http-transport";
 import { dumpEvent } from "./events";
 import morphdom from "morphdom";
@@ -58,54 +59,7 @@ class Falk {
     return requestId;
   };
 
-  public parseDelay = (delay: string | number) => {
-    if (typeof delay === "number") {
-      return delay * 1000;
-    }
-
-    delay = delay as string;
-
-    const match = /^(\d+(?:\.\d+)?)(ms|s|m|h)?$/.exec(delay.trim());
-
-    if (!match) {
-      throw new Error("Invalid time format: " + delay);
-    }
-
-    const value = parseFloat(match[1]);
-    const unit = match[2] || "s";
-
-    if (unit === "ms") {
-      return value;
-    } else if (unit === "s") {
-      return value * 1000;
-    } else if (unit === "m") {
-      return value * 60 * 1000;
-    } else if (unit === "h") {
-      return value * 60 * 60 * 1000;
-    } else {
-      throw new Error("Unknown unit: " + unit);
-    }
-  };
-
   // events
-  public iterNodes = (
-    selector: string,
-    callback: (node: Element) => any,
-    rootNode: Element = document.body,
-  ) => {
-    if (rootNode.nodeType !== Node.ELEMENT_NODE) {
-      return;
-    }
-
-    Array.from(rootNode.children).forEach((child) => {
-      this.iterNodes(selector, callback, child);
-    });
-
-    if (rootNode.matches(selector)) {
-      callback(rootNode);
-    }
-  };
-
   public dispatchEvent = (
     shortName: string,
     element: Element,
@@ -142,7 +96,7 @@ class Falk {
     rootNode: Element = document.body,
     options: { initial: boolean } = { initial: false },
   ) => {
-    this.iterNodes(
+    iterNodes(
       "[data-falk-id]",
       (node) => {
         if (options.initial || node != rootNode) {
@@ -155,8 +109,42 @@ class Falk {
     );
   };
 
+  public filterEvents = (selector: string, callback: (event) => any) => {
+    return (event) => {
+      if (!event.target.matches(selector)) {
+        return;
+      }
+
+      return callback(event);
+    };
+  };
+
+  private on = (...args) => {
+    const eventShortName: string = args[0];
+    const eventName: string = `falk:${eventShortName}`;
+    let selector: string;
+    let callback: (event) => any;
+
+    // falk.on("render", event => { console.log(event));
+    if (args.length == 2) {
+      callback = args[1];
+
+      document.addEventListener(eventName, callback);
+
+      // falk.on("render", ".component#1", event => { console.log(event));
+    } else if (args.length == 3) {
+      selector = args[1];
+      callback = args[2];
+
+      document.addEventListener(
+        eventName,
+        this.filterEvents(selector, callback),
+      );
+    }
+  };
+
   // node patching
-  public patchNode = (node, newNode, eventType, flags) => {
+  private patchNode = (node, newNode, eventType, flags) => {
     const nodeShouldBeSkipped = (node) => {
       if (flags.forceRendering) {
         return false;
@@ -235,7 +223,7 @@ class Falk {
         }
 
         // components
-        this.iterNodes(
+        iterNodes(
           "[data-falk-id]",
           (_node) => {
             // run beforeunmount hook
@@ -290,7 +278,7 @@ class Falk {
     });
   };
 
-  public patchNodeAttributes = (node, newNode) => {
+  private patchNodeAttributes = (node, newNode) => {
     return morphdom(node, newNode, {
       onBeforeElChildrenUpdated: (fromEl, toEl) => {
         // ignore all children
@@ -551,7 +539,7 @@ class Falk {
           // run callbacks
           this.runCallbacks(responseData.callbacks);
         },
-        this.parseDelay(options.delay || 0),
+        parseTimedelta(options.delay || 0),
       );
     }
   };
@@ -564,40 +552,6 @@ class Falk {
         callbackArgs: callback[2],
         delay: callback[3],
       });
-    }
-  };
-
-  public filterEvents = (selector: string, callback: (event) => any) => {
-    return (event) => {
-      if (!event.target.matches(selector)) {
-        return;
-      }
-
-      return callback(event);
-    };
-  };
-
-  private on = (...args) => {
-    const eventShortName: string = args[0];
-    const eventName: string = `falk:${eventShortName}`;
-    let selector: string;
-    let callback: (event) => any;
-
-    // falk.on("render", ".component#1", event => { console.log(event));
-    if (args.length == 2) {
-      callback = args[1];
-
-      document.addEventListener(eventName, callback);
-
-      // falk.on("render", event => { console.log(event));
-    } else if (args.length == 3) {
-      selector = args[1];
-      callback = args[2];
-
-      document.addEventListener(
-        eventName,
-        this.filterEvents(selector, callback),
-      );
     }
   };
 }
