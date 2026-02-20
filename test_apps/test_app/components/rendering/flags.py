@@ -125,4 +125,14 @@ def RenderingFlags(
                 </Container>
             </Container>
         </Base>
+
+        <script>
+            falk.on("initialrender", event => {
+                console.log("initialrender", event.detail.rootNode, event);
+            });
+
+            falk.on("render", event => {
+                console.log("render", event.detail.rootNode, event);
+            });
+        </script>
     """

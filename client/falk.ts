@@ -93,12 +93,41 @@ class Falk {
   };
 
   public dispatchRenderEvents = (
-    rootNode: Element = document.body,
+    rootNode: HTMLElement = document.body,
     options: { initial: boolean } = { initial: false },
   ) => {
+    const nodeShouldBeSkipped = (rootNode: HTMLElement, node: HTMLElement) => {
+      let _node: HTMLElement = node;
+
+      while (_node && _node != rootNode) {
+        // local rendering flag
+        if (_node.hasAttribute("data-skip-rerendering")) {
+          return true;
+        }
+
+        _node = _node.parentElement;
+      }
+
+      return false;
+    };
+
     iterNodes(
       "[data-falk-id]",
-      (node) => {
+      (node: HTMLElement) => {
+        // skip styles and scripts
+        if (["SCRIPT", "LINK", "STYLE"].includes(node.tagName)) {
+          return true;
+        }
+
+        // If we are not in the global init, we need to skip components that
+        // are inside elements with the `data-skip-rerendering` because we
+        // know that we left the out while rerendering.
+        if (!options.initial) {
+          if (nodeShouldBeSkipped(rootNode, node)) {
+            return;
+          }
+        }
+
         if (options.initial || node != rootNode) {
           this.dispatchEvent("initialrender", node);
         }
@@ -404,128 +433,136 @@ class Falk {
               requestId: requestId,
             });
 
+            // rendering
+            const render: boolean =
+              !responseData.flags.skipRendering ||
+              responseData.flags.forceRendering;
+
             // parse response HTML
-            const domParser = new DOMParser();
+            if (render) {
+              const domParser = new DOMParser();
 
-            const newDocument = domParser.parseFromString(
-              responseData.body as string,
-              "text/html",
-            );
+              const newDocument = domParser.parseFromString(
+                responseData.body as string,
+                "text/html",
+              );
 
-            // load linked styles
-            const linkNodes = newDocument.head.querySelectorAll(
-              "link[rel=stylesheet]",
-            );
+              // load linked styles
+              const linkNodes = newDocument.head.querySelectorAll(
+                "link[rel=stylesheet]",
+              );
 
-            linkNodes.forEach((node) => {
-              // check if style is already loaded
-              let selector: string;
-              const styleHref: string = node.getAttribute("href");
+              linkNodes.forEach((node) => {
+                // check if style is already loaded
+                let selector: string;
+                const styleHref: string = node.getAttribute("href");
 
-              if (styleHref) {
-                selector = `link[href="${styleHref}"]`;
-              } else {
+                if (styleHref) {
+                  selector = `link[href="${styleHref}"]`;
+                } else {
+                  const styleId: string = node.getAttribute("data-falk-id");
+
+                  selector = `link[data-falk-id="${styleId}"]`;
+                }
+
+                if (document.querySelector(selector)) {
+                  return;
+                }
+
+                // load style
+                document.head.appendChild(node);
+              });
+
+              // load styles
+              const styleNodes = newDocument.head.querySelectorAll("style");
+
+              styleNodes.forEach((node) => {
+                // check if style is already loaded
                 const styleId: string = node.getAttribute("data-falk-id");
+                const selector = `style[data-falk-id="${styleId}"]`;
 
-                selector = `link[data-falk-id="${styleId}"]`;
-              }
+                if (document.querySelector(selector)) {
+                  return;
+                }
 
-              if (document.querySelector(selector)) {
-                return;
-              }
+                // load style
+                document.head.appendChild(node);
+              });
 
-              // load style
-              document.head.appendChild(node);
-            });
+              // load scripts
+              const scriptNodes = newDocument.body.querySelectorAll("script");
+              const scriptsLoaded = new Array();
 
-            // load styles
-            const styleNodes = newDocument.head.querySelectorAll("style");
+              scriptNodes.forEach((node) => {
+                // check if script is already loaded
+                let selector: string;
+                const scriptSrc: string = node.getAttribute("src");
 
-            styleNodes.forEach((node) => {
-              // check if style is already loaded
-              const styleId: string = node.getAttribute("data-falk-id");
-              const selector = `style[data-falk-id="${styleId}"]`;
+                if (scriptSrc) {
+                  selector = `script[src="${scriptSrc}"]`;
+                } else {
+                  const scriptId: string = node.getAttribute("data-falk-id");
 
-              if (document.querySelector(selector)) {
-                return;
-              }
+                  selector = `script[data-falk-id="${scriptId}"]`;
+                }
 
-              // load style
-              document.head.appendChild(node);
-            });
+                if (document.querySelector(selector)) {
+                  return;
+                }
 
-            // load scripts
-            const scriptNodes = newDocument.body.querySelectorAll("script");
-            const scriptsLoaded = new Array();
+                // load script
+                // We need to create a new node so our original document will
+                // run it.
+                const newNode = document.createElement("script");
 
-            scriptNodes.forEach((node) => {
-              // check if script is already loaded
-              let selector: string;
-              const scriptSrc: string = node.getAttribute("src");
+                for (const attribute of node.attributes) {
+                  newNode.setAttribute(attribute.name, attribute.value);
+                }
 
-              if (scriptSrc) {
-                selector = `script[src="${scriptSrc}"]`;
-              } else {
-                const scriptId: string = node.getAttribute("data-falk-id");
-
-                selector = `script[data-falk-id="${scriptId}"]`;
-              }
-
-              if (document.querySelector(selector)) {
-                return;
-              }
-
-              // load script
-              // We need to create a new node so our original document will run it.
-              const newNode = document.createElement("script");
-
-              for (const attribute of node.attributes) {
-                newNode.setAttribute(attribute.name, attribute.value);
-              }
-
-              if (!node.src) {
-                newNode.textContent = node.textContent;
-              } else {
-                const promise = new Promise((resolve) => {
-                  newNode.addEventListener("load", () => {
-                    resolve(null);
+                if (!node.src) {
+                  newNode.textContent = node.textContent;
+                } else {
+                  const promise = new Promise((resolve) => {
+                    newNode.addEventListener("load", () => {
+                      resolve(null);
+                    });
                   });
-                });
 
-                scriptsLoaded.push(promise);
+                  scriptsLoaded.push(promise);
+                }
+
+                document.body.appendChild(newNode);
+              });
+
+              await Promise.all(scriptsLoaded);
+
+              // render HTML
+              // patch entire document
+              if (node.tagName == "HTML") {
+                // patch the attributes of the HTML node
+                // (node id, token, event handlers, ...)
+                this.patchNodeAttributes(node, newDocument.children[0]);
+
+                // patch title
+                document.title = newDocument.title;
+
+                // patch body
+                this.patchNode(
+                  document.body,
+                  newDocument.body,
+                  eventType,
+                  responseData.flags,
+                );
+
+                // patch only one node in the body
+              } else {
+                this.patchNode(
+                  node,
+                  newDocument.body.firstChild,
+                  eventType,
+                  responseData.flags,
+                );
               }
-
-              document.body.appendChild(newNode);
-            });
-
-            await Promise.all(scriptsLoaded);
-
-            // render HTML
-            // patch entire document
-            if (node.tagName == "HTML") {
-              // patch the attributes of the HTML node
-              // (node id, token, event handlers, ...)
-              this.patchNodeAttributes(node, newDocument.children[0]);
-
-              // patch title
-              document.title = newDocument.title;
-
-              // patch body
-              this.patchNode(
-                document.body,
-                newDocument.body,
-                eventType,
-                responseData.flags,
-              );
-
-              // patch only one node in the body
-            } else {
-              this.patchNode(
-                node,
-                newDocument.body.firstChild,
-                eventType,
-                responseData.flags,
-              );
             }
 
             // update tokens
@@ -538,7 +575,9 @@ class Falk {
             }
 
             // run hooks
-            this.dispatchRenderEvents(node);
+            if (render) {
+              this.dispatchRenderEvents(node);
+            }
 
             // run callbacks
             this.runCallbacks(responseData.callbacks);
