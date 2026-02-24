@@ -9,7 +9,7 @@ def Counter(props, state, template_context, initial_render, run_callback):
             "count": props.get("initial_value", 0),
         })
 
-        run_callback(".counter", "update", ["inc", 1])
+        run_callback("update", ["inc", 1], ".counter")
 
     def update(args, event):
         operation, value = args
@@ -34,12 +34,12 @@ def Counter(props, state, template_context, initial_render, run_callback):
 
     return """
         <div id="{{ state.id }}" class="counter">
-            <button class="decrement" onclick="{{ callback(_run_callback, ['.counter', 'update', ['dec', 1]]) }}">-</button>
+            <button class="decrement" onclick="{{ callback(_run_callback, ['update', ['dec', 1], '.counter']) }}">-</button>
             <span class="state">{{ state.count }}</span>
-            <button class="increment" onclick="{{ callback(_run_callback, ['.counter', 'update', ['inc', 1]]) }}">+</button>
-            <button class="reset" onclick="{{ callback(_run_callback, ['.counter', 'reset']) }}">Reset</button>
+            <button class="increment" onclick="{{ callback(_run_callback, ['update', ['inc', 1], '.counter']) }}">+</button>
+            <button class="reset" onclick="{{ callback(_run_callback, ['reset', [], '.counter']) }}">Reset</button>
         </div>
-    """
+    """  # NOQA
 
 
 def RunCallbackInPython(

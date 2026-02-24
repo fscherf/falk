@@ -1,7 +1,13 @@
 def run_callback_provider(template_context, node_id):
     # TODO: add test for delays
 
-    def run_callback(selector, callback_name, callback_args=None, delay=0):
+    def run_callback(
+            callback_name,
+            callback_args=None,
+            selector="self",
+            delay=0,
+    ):
+
         if selector == "self":
             selector = f"[data-falk-id={node_id}]"
 
