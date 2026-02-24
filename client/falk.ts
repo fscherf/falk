@@ -321,7 +321,6 @@ class Falk {
     optionsString?: string;
     event?: Event;
     node?: HTMLElement;
-    nodeId?: string;
     selector?: string;
     callbackName?: string;
     callbackArgs?: any;
@@ -352,16 +351,6 @@ class Falk {
     // find nodes
     if (options.node) {
       nodes = [options.node];
-    } else if (options.nodeId) {
-      const node: HTMLElement = document.querySelector(
-        `[data-falk-id=${options.nodeId}]`,
-      );
-
-      if (!node) {
-        throw `no node with id ${options.nodeId}`;
-      }
-
-      nodes = [node];
     } else if (options.selector) {
       nodes = Array.from(document.querySelectorAll(options.selector));
     }

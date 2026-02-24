@@ -89,34 +89,75 @@ def _callback(
         template_context,
         callback_or_callback_name,
         callback_args=None,
+        selector="self",
         stop_event=True,
         delay=None,
 ):
 
-    callback_name = ""
+    # TODO: add tests for selector option
 
-    if not template_context["_parts"]["flags"]["state"]:
-        caller_import_string = get_import_string(template_context["caller"])
-
-        raise InvalidComponentError(
-            f"{caller_import_string}: callbacks can not be used if component state is disabled",  # NOQA
+    def _raise_invalid_component_error(message):
+        caller_import_string = get_import_string(
+            template_context["caller"],
         )
 
-    if isinstance(callback_or_callback_name, str):
-        callback_name = callback_or_callback_name
+        raise InvalidComponentError(
+            f"{caller_import_string}: {message}",
+        )
 
-    elif callable(callback_or_callback_name):
+    # find callback
+    callback_name = ""
+
+    if callable(callback_or_callback_name):
+        if selector != "self":
+            _raise_invalid_component_error(
+                "callback needs to be a string if selector is set",
+            )
+
         for key, value in template_context.items():
             if value is callback_or_callback_name:
                 callback_name = key
 
                 break
 
-    # provoke a KeyError if the callback does not exist
-    template_context[callback_name]
+    elif not isinstance(callback_or_callback_name, str):
+        _raise_invalid_component_error(
+            "callback needs to be a either a callable or a string",
+        )
 
+    else:
+        callback_name = callback_or_callback_name
+
+    # callback_args
+    if callback_args and not isinstance(callback_args, (dict, list)):
+        _raise_invalid_component_error(
+            "'callback_args' needs to be either dict or list",
+        )
+
+    # If the selector is not "self", we can't check whether a callback name is
+    # valid nor the selected component is stateful.
+    if selector == "self":
+
+        # check if callback exist
+        if callback_name not in template_context:
+            _raise_invalid_component_error(
+                f"unknown callback '{callback_name}'",
+            )
+
+        # check if component is stateful
+        if not template_context["_parts"]["flags"]["state"]:
+            _raise_invalid_component_error(
+                "callbacks can not be used if component state is disabled",
+            )
+
+    # generate selector
+    if selector == "self":
+        node_id = template_context["node_id"]
+        selector = f"[data-falk-id={node_id}]"
+
+    # generate options string
     options = {
-        "nodeId": template_context["node_id"],
+        "selector": selector,
         "callbackName": callback_name,
         "callbackArgs": callback_args,
         "stopEvent": stop_event,
@@ -125,7 +166,7 @@ def _callback(
 
     options_string = quote(json.dumps(options))
 
-    return f"falk.runCallback({{event: event, optionsString: '{options_string}'}});"
+    return f"falk.runCallback({{event: event, optionsString: '{options_string}'}});"  # NOQA
 
 
 @pass_context
