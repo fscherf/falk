@@ -1,21 +1,3 @@
-export function iterNodes(
-  selector: string,
-  callback: (node: Element) => any,
-  rootNode: Element = document.body,
-) {
-  if (rootNode.nodeType !== Node.ELEMENT_NODE) {
-    return;
-  }
-
-  Array.from(rootNode.children).forEach((child) => {
-    iterNodes(selector, callback, child);
-  });
-
-  if (rootNode.matches(selector)) {
-    callback(rootNode);
-  }
-}
-
 export function parseTimedelta(timedelta: string | number) {
   if (typeof timedelta === "number") {
     return timedelta * 1000;
