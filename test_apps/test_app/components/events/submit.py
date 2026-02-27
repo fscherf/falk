@@ -19,7 +19,7 @@ def Submit(template_context, Base=Base):
             <h2>Submit Events</h2>
 
             <h3>Form</h3>
-            <form onsubmit="{{ callback(format_event_data) }}">
+            <form onsubmit="{{ falk.run_callback(format_event_data) }}">
                 <div>
                     <label for="text-input-1">Text Input 1:</label>
                     <input name="text-input-1" type="text">

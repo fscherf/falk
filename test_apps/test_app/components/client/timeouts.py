@@ -29,7 +29,7 @@ def TimeoutComponent(template_context, state, props, initial_render):
 
             <span>{{ state.id }}:</span>
             <span class="message">{{ message }}</span>
-            <button onclick="{{ callback(slow_callback) }}">Rerender</button>
+            <button onclick="{{ falk.run_callback(slow_callback) }}">Rerender</button>
         </div>
 
         <script>

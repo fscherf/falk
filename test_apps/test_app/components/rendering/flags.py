@@ -55,19 +55,19 @@ def Wrapper(
 
             <button
               class="render"
-              onclick="{{ callback(render) }}">
+              onclick="{{ falk.run_callback(render) }}">
                 Render
             </button>
 
             <button
               class="skip-rendering"
-              onclick="{{ callback(skip_rendering) }}">
+              onclick="{{ falk.run_callback(skip_rendering) }}">
                 Skip Rendering
             </button>
 
             <button
               class="force-rendering"
-              onclick="{{ callback(force_rendering) }}">
+              onclick="{{ falk.run_callback(force_rendering) }}">
                 Force Rendering
             </button>
         </div>

@@ -16,7 +16,7 @@ def RenderEventTestComponent(props, state, initial_render, template_context):
           onrender="renderEventTestComponentOnRender(event, this)"
           onbeforeunmount="renderEventTestComponentOnBeforeUnmount(event, this)">
 
-            <button class="render" onclick="{{ callback(render) }}">
+            <button class="render" onclick="{{ falk.run_callback(render) }}">
                 Render
             </button>
 
@@ -205,7 +205,7 @@ def RenderEvents(
                 {% if state.render_components[0] %}
                     <RenderEventTestComponent
                       id="component-1"
-                      unmount_callback="{{ callback(unmount, [0]) }}" />
+                      unmount_callback="{{ falk.run_callback(unmount, [0]) }}" />
                 {% endif %}
             </div>
 
@@ -216,7 +216,7 @@ def RenderEvents(
                 {% if state.render_components[1] %}
                     <RenderEventTestComponent
                       id="component-2"
-                      unmount_callback="{{ callback(unmount, [1]) }}" />
+                      unmount_callback="{{ falk.run_callback(unmount, [1]) }}" />
                 {% endif %}
             </div>
 
@@ -227,7 +227,7 @@ def RenderEvents(
                 {% if state.render_components[2] %}
                     <RenderEventTestComponent
                       id="component-3"
-                      unmount_callback="{{ callback(unmount, [2]) }}" />
+                      unmount_callback="{{ falk.run_callback(unmount, [2]) }}" />
                 {% endif %}
             </div>
 
@@ -236,7 +236,7 @@ def RenderEvents(
 
             <button
               id="recursive-unmount"
-              onclick="{{ callback(unmount, [3]) }}">
+              onclick="{{ falk.run_callback(unmount, [3]) }}">
                 Unmount
             </button>
 
@@ -253,9 +253,9 @@ def RenderEvents(
             <pre id="replace-log" data-skip-rerendering></pre>
 
             {% if state.show == 1 %}
-                <ReplaceTestComponent1 onclick="{{ callback(replace, [2]) }}" />
+                <ReplaceTestComponent1 onclick="{{ falk.run_callback(replace, [2]) }}" />
             {% elif state.show == 2 %}
-                <ReplaceTestComponent2 onclick="{{ callback(replace, [1]) }}" />
+                <ReplaceTestComponent2 onclick="{{ falk.run_callback(replace, [1]) }}" />
             {% endif %}
         </Base>
     """  # NOQA

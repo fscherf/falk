@@ -43,7 +43,7 @@ def Iframes(template_context, state, initial_render, Base=Base):
                 {% for i in range(4) %}
                     <span
                       class="tab{% if i == state.active_index %} active{% endif %}"
-                      onClick="{{ callback(set_active_index, [i]) }}">
+                      onClick="{{ falk.run_callback(set_active_index, [i]) }}">
                         iFrame #{{ i }}
                     </span>
                 {% endfor %}

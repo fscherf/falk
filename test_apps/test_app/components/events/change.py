@@ -22,24 +22,24 @@ def Change(template_context, Base=Base):
             <form>
                 <div>
                     <label for="text-input-1">Text Input 1:</label>
-                    <input name="text-input-1" type="text" onchange="{{ callback(format_event_data) }}">
+                    <input name="text-input-1" type="text" onchange="{{ falk.run_callback(format_event_data) }}">
                 </div>
                 <div>
                     <label for="text-input-2">Text Input 2:</label>
-                    <input name="text-input-2" type="text" onchange="{{ callback(format_event_data) }}">
+                    <input name="text-input-2" type="text" onchange="{{ falk.run_callback(format_event_data) }}">
                 </div>
                 <div>
                     <label for="number-input">Number Input:</label>
-                    <input name="number-input" type="number" onchange="{{ callback(format_event_data) }}">
+                    <input name="number-input" type="number" onchange="{{ falk.run_callback(format_event_data) }}">
                 </div>
                 <div>
                     <label for="range">Range Input:</label>
-                    <input name="range" type="range" onchange="{{ callback(format_event_data) }}">
+                    <input name="range" type="range" onchange="{{ falk.run_callback(format_event_data) }}">
                 </div>
             </form>
 
             <h3>Form</h3>
-            <form onchange="{{ callback(format_event_data) }}">
+            <form onchange="{{ falk.run_callback(format_event_data) }}">
                 <div>
                     <label for="text-input-1">Text Input 1:</label>
                     <input name="text-input-1" type="text">

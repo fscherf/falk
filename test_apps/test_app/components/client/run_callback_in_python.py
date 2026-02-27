@@ -34,10 +34,10 @@ def Counter(props, state, template_context, initial_render, run_callback):
 
     return """
         <div id="{{ state.id }}" class="counter">
-            <button class="decrement" onclick="{{ callback(_run_callback, ['update', ['dec', 1], '.counter']) }}">-</button>
+            <button class="decrement" onclick="{{ falk.run_callback(_run_callback, ['update', ['dec', 1], '.counter']) }}">-</button>
             <span class="state">{{ state.count }}</span>
-            <button class="increment" onclick="{{ callback(_run_callback, ['update', ['inc', 1], '.counter']) }}">+</button>
-            <button class="reset" onclick="{{ callback(_run_callback, ['reset', [], '.counter']) }}">Reset</button>
+            <button class="increment" onclick="{{ falk.run_callback(_run_callback, ['update', ['inc', 1], '.counter']) }}">+</button>
+            <button class="reset" onclick="{{ falk.run_callback(_run_callback, ['reset', [], '.counter']) }}">Reset</button>
         </div>
     """  # NOQA
 

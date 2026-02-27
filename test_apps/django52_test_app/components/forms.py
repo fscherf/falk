@@ -47,7 +47,7 @@ def DjangoFormComponent(request, template_context, HTML5Base=HTML5Base):
             <h1>Django Form</h1>
             <p id="message">{{ message }}</p>
 
-            <form onsubmit="{{ callback(handle_submit) }}">
+            <form onsubmit="{{ falk.run_callback(handle_submit) }}">
                 {{ form }}
                 <br/>
                 <input type="submit" value="Submit">

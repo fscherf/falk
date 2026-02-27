@@ -20,7 +20,7 @@ def InnerComponent():
 
             <button
               id="render-inner-component"
-              onclick="{{ callback(render) }}">
+              onclick="{{ falk.run_callback(render) }}">
                 Render Inner Component
             </button>
 
@@ -51,7 +51,7 @@ def OuterComponent(
             <InnerComponent>
                 <button
                   id="render-outer-component"
-                  onclick="{{ callback(render) }}">
+                  onclick="{{ falk.run_callback(render) }}">
                     Render Outer Component
                 </button>
             </InnerComponent>

@@ -93,7 +93,7 @@ def CodeSplitting(
                 <Component />
             {% else %}
                 <button
-                  onclick="{{ callback(load_component) }}"
+                  onclick="{{ falk.run_callback(load_component) }}"
                   id="load-component">
                     Load Component
                 </button>

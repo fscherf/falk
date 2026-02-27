@@ -43,14 +43,14 @@ def _render_component(
 ):
 
     # find component in template_context
-    if _component_name not in template_context["_components"]:
+    if _component_name not in template_context["falk"]["_components"]:
         caller_import_string = get_import_string(template_context["caller"])
 
         raise UnknownComponentError(
             f'{caller_import_string}: component "{_component_name}" was not found in the dependencies',  # NOQA
         )
 
-    component = template_context["_components"][_component_name]
+    component = template_context["falk"]["_components"][_component_name]
 
     # prepare props
     if "props" in props:
@@ -78,14 +78,14 @@ def _render_component(
         node_id=_node_id,
         token=_token,
         is_root=False,
-        parts=template_context["_parts"],
+        parts=template_context["falk"]["_parts"],
     )
 
     return parts["html"]
 
 
 @pass_context
-def _callback(
+def _run_callback(
         template_context,
         callback_or_callback_name,
         callback_args=None,
@@ -145,7 +145,7 @@ def _callback(
             )
 
         # check if component is stateful
-        if not template_context["_parts"]["flags"]["state"]:
+        if not template_context["falk"]["_parts"]["flags"]["state"]:
             _raise_invalid_component_error(
                 "callbacks can not be used if component state is disabled",
             )
@@ -185,7 +185,7 @@ def _get_static_url(
 
 
 @pass_context
-def _upload_token(template_context, plain=False):
+def _get_upload_token(template_context, plain=False):
     mutable_app = template_context["mutable_app"]
 
     component_id = mutable_app["settings"]["get_component_id"](
@@ -200,27 +200,27 @@ def _upload_token(template_context, plain=False):
 
 
 @pass_context
-def _falk_styles(template_context):
-    return render_styles(
+def _get_styles(template_context):
+    return _render_styles(
         app=template_context["app"],
-        styles=template_context["_parts"]["styles"],
+        styles=template_context["falk"]["_parts"]["styles"],
     )
 
 
 @pass_context
-def _falk_scripts(template_context):
-    return render_scripts(
+def _get_scripts(template_context):
+    return _render_scripts(
         app=template_context["app"],
         request=template_context["request"],
-        parts=template_context["_parts"],
+        parts=template_context["falk"]["_parts"],
     )
 
 
-def render_styles(app, styles):
+def _render_styles(app, styles):
     return "\n".join(styles)
 
 
-def render_scripts(app, request, parts):
+def _render_scripts(app, request, parts):
 
     # token_string
     # If the request is a mutation request, we don't need to serialize the
@@ -262,12 +262,12 @@ def render_scripts(app, request, parts):
 
 def render_body(app, request, parts):
     return (
-        render_styles(
+        _render_styles(
             app=app,
             styles=parts["styles"],
         ) +
         parts["html"] +
-        render_scripts(
+        _render_scripts(
             app=app,
             request=request,
             parts=parts,
@@ -384,23 +384,29 @@ def render_component(
         **builtins.__dict__,
         **data,
 
-        # TODO: we inspect the component at least twice here. Explicitly using
-        # `get_dependencies()` and inexplicitly using `run_callback()`.
-        "_components": get_dependencies(component)[1],
-
-        "_render_component": _render_component,
-        "_parts": parts,
-        "get_static_url": _get_static_url,
-        "callback": _callback,
-        "upload_token": _upload_token,
-        "falk_styles": _falk_styles,
-        "falk_scripts": _falk_scripts,
-
         # This is a simple NOP to make calls like
         # `{{ callback(render) }}` for simply re rendering work.
         "render": lambda: None,
 
         **mutable_app["settings"]["extra_template_context"],
+
+        "falk": {
+            # TODO: we inspect the component at least twice here.
+            # Explicitly using `get_dependencies()` and inexplicitly
+            # using `run_callback()`.
+            "_components": get_dependencies(component)[1],
+
+            # internal
+            "_render_component": _render_component,
+            "_parts": parts,
+
+            # public
+            "get_static_url": _get_static_url,
+            "run_callback": _run_callback,
+            "get_upload_token": _get_upload_token,
+            "get_styles": _get_styles,
+            "get_scripts": _get_scripts,
+        },
     }
 
     dependencies = {

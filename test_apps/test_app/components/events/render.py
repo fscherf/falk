@@ -12,7 +12,7 @@ def Clock(template_context, props, initial_render, state):
     })
 
     return """
-        <div onrender="{{ callback(render, delay=state['refresh_rate']) }}">
+        <div onrender="{{ falk.run_callback(render, delay=state['refresh_rate']) }}">
             {{ datetime.datetime.now() }} (refresh rate: {{ state.refresh_rate }})
         </div>
     """

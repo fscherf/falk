@@ -33,7 +33,7 @@ def test_basic_component(page, start_falk_app):
         return """
             <button
               id="button-{{ state.counter }}"
-              onclick="{{ callback(increment) }}">
+              onclick="{{ falk.run_callback(increment) }}">
 
                 {{ state.counter }}
             </button>

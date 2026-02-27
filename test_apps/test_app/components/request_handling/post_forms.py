@@ -32,7 +32,7 @@ def PostForms(template_context, Base=Base):
         <Base title="POST Forms">
             <h2>POST Forms</h2>
 
-            <form onsubmit="{{ callback(handle_submit) }}" method="post">
+            <form onsubmit="{{ falk.run_callback(handle_submit) }}" method="post">
                 <label for="text_field" >Text Field:</label>
                 <input type="text" name="text_field" value="{{ form_data.text_field }}">
                 <br/>

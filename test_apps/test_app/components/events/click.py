@@ -30,19 +30,19 @@ def Counter(template_context, state, initial_render, props):
         <div class="counter" id="{{ state.id }}">
             <button
               class="decrement"
-              onclick="{{ callback(update, ['dec', 1]) }}"
+              onclick="{{ falk.run_callback(update, ['dec', 1]) }}"
               >-</button>
 
             <span class="state">{{ state.count }}</span>
 
             <button
               class="increment"
-              onclick="{{ callback(update, ['inc', 1]) }}"
+              onclick="{{ falk.run_callback(update, ['inc', 1]) }}"
               >+</button>
 
             <button
               class="reset"
-              onclick="{{ callback(reset) }}"
+              onclick="{{ falk.run_callback(reset) }}"
               >Reset</button>
 
               {{ props.children }}

@@ -63,7 +63,7 @@ def test_custom_client_headers(start_falk_app, page):
         return """
             <div
                 id="show-custom-header"
-                oninitialrender="{{ callback(render) }}">
+                oninitialrender="{{ falk.run_callback(render) }}">
 
                 <div id="custom-header">{{ custom_header }}</div>
             </div>

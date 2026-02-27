@@ -72,7 +72,7 @@ def get_component(
                 >{{ files_string }}</pre>
 
 
-                <form onsubmit="{{ callback(handle_submit) }}">
+                <form onsubmit="{{ falk.run_callback(handle_submit) }}">
                     <label for="field-1" >Field 1:</label>
                     <input type="text" name="field-1">
                     <br/>
@@ -90,7 +90,7 @@ def get_component(
                     <input type="submit" value="Submit">
 
                     {% if token %}
-                        {{ upload_token() }}
+                        {{ falk.get_upload_token() }}
                     {% endif %}
                 </form>
             </div>
@@ -132,7 +132,7 @@ def FileUploadForm4():
         <div id="form-4">
             <h3>No handler set</h3>
 
-            <form onsubmit="{{ callback(render) }}">
+            <form onsubmit="{{ falk.run_callback(render) }}">
                 <label for="field-1" >Field 1:</label>
                 <input type="text" name="field-1">
                 <br/>
@@ -149,7 +149,7 @@ def FileUploadForm4():
 
                 <input type="submit" value="Submit">
 
-                {{ upload_token() }}
+                {{ falk.get_upload_token() }}
             </form>
         </div>
     """

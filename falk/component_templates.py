@@ -256,7 +256,7 @@ class ComponentTemplateParser(HTMLParser):
                 })
 
             self.write(
-                "{% call _render_component(",
+                "{% call falk._render_component(",
                 self.render_function_args_string(
                     attribute_list=attribute_list,
                     overrides=overrides,
@@ -308,7 +308,7 @@ class ComponentTemplateParser(HTMLParser):
                 })
 
             self.write(
-                "{{ _render_component(",
+                "{{ falk._render_component(",
                 self.render_function_args_string(
                     attribute_list=attribute_list,
                     overrides=overrides,

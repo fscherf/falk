@@ -56,11 +56,11 @@ def HTML5Base(props, template_context):
           {% endif %}
 
           <title>{{ props.get("title", "") }}</title>
-          {{ falk_styles() }}
+          {{ falk.get_styles() }}
         </head>
         <body _="{{ body_attribute_string }}">
           {{ props.children }}
-          {{ falk_scripts() }}
+          {{ falk.get_scripts() }}
         </body>
       </html>
     """  # NOQA

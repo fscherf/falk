@@ -22,7 +22,7 @@ def EventDelegationTestComponent(
             <span>#{{ state.id }}:</span>
             <span class="events"></span>
 
-            <button class="render" onclick="{{ callback(slow_render) }}">
+            <button class="render" onclick="{{ falk.run_callback(slow_render) }}">
                 Render
             </button>
         </div>
