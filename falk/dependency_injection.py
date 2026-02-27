@@ -64,6 +64,8 @@ def run_callback(
     # With the current model, providers with dependencies like `caller`, which
     # need to be re evaluated on every call, not only per request, don't work
     # if dependency caching is enabled.
+    # The `providers` keyword is already removed from docs but that is a hack.
+    # We just feed `settings["dependencies"]` in as providers in rendering.
 
     dependencies = dependencies or {}
     providers = providers or {}

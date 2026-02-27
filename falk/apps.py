@@ -146,7 +146,7 @@ def get_default_app():
 
     # settings: dependencies
     mutable_app["settings"].update({
-        "providers": {
+        "dependencies": {
             "skip_rendering": skip_rendering_provider,
             "force_rendering": force_rendering_provider,
             "disable_state": disable_state_provider,

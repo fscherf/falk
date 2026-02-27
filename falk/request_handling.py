@@ -105,7 +105,7 @@ def run_middlewares(
         run_callback(
             callback=middleware,
             dependencies=dependencies,
-            providers=mutable_app["settings"]["providers"],
+            providers=mutable_app["settings"]["dependencies"],
             run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
         )
 

@@ -418,7 +418,7 @@ def render_component(
     component_template = run_callback(
         callback=component,
         dependencies=dependencies,
-        providers=mutable_app["settings"]["providers"],
+        providers=mutable_app["settings"]["dependencies"],
         run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
     )
 
@@ -445,7 +445,7 @@ def render_component(
         run_callback(
             callback=template_context[run_component_callback],
             dependencies=dependencies,
-            providers=mutable_app["settings"]["providers"],
+            providers=mutable_app["settings"]["dependencies"],
             run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
         )
 
