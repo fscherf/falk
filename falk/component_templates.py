@@ -99,12 +99,17 @@ class ComponentTemplateParser(HTMLParser):
             items = sorted(items, key=lambda item: item[0])
 
         for key, value in items:
+
+            # dynamic attribute strings:
+            # <div _='{% if True %}foo="bar"{% endif %}'></div>
             if key == "_":
                 attribute_string_parts.append(value)
 
+            # key only attributes: <div foo></div>
             elif value is None:
                 attribute_string_parts.append(key)
 
+            # simple attribute strings: <div foo="bar"></div>
             else:
                 attribute_string_parts.append(
                     f'{key}="{value}"',
@@ -129,7 +134,7 @@ class ComponentTemplateParser(HTMLParser):
 
         for key, value in attributes.items():
 
-            # key only attributes: <div foo></div>
+            # key only attributes: <Component foo></Component>
             if value is None:
                 function_args_parts.append(
                     f"{key}=None",
@@ -139,11 +144,11 @@ class ComponentTemplateParser(HTMLParser):
 
             value = value.strip()
 
-            # expressions: <div foo="{{ i }}"></div>
+            # expressions: <Component foo="{{ i }}"></Component>
             if value.startswith("{{") and value.endswith("}}"):
                 value = value[2:-2].strip()
 
-            # simple attribute strings: <div foo="bar"></div>
+            # simple attribute strings: <Component foo="bar"></Component>
             else:
                 value = f'"{value}"'
 
