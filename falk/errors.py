@@ -86,6 +86,14 @@ class InvalidStatusCodeError(ComponentError):
     pass
 
 
+class ComponentExecutionError(ComponentError):
+    pass
+
+
+class ComponentTemplatingError(ComponentError):
+    pass
+
+
 # HTTP
 class HTTPError(FalkError):
     STATUS = HTTPStatus.INTERNAL_SERVER_ERROR

@@ -249,3 +249,145 @@ def test_component_event_checks(page, start_falk_app):
 
     assert "InvalidComponentError: " in exception_text
     assert "oninitialrender can only be used on the root node" in exception_text  # NOQA
+
+
+@pytest.mark.only_browser("chromium")
+def test_component_execution_errors(page, start_falk_app):
+    """
+    This test tests ComponentExecutionErrors that get raised if a component
+    or a component callback raises an exception that is not a FalkError.
+
+    The test makes sure that crashing components and component callbacks
+    contain all information necessary for debugging (component name, component
+    module, original exception).
+    The error message should contain the falk error type, the component name
+    and its module and a repr of the originial error.
+    """
+
+    from falk.components import HTML5Base
+
+    def CrashingComponent(HTML5Base=HTML5Base):
+        1 / 0  # raises a ZeroDivisionError
+
+        return """
+            <HTML5Base>
+                <div>this should not be visible</div>
+            </HTML5Base>
+        """
+
+    def ComponentWithCrashingCallback(template_context, HTML5Base=HTML5Base):
+        def crashing_callback():
+            1 / 0  # raises a ZeroDivisionError
+
+        template_context.update({
+            "crashing_callback": crashing_callback,
+        })
+
+        return """
+            <HTML5Base>
+                <button
+                  id="crash"
+                  onclick="{{ falk.run_callback(crashing_callback) }}">
+                </button>
+            </HTML5Base>
+        """
+
+    def configure_app(add_route, mutable_settings):
+        mutable_settings["debug"] = True
+
+        add_route(r"/crashing-component(/)", CrashingComponent)
+        add_route(r"/crashing-callback(/)", ComponentWithCrashingCallback)
+
+    _, base_url, _ = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # test crashing component
+    page.goto(base_url + "/crashing-component")
+    exception_text = page.inner_html(".falk-error pre")
+
+    # The error message should contain the falk error type, the component name
+    # and its module and a repr of the originial error.
+    assert ".ComponentExecutionError:" in exception_text
+    assert ".test_component_execution_errors." in exception_text
+    assert ".CrashingComponent: " in exception_text
+    assert "ZeroDivisionError" in exception_text
+
+    # test crashing callback
+    page.goto(base_url + "/crashing-callback")
+    page.click("button#crash")
+    exception_text = page.inner_html(".falk-error")
+
+    # The error message should contain the falk error type, the component name
+    # and its module, the crashing callbacks name, and a repr of the
+    # originial error.
+    assert "Error 500:" in exception_text
+    assert ".ComponentExecutionError:" in exception_text
+    assert ".test_component_execution_errors." in exception_text
+
+    assert (
+        ".ComponentWithCrashingCallback::crashing_callback:" in exception_text
+    )
+
+    assert "ZeroDivisionError" in exception_text
+
+
+@pytest.mark.only_browser("chromium")
+def test_component_templating_errors(page, start_falk_app):
+    """
+    This test tests ComponentTemplatingErrors that get raised if a component
+    contains either a valid component template that contains invalid Jinja2
+    syntax, or if an exception gets raisde during Jinja2 rendering.
+
+    The test makes sure that crashing components and component callbacks
+    contain all information necessary for debugging (component name, component
+    module, original exception).
+    The error message should contain the falk error type, the component name
+    and its module and a repr of the originial error.
+    """
+
+    from falk.components import HTML5Base
+
+    def InvalidTemplateComponent(HTML5Base=HTML5Base):
+        return """
+            <HTML5Base>
+                <div>
+                    {%
+                </div>
+            </HTML5Base>
+        """
+
+    def CrashingTemplateComponent(HTML5Base=HTML5Base):
+        return """
+            <HTML5Base>
+                <div a="{{ 1 / 0 }}"></div>
+            </HTML5Base>
+        """
+
+    def configure_app(add_route, mutable_settings):
+        mutable_settings["debug"] = True
+
+        add_route(r"/invalid-template(/)", InvalidTemplateComponent)
+        add_route(r"/crashing-template(/)", CrashingTemplateComponent)
+
+    _, base_url, _ = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # invalid template component
+    page.goto(base_url + "/invalid-template")
+    exception_text = page.inner_html(".falk-error pre")
+
+    assert ".ComponentTemplatingError:" in exception_text
+    assert ".test_component_templating_errors." in exception_text
+    assert ".InvalidTemplateComponent: " in exception_text
+    assert "TemplateSyntaxError" in exception_text
+
+    # crashing template component
+    page.goto(base_url + "/crashing-template")
+    exception_text = page.inner_html(".falk-error pre")
+
+    assert ".ComponentTemplatingError:" in exception_text
+    assert ".test_component_templating_errors." in exception_text
+    assert ".CrashingTemplateComponent: " in exception_text
+    assert "ZeroDivisionError" in exception_text

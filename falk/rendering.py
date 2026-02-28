@@ -6,12 +6,19 @@ import os
 from jinja2 import Template, pass_context
 
 from falk.dependency_injection import run_callback, get_dependencies
-from falk.errors import InvalidComponentError, UnknownComponentError
 from falk.component_templates import parse_component_template
 from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
 from falk.import_strings import get_import_string
 from falk.static_files import get_static_url
+
+from falk.errors import (
+    ComponentExecutionError,
+    ComponentTemplatingError,
+    InvalidComponentError,
+    UnknownComponentError,
+    FalkError,
+)
 
 SCRIPTS_TEMPLATE_STRING = """
 <script src="{{ client_url }}"></script>
@@ -415,12 +422,23 @@ def render_component(
     }
 
     # run component
-    component_template = run_callback(
-        callback=component,
-        dependencies=dependencies,
-        providers=mutable_app["settings"]["dependencies"],
-        run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
-    )
+    try:
+        component_template = run_callback(
+            callback=component,
+            dependencies=dependencies,
+            providers=mutable_app["settings"]["dependencies"],
+            run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
+        )
+
+    except FalkError:
+        raise
+
+    except Exception as exception:
+        component_import_string = get_import_string(component)
+
+        raise ComponentExecutionError(
+            f"{component_import_string}: {repr(exception)}",
+        ) from exception
 
     if not component_template:
         component_template = ""
@@ -437,17 +455,30 @@ def render_component(
     # The callback needs to run before we render the jinja2 template because
     # it will most likely mutate the template context.
     if run_component_callback:
+        settings = mutable_app["settings"]
+
         dependencies.update({
             "args": request["json"].get("callbackArgs", []),
             "event": request["json"].get("event", {"form_data": {}}),
         })
 
-        run_callback(
-            callback=template_context[run_component_callback],
-            dependencies=dependencies,
-            providers=mutable_app["settings"]["dependencies"],
-            run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
-        )
+        try:
+            run_callback(
+                callback=template_context[run_component_callback],
+                dependencies=dependencies,
+                providers=settings["dependencies"],
+                run_coroutine_sync=settings["run_coroutine_sync"],
+            )
+
+        except FalkError:
+            raise
+
+        except Exception as exception:
+            component_import_string = get_import_string(component)
+
+            raise ComponentExecutionError(
+                f"{component_import_string}::{run_component_callback}: {repr(exception)}",  # NOQA
+            ) from exception
 
     # parse component template
     def _hash_string(string):
@@ -496,9 +527,19 @@ def render_component(
     template_context["_token"] = token
 
     # render jinja2 template
-    template = Template(component_blocks["jinja2_template"])
+    try:
+        template = Template(component_blocks["jinja2_template"])
+        parts["html"] = template.render(template_context)
 
-    parts["html"] = template.render(template_context)
+    except FalkError:
+        raise
+
+    except Exception as exception:
+        component_import_string = get_import_string(component)
+
+        raise ComponentTemplatingError(
+            f"{component_import_string}: {repr(exception)}",
+        ) from exception
 
     # finish
     return parts
