@@ -200,7 +200,7 @@ def RenderEvents(
 
             <div id="component-1">
                 <span>#component-1: </span>
-                <span class="events" data-skip-rerendering></span>
+                <span class="events" fx-preserve></span>
 
                 {% if state.render_components[0] %}
                     <RenderEventTestComponent
@@ -211,7 +211,7 @@ def RenderEvents(
 
             <div id="component-2">
                 <span>#component-2: </span>
-                <span class="events" data-skip-rerendering></span>
+                <span class="events" fx-preserve></span>
 
                 {% if state.render_components[1] %}
                     <RenderEventTestComponent
@@ -222,7 +222,7 @@ def RenderEvents(
 
             <div id="component-3">
                 <span>#component-3: </span>
-                <span class="events" data-skip-rerendering></span>
+                <span class="events" fx-preserve></span>
 
                 {% if state.render_components[2] %}
                     <RenderEventTestComponent
@@ -250,7 +250,7 @@ def RenderEvents(
             {% endif %}
 
             <h2>Replace Components</h2>
-            <pre id="replace-log" data-skip-rerendering></pre>
+            <pre id="replace-log" fx-preserve></pre>
 
             {% if state.show == 1 %}
                 <ReplaceTestComponent1 onclick="{{ falk.run_callback(replace, [2]) }}" />

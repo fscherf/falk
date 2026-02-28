@@ -42,7 +42,7 @@ class Falk {
       // dispatch initialRender events
       iterFalkComponents({
         rootNode: document.body,
-        skipNodes: false,
+        preserveNodes: false,
         callback: (node: HTMLElement) => {
           if (!nodeIsUiNode(node)) {
             return;
@@ -371,7 +371,7 @@ class Falk {
                 patchNode({
                   node: document.body,
                   newNode: newDocument.body,
-                  skipNodes: !responseData.flags.forceRendering,
+                  preserveNodes: !responseData.flags.forceRendering,
 
                   onInitialRender: (node: HTMLElement) => {
                     this.dispatchEvent("initialrender", node);
@@ -398,7 +398,7 @@ class Falk {
                 patchNode({
                   node: node,
                   newNode: newDocument.body.firstChild as HTMLElement,
-                  skipNodes: !responseData.flags.forceRendering,
+                  preserveNodes: !responseData.flags.forceRendering,
 
                   onInitialRender: (node: HTMLElement) => {
                     this.dispatchEvent("initialrender", node);

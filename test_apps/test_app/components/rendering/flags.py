@@ -49,7 +49,7 @@ def Wrapper(
 
             rendered at: <span class="timestamp">{{ timestamp }}</span>
 
-            <div class="wrapper-component-body" data-skip-rerendering>
+            <div class="wrapper-component-body" fx-preserve>
                 {{ props.children }}
             </div>
 

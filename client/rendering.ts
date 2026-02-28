@@ -12,8 +12,8 @@ export function nodeHasFalkNodeId(node: HTMLElement) {
   return node.hasAttribute("fx-id");
 }
 
-export function nodeShouldBeSkipped(node: HTMLElement) {
-  return node.hasAttribute("data-skip-rerendering");
+export function nodeShouldBePreserved(node: HTMLElement) {
+  return node.hasAttribute("fx-preserve");
 }
 
 export function getFalkNodeId(node: HTMLElement) {
@@ -23,12 +23,16 @@ export function getFalkNodeId(node: HTMLElement) {
 export function iterFalkComponents(options: {
   rootNode: HTMLElement;
   callback: (node: HTMLElement) => any;
-  skipNodes: boolean;
+  preserveNodes: boolean;
 }) {
-  let skipNode: boolean = false;
+  let preserveNode: boolean = false;
 
-  if (options.skipNodes && !skipNode && nodeShouldBeSkipped(options.rootNode)) {
-    skipNode = true;
+  if (
+    options.preserveNodes &&
+    !preserveNode &&
+    nodeShouldBePreserved(options.rootNode)
+  ) {
+    preserveNode = true;
   }
 
   Array.from(options.rootNode.children).forEach((child: HTMLElement) => {
@@ -39,11 +43,11 @@ export function iterFalkComponents(options: {
     iterFalkComponents({
       rootNode: child,
       callback: options.callback,
-      skipNodes: options.skipNodes,
+      preserveNodes: options.preserveNodes,
     });
   });
 
-  if (!skipNode && nodeHasFalkNodeId(options.rootNode)) {
+  if (!preserveNode && nodeHasFalkNodeId(options.rootNode)) {
     options.callback(options.rootNode);
   }
 }
@@ -54,7 +58,7 @@ export function patchNode(options: {
   onInitialRender: (node: HTMLElement) => any;
   onRender: (node: HTMLElement) => any;
   onBeforeUnmount: (node: HTMLElement) => any;
-  skipNodes: boolean;
+  preserveNodes: boolean;
 }) {
   // patch nodes
   morphdom(options.node, options.newNode, {
@@ -63,7 +67,7 @@ export function patchNode(options: {
         return;
       }
 
-      if (options.skipNodes && nodeShouldBeSkipped(node)) {
+      if (options.preserveNodes && nodeShouldBePreserved(node)) {
         return node.id;
       }
 
@@ -83,7 +87,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.skipNodes && nodeShouldBeSkipped(fromEl)) {
+      if (options.preserveNodes && nodeShouldBePreserved(fromEl)) {
         return false;
       }
 
@@ -99,7 +103,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.skipNodes && nodeShouldBeSkipped(fromEl)) {
+      if (options.preserveNodes && nodeShouldBePreserved(fromEl)) {
         return false;
       }
 
@@ -123,7 +127,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.skipNodes && nodeShouldBeSkipped(node)) {
+      if (options.preserveNodes && nodeShouldBePreserved(node)) {
         return false;
       }
 
@@ -131,7 +135,7 @@ export function patchNode(options: {
       if (nodeIsUiNode(node) && nodeHasFalkNodeId(node)) {
         iterFalkComponents({
           rootNode: node,
-          skipNodes: false,
+          preserveNodes: false,
           callback: options.onBeforeUnmount,
         });
       }
@@ -143,7 +147,7 @@ export function patchNode(options: {
   // run rendering hooks
   iterFalkComponents({
     rootNode: options.node,
-    skipNodes: options.skipNodes,
+    preserveNodes: options.preserveNodes,
     callback: (node: HTMLElement) => {
       if (node != options.node) {
         options.onInitialRender(node);
