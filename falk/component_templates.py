@@ -276,7 +276,7 @@ class ComponentTemplateParser(HTMLParser):
 
             if is_root_node:
                 self.write(
-                    '{% if _token %} data-falk-id="{{ node_id }}"{% endif %}',
+                    '{% if _token %} fx-id="{{ node_id }}"{% endif %}',
                 )
 
             self.write(">")
@@ -466,7 +466,7 @@ class ComponentTemplateParser(HTMLParser):
 
                 identifier = self.get_attribute(
                     attribute_list,
-                    "data-falk-id",
+                    "fx-id",
                 )
 
                 if not identifier:
@@ -480,7 +480,7 @@ class ComponentTemplateParser(HTMLParser):
                 if not identifier:
                     identifier = hash_string(data)
 
-                overrides["data-falk-id"] = identifier
+                overrides["fx-id"] = identifier
 
                 attribute_string = self.render_attribute_string(
                     attribute_list=attribute_list,
@@ -508,7 +508,7 @@ class ComponentTemplateParser(HTMLParser):
                 # create an identifier.
                 identifier = self.get_attribute(
                     attribute_list,
-                    "data-falk-id",
+                    "fx-id",
                 )
 
                 if not identifier:
@@ -522,7 +522,7 @@ class ComponentTemplateParser(HTMLParser):
                 if not identifier:
                     identifier = hash_string(data)
 
-                overrides["data-falk-id"] = identifier
+                overrides["fx-id"] = identifier
 
             attribute_string = self.render_attribute_string(
                 attribute_list=attribute_list,

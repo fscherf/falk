@@ -28,7 +28,7 @@ SCRIPTS_TEMPLATE_STRING = """
 {% endfor %}
 
 {% if not request.is_mutation_request %}
-    <script data-falk-id="falk/init">
+    <script fx-id="falk/init">
         falk.settings = JSON.parse('{{ settings_string }}');
         falk.tokens = JSON.parse(`{{ token_string }}`);
         falk.initialCallbacks = JSON.parse(`{{ callback_string }}`);
@@ -160,7 +160,7 @@ def _run_callback(
     # generate selector
     if selector == "self":
         node_id = template_context["node_id"]
-        selector = f"[data-falk-id={node_id}]"
+        selector = f"[fx-id={node_id}]"
 
     # generate options string
     options = {

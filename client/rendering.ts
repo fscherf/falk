@@ -9,7 +9,7 @@ export function nodeIsUiNode(node: HTMLElement) {
 }
 
 export function nodeHasFalkNodeId(node: HTMLElement) {
-  return node.hasAttribute("data-falk-id");
+  return node.hasAttribute("fx-id");
 }
 
 export function nodeShouldBeSkipped(node: HTMLElement) {
@@ -17,7 +17,7 @@ export function nodeShouldBeSkipped(node: HTMLElement) {
 }
 
 export function getFalkNodeId(node: HTMLElement) {
-  return node.getAttribute("data-falk-id");
+  return node.getAttribute("fx-id");
 }
 
 export function iterFalkComponents(options: {

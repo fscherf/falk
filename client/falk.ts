@@ -78,14 +78,14 @@ class Falk {
   // events
   public dispatchEvent = (
     shortName: string,
-    element: Element,
+    element: HTMLElement,
     extraDetail?: Object,
   ) => {
     const attributeName: string = `on${shortName}`;
     const eventName: string = `falk:${shortName}`;
     const attribute = element.getAttribute(attributeName);
     const fn: Function = new Function("event", attribute);
-    const nodeId: string = element.getAttribute("data-falk-id");
+    const nodeId: string = getFalkNodeId(element);
 
     const event = new CustomEvent(eventName, {
       bubbles: true,
@@ -185,7 +185,7 @@ class Falk {
     for (const node of nodes) {
       const requestId = this.getRequestId();
       const eventData = dumpEvent(options.event);
-      const nodeId = node.getAttribute("data-falk-id");
+      const nodeId = getFalkNodeId(node);
       const token = this.tokens[nodeId];
       const callbackName = options.callbackName || "";
       const callbackArgs = options.callbackArgs || {};
@@ -267,7 +267,7 @@ class Falk {
                 "link[rel=stylesheet]",
               );
 
-              linkNodes.forEach((node) => {
+              linkNodes.forEach((node: HTMLLinkElement) => {
                 // check if style is already loaded
                 let selector: string;
                 const styleHref: string = node.getAttribute("href");
@@ -275,9 +275,9 @@ class Falk {
                 if (styleHref) {
                   selector = `link[href="${styleHref}"]`;
                 } else {
-                  const styleId: string = node.getAttribute("data-falk-id");
+                  const styleId: string = getFalkNodeId(node);
 
-                  selector = `link[data-falk-id="${styleId}"]`;
+                  selector = `link[fx-id="${styleId}"]`;
                 }
 
                 if (document.querySelector(selector)) {
@@ -291,10 +291,10 @@ class Falk {
               // load styles
               const styleNodes = newDocument.head.querySelectorAll("style");
 
-              styleNodes.forEach((node) => {
+              styleNodes.forEach((node: HTMLStyleElement) => {
                 // check if style is already loaded
-                const styleId: string = node.getAttribute("data-falk-id");
-                const selector = `style[data-falk-id="${styleId}"]`;
+                const styleId: string = getFalkNodeId(node);
+                const selector = `style[fx-id="${styleId}"]`;
 
                 if (document.querySelector(selector)) {
                   return;
@@ -308,7 +308,7 @@ class Falk {
               const scriptNodes = newDocument.body.querySelectorAll("script");
               const scriptsLoaded = new Array();
 
-              scriptNodes.forEach((node) => {
+              scriptNodes.forEach((node: HTMLScriptElement) => {
                 // check if script is already loaded
                 let selector: string;
                 const scriptSrc: string = node.getAttribute("src");
@@ -316,9 +316,9 @@ class Falk {
                 if (scriptSrc) {
                   selector = `script[src="${scriptSrc}"]`;
                 } else {
-                  const scriptId: string = node.getAttribute("data-falk-id");
+                  const scriptId: string = getFalkNodeId(node);
 
-                  selector = `script[data-falk-id="${scriptId}"]`;
+                  selector = `script[fx-id="${scriptId}"]`;
                 }
 
                 if (document.querySelector(selector)) {
