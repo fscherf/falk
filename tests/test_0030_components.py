@@ -132,9 +132,12 @@ def test_dynamic_attribute_rendering(page, start_falk_app):
     The test component does not use the HTML5Base component on purpose. This
     ensures that this rendering mechanism works without any
     client side hydration.
+    The underscore attribute should only be available in HTML tags, not in
+    component calls.
 
     The test is successful if the test component shows up in the browser
     with all static and dynamic attributes and the test text.
+    The test fails if the underscore can be used in component calls.
     """
 
     def Component():
@@ -148,16 +151,33 @@ def test_dynamic_attribute_rendering(page, start_falk_app):
             </div>
         """
 
-    def configure_app(add_route):
-        add_route(r"/", Component)
+    def InvalidComponentCalling(Component=Component):
+        return """
+            <Component _="foo='bar'" />
+        """
+
+    def configure_app(add_route, mutable_settings):
+        mutable_settings["debug"] = True
+
+        add_route(r"/component(/)", Component)
+        add_route(r"/invalid-component-calling(/)", InvalidComponentCalling)
 
     _, base_url, _ = start_falk_app(
         configure_app=configure_app,
     )
 
-    # run test
-    page.goto(base_url)
+    # component
+    page.goto(base_url + "/component")
     page.inner_text("#component[a=aaa][b=bbb][c=ccc]") == "Component Text"
+
+    # invalid component calling
+    page.goto(base_url + "/invalid-component-calling")
+    exception_text = page.inner_html(".falk-error pre")
+
+    assert ".InvalidComponentError:" in exception_text
+    assert ".test_dynamic_attribute_rendering." in exception_text
+    assert ".InvalidComponentCalling: " in exception_text
+    assert "the underscore attribute is not available in component calls" in exception_text  # NOQA
 
 
 @pytest.mark.only_browser("chromium")

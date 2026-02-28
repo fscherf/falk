@@ -133,6 +133,10 @@ class ComponentTemplateParser(HTMLParser):
         attributes.update(overrides or {})
 
         for key, value in attributes.items():
+            if key == "_":
+                raise InvalidComponentError(
+                    f"{get_import_string(self._component)}: the underscore attribute is not available in component calls, only in HTML tags",  # NOQA
+                )
 
             # key only attributes: <Component foo></Component>
             if value is None:
