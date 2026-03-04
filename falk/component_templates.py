@@ -561,6 +561,14 @@ def parse_component_template(
     # here so we don't need to add a necessary hydration/init step to
     # the client.
 
+    # TODO: add checks for `fx-render` attributes
+    #   - if a render mode is set, `id` needs to be set too
+    #   - available values:
+    #       - `children-update` (default)
+    #       - `children-skip`
+    #       - `children-prepend`
+    #       - `children-append`
+
     return ComponentTemplateParser().parse(
         component_template=component_template,
         component=component,

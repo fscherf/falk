@@ -356,8 +356,8 @@ class Falk {
                 // patch the attributes of the HTML node
                 // (node id, token, event handlers, ...)
                 patchNodeAttributes({
-                  node: node,
-                  newNode: newDocument.children[0] as HTMLElement,
+                  fromNode: node,
+                  toNode: newDocument.children[0] as HTMLElement,
                   onRender: (node: HTMLElement) => {
                     this.dispatchEvent("render", node);
                   },
@@ -368,8 +368,9 @@ class Falk {
 
                 // patch body
                 patchNode({
-                  node: document.body,
-                  newNode: newDocument.body,
+                  fromNode: document.body,
+                  toNode: newDocument.body,
+                  eventType: eventType,
 
                   onInitialRender: (node: HTMLElement) => {
                     this.dispatchEvent("initialrender", node);
@@ -394,8 +395,9 @@ class Falk {
                 // patch only one node in the body
               } else {
                 patchNode({
-                  node: node,
-                  newNode: newDocument.body.firstChild as HTMLElement,
+                  fromNode: node,
+                  toNode: newDocument.body.firstChild as HTMLElement,
+                  eventType: eventType,
 
                   onInitialRender: (node: HTMLElement) => {
                     this.dispatchEvent("initialrender", node);
