@@ -6,6 +6,7 @@ from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.providers.callbacks import run_callback_provider
 from falk.file_uploads import default_file_upload_handler
+from falk.providers.flags import disable_state_provider
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
@@ -61,11 +62,6 @@ from falk.providers.responses import (
     set_response_json_provider,
 )
 
-from falk.providers.flags import (
-    force_rendering_provider,
-    skip_rendering_provider,
-    disable_state_provider,
-)
 
 
 def get_default_app():
@@ -146,8 +142,6 @@ def get_default_app():
     # settings: dependencies
     mutable_app["settings"].update({
         "dependencies": {
-            "skip_rendering": skip_rendering_provider,
-            "force_rendering": force_rendering_provider,
             "disable_state": disable_state_provider,
             "get_request_header": get_request_header_provider,
             "set_request_header": set_request_header_provider,

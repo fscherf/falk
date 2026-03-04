@@ -133,8 +133,6 @@ def run_component(
         response["json"] = {
             "flags": {
                 "reload": False,
-                "skipRendering": parts["flags"]["skip_rendering"],
-                "forceRendering": parts["flags"]["force_rendering"],
             },
             "body": render_body(
                 app=mutable_app,

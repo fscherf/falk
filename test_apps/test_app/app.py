@@ -12,7 +12,6 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
     from test_app.components.request_handling.post_forms import PostForms
     from test_app.components.client.render_events import RenderEvents
     from test_app.components.rendering.iframes import Iframes, Iframe
-    from test_app.components.rendering.flags import RenderingFlags
     from test_app.components.client.timeouts import Timeouts
     from test_app.components.events.render import Render
     from test_app.components.events.change import Change
@@ -65,12 +64,6 @@ def configure_app(mutable_app, add_route, add_static_dir, settings):
         r"/rendering/code-splitting(/)",
         CodeSplitting,
         name="rendering__code_splitting",
-    )
-
-    add_route(
-        r"/rendering/rendering-flags(/)",
-        RenderingFlags,
-        name="rendering__flags",
     )
 
     add_route(

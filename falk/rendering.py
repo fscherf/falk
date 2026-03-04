@@ -329,8 +329,6 @@ def render_component(
             "tokens": {},
             "flags": {
                 "state": True,
-                "force_rendering": False,
-                "skip_rendering": False,
             },
         }
 

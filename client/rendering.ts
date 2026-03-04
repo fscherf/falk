@@ -23,18 +23,7 @@ export function getFalkNodeId(node: HTMLElement) {
 export function iterFalkComponents(options: {
   rootNode: HTMLElement;
   callback: (node: HTMLElement) => any;
-  preserveNodes: boolean;
 }) {
-  let preserveNode: boolean = false;
-
-  if (
-    options.preserveNodes &&
-    !preserveNode &&
-    nodeShouldBePreserved(options.rootNode)
-  ) {
-    preserveNode = true;
-  }
-
   Array.from(options.rootNode.children).forEach((child: HTMLElement) => {
     if (!nodeIsUiNode(child)) {
       return;
@@ -43,11 +32,10 @@ export function iterFalkComponents(options: {
     iterFalkComponents({
       rootNode: child,
       callback: options.callback,
-      preserveNodes: options.preserveNodes,
     });
   });
 
-  if (!preserveNode && nodeHasFalkNodeId(options.rootNode)) {
+  if (nodeHasFalkNodeId(options.rootNode)) {
     options.callback(options.rootNode);
   }
 }
@@ -58,7 +46,6 @@ export function patchNode(options: {
   onInitialRender: (node: HTMLElement) => any;
   onRender: (node: HTMLElement) => any;
   onBeforeUnmount: (node: HTMLElement) => any;
-  preserveNodes: boolean;
 }) {
   // patch nodes
   morphdom(options.node, options.newNode, {
@@ -67,7 +54,7 @@ export function patchNode(options: {
         return;
       }
 
-      if (options.preserveNodes && nodeShouldBePreserved(node)) {
+      if (nodeShouldBePreserved(node)) {
         return node.id;
       }
 
@@ -87,7 +74,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.preserveNodes && nodeShouldBePreserved(fromEl)) {
+      if (nodeShouldBePreserved(fromEl)) {
         return false;
       }
 
@@ -103,7 +90,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.preserveNodes && nodeShouldBePreserved(fromEl)) {
+      if (nodeShouldBePreserved(fromEl)) {
         return false;
       }
 
@@ -127,7 +114,7 @@ export function patchNode(options: {
         return true;
       }
 
-      if (options.preserveNodes && nodeShouldBePreserved(node)) {
+      if (nodeShouldBePreserved(node)) {
         return false;
       }
 
@@ -135,7 +122,6 @@ export function patchNode(options: {
       if (nodeIsUiNode(node) && nodeHasFalkNodeId(node)) {
         iterFalkComponents({
           rootNode: node,
-          preserveNodes: false,
           callback: options.onBeforeUnmount,
         });
       }
@@ -147,7 +133,6 @@ export function patchNode(options: {
   // run rendering hooks
   iterFalkComponents({
     rootNode: options.node,
-    preserveNodes: options.preserveNodes,
     callback: (node: HTMLElement) => {
       if (node != options.node) {
         options.onInitialRender(node);
