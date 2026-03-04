@@ -9,7 +9,6 @@ from falk.file_uploads import default_file_upload_handler
 from falk.immutable_proxy import get_immutable_proxy
 from falk.tokens import encode_token, decode_token
 from falk.static_files import get_falk_static_dir
-from falk.extra_template_context import get_url
 from falk.secrets import get_random_secret
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
@@ -176,9 +175,7 @@ def get_default_app():
 
     # settings: templating
     mutable_app["settings"].update({
-        "extra_template_context": {
-            "get_url": get_url,
-        },
+        "extra_template_context": {},
     })
 
     return mutable_app

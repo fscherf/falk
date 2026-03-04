@@ -11,6 +11,7 @@ from falk.utils.iterables import extend_with_unique_values
 from falk.immutable_proxy import get_immutable_proxy
 from falk.import_strings import get_import_string
 from falk.static_files import get_static_url
+from falk.routing import get_url
 
 from falk.errors import (
     ComponentExecutionError,
@@ -174,6 +175,25 @@ def _run_callback(
     options_string = quote(json.dumps(options))
 
     return f"falk.runCallback({{event: event, optionsString: '{options_string}'}});"  # NOQA
+
+
+@pass_context
+def _get_url(
+    template_context,
+    route_name,
+    route_args=None,
+    query=None,
+    checks=True,
+):
+
+    return get_url(
+        routes=template_context["app"]["routes"],
+        route_name=route_name,
+        route_args=route_args,
+        query=query,
+        prefix=template_context["request"]["root_path"],
+        checks=checks,
+    )
 
 
 @pass_context
@@ -408,6 +428,7 @@ def render_component(
             "_parts": parts,
 
             # public
+            "get_url": _get_url,
             "get_static_url": _get_static_url,
             "run_callback": _run_callback,
             "get_upload_token": _get_upload_token,
