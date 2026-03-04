@@ -64,7 +64,6 @@ async def handle_multipart_body(
         mutable_app,
         request,
         content_type,
-        content_length,
         event,
         scope,
         receive,
@@ -205,7 +204,6 @@ async def handle_multipart_body(
     chunks = get_body_chunks(
         event=event,
         receive=receive,
-        content_length=content_length,
     )
 
     run_file_upload_handler(

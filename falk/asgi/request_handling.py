@@ -6,7 +6,6 @@ from falk.request_handling import get_request, handle_request
 from falk.asgi.file_responses import handle_file_response
 from falk.asgi.multipart import handle_multipart_body
 from falk.http import set_header, get_header
-from falk.errors import BadRequestError
 from falk.asgi.helper import get_body
 
 
@@ -57,20 +56,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
             default="",
         )
 
-        # Content-Length
-        content_length = get_header(
-            headers=request["headers"],
-            name="content-length",
-            default="0",
-        )
-
-        if not content_length.isnumeric():
-            raise BadRequestError(
-                "header Content-Length has to be a number",
-            )
-
-        content_length = int(content_length)
-
         # X-Falk-Request-Type
         request_type = get_header(
             headers=request["headers"],
@@ -99,7 +84,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
                 body = await get_body(
                     event=event,
                     receive=receive,
-                    content_length=content_length,
                 )
 
                 request["json"] = json.loads(body)
@@ -110,7 +94,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
                 body = await get_body(
                     event=event,
                     receive=receive,
-                    content_length=content_length,
                 )
 
                 request["post"] = parse_qs(body.decode())
@@ -121,7 +104,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
                     mutable_app=mutable_app,
                     request=request,
                     content_type=content_type,
-                    content_length=content_length,
                     event=event,
                     scope=scope,
                     receive=receive,
