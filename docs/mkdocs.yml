@@ -50,6 +50,10 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
 
+  - pymdownx.snippets:
+      check_paths: true
+      base_path: "./docs/"
+
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - admonition
@@ -57,8 +61,14 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
-  - pymdownx.snippets:
-      base_path: "../"
-
 nav:
   - "Home": index.md
+
+  - "Reference":
+    - "Settings": reference/settings/index.md
+    - "Routing": reference/routing/index.md
+    - "Dependencies": reference/dependencies/index.md
+    - "Views": reference/views/index.md
+    - "Middlewares": reference/middlewares/index.md
+    - "HTTP Errors": reference/http-errors/index.md
+    - "Testing": reference/testing/index.md
