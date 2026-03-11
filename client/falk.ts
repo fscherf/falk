@@ -10,6 +10,7 @@ import { WebsocketTransport } from "./websocket-transport";
 import { parseTimedelta } from "./utils";
 import { HTTPTransport } from "./http-transport";
 import { dumpEvent } from "./events";
+import { MutationRequestResponse } from "./types";
 
 class Falk {
   public httpTransport: HTTPTransport;
@@ -205,25 +206,24 @@ class Falk {
             });
 
             // send mutation request
-            let responseData;
+            let response: MutationRequestResponse;
 
             // HTTP multipart POST (file uploads)
             if (eventData.files.length > 0) {
-              responseData =
-                await this.httpTransport.sendMultipartMutationRequest({
-                  nodeId: nodeId,
-                  token: token,
-                  callbackName: callbackName,
-                  callbackArgs: callbackArgs,
-                  eventData: eventData,
-                });
+              response = await this.httpTransport.sendMultipartMutationRequest({
+                nodeId: nodeId,
+                token: token,
+                callbackName: callbackName,
+                callbackArgs: callbackArgs,
+                eventData: eventData,
+              });
 
               // websocket
             } else if (
               this.settings["websockets"] &&
               this.websocketTransport.available
             ) {
-              responseData = await this.websocketTransport.sendMutationRequest({
+              response = await this.websocketTransport.sendMutationRequest({
                 nodeId: nodeId,
                 token: token,
                 callbackName: callbackName,
@@ -233,7 +233,7 @@ class Falk {
 
               // HTTP POST
             } else {
-              responseData = await this.httpTransport.sendMutationRequest({
+              response = await this.httpTransport.sendMutationRequest({
                 nodeId: nodeId,
                 token: token,
                 callbackName: callbackName,
@@ -242,22 +242,34 @@ class Falk {
               });
             }
 
+            // handle reloads
+            // TODO: add test for reloads
+            if (response.valid && response.flags.reload) {
+              window.location.reload();
+            }
+
             // run response hook
+            // TODO: add test for non 200 response events
             this.dispatchEvent("response", node, {
               requestId: requestId,
+              response: response.httpResponse,
             });
 
+            if (!response.valid) {
+              return;
+            }
+
             // rendering
+            // TODO: remove rendering flags
             const render: boolean =
-              !responseData.flags.skipRendering ||
-              responseData.flags.forceRendering;
+              !response.flags.skipRendering || response.flags.forceRendering;
 
             // parse response HTML
             if (render) {
               const domParser = new DOMParser();
 
               const newDocument = domParser.parseFromString(
-                responseData.body as string,
+                response.body as string,
                 "text/html",
               );
 
@@ -419,12 +431,12 @@ class Falk {
             // morphdom removes all tokens for us that are not needed anymore,
             // and before we run the hooks because the hooks need the tokens to
             // be updated.
-            for (const [key, value] of Object.entries(responseData.tokens)) {
+            for (const [key, value] of Object.entries(response.tokens)) {
               this.tokens[key] = value;
             }
 
             // run callbacks
-            this.runCallbacks(responseData.callbacks);
+            this.runCallbacks(response.callbacks);
 
             // end callback
             resolve(null);

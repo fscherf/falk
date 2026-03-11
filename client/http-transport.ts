@@ -1,3 +1,5 @@
+import { MutationRequestResponse } from "./types";
+
 export class HTTPTransport {
   private headers = {
     "Content-Type": "application/json",
@@ -14,7 +16,7 @@ export class HTTPTransport {
     callbackName: string;
     callbackArgs: object;
     eventData: any;
-  }): Promise<any> => {
+  }): Promise<MutationRequestResponse> => {
     return new Promise(async (resolve, reject) => {
       const data = {
         nodeId: args.nodeId,
@@ -31,18 +33,23 @@ export class HTTPTransport {
         redirect: "manual",
       });
 
-      if (!response.ok) {
-        reject(`HTTP error! Status: ${response.status}`);
+      const mutationRequestResponse: MutationRequestResponse = {
+        valid: true,
+        httpResponse: response,
+      };
+
+      try {
+        const responseData = await response.json();
+
+        mutationRequestResponse.flags = responseData.flags;
+        mutationRequestResponse.body = responseData.body;
+        mutationRequestResponse.tokens = responseData.tokens;
+        mutationRequestResponse.callbacks = responseData.callbacks;
+      } catch {
+        mutationRequestResponse.valid = false;
       }
 
-      const responseData = await response.json();
-
-      // handle reloads
-      if (responseData.flags.reload) {
-        window.location.reload();
-      }
-
-      resolve(responseData);
+      resolve(mutationRequestResponse);
     });
   };
 
@@ -52,7 +59,7 @@ export class HTTPTransport {
     callbackName: string;
     callbackArgs: object;
     eventData: any;
-  }): Promise<any> => {
+  }): Promise<MutationRequestResponse> => {
     return new Promise(async (resolve, reject) => {
       const body: FormData = new FormData();
 
@@ -82,18 +89,23 @@ export class HTTPTransport {
         redirect: "manual",
       });
 
-      if (!response.ok) {
-        reject(`HTTP error! Status: ${response.status}`);
+      const mutationRequestResponse: MutationRequestResponse = {
+        valid: true,
+        httpResponse: response,
+      };
+
+      try {
+        const responseData = await response.json();
+
+        mutationRequestResponse.flags = responseData.flags;
+        mutationRequestResponse.body = responseData.body;
+        mutationRequestResponse.tokens = responseData.tokens;
+        mutationRequestResponse.callbacks = responseData.callbacks;
+      } catch {
+        mutationRequestResponse.valid = false;
       }
 
-      const responseData = await response.json();
-
-      // handle reloads
-      if (responseData.flags.reload) {
-        window.location.reload();
-      }
-
-      resolve(responseData);
+      resolve(mutationRequestResponse);
     });
   };
 }

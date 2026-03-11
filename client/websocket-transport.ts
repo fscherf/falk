@@ -1,3 +1,5 @@
+import { MutationRequestResponse } from "./types";
+
 export class WebsocketTransport {
   private websocket: WebSocket;
   private messageIdCounter: number;
@@ -21,13 +23,22 @@ export class WebsocketTransport {
     const responseData = messageData.json;
     const promiseCallbacks = this.pendingRequests.get(messageId);
 
-    // handle reloads
-    if (responseData.flags.reload) {
-      window.location.reload();
+    const mutationRequestResponse: MutationRequestResponse = {
+      valid: true,
+      httpResponse: null,
+    };
+
+    try {
+      mutationRequestResponse.flags = responseData.flags;
+      mutationRequestResponse.body = responseData.body;
+      mutationRequestResponse.tokens = responseData.tokens;
+      mutationRequestResponse.callbacks = responseData.callbacks;
+    } catch {
+      mutationRequestResponse.valid = false;
     }
 
     // HTML responses
-    promiseCallbacks["resolve"](responseData);
+    promiseCallbacks["resolve"](mutationRequestResponse);
 
     this.pendingRequests.delete(messageData);
   };
@@ -65,7 +76,7 @@ export class WebsocketTransport {
     callbackName: string;
     callbackArgs: object;
     eventData: any;
-  }): Promise<any> => {
+  }): Promise<MutationRequestResponse> => {
     return new Promise(async (resolve, reject) => {
       // connect websocket if necessary
       if (this.websocket.readyState !== this.websocket.OPEN) {
