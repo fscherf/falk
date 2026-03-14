@@ -1,7 +1,6 @@
 from urllib.parse import quote
 import builtins
 import json
-import os
 
 from jinja2 import Template, pass_context
 
@@ -21,22 +20,18 @@ from falk.errors import (
     FalkError,
 )
 
-SCRIPTS_TEMPLATE_STRING = """
-<script src="{{ client_url }}"></script>
+FALK_CLIENT_SCRIPT = """
+<script src="{{ falk.get_static_url('falk/falk.js') }}"></script>
+"""
 
-{% for script in scripts %}
-    {{ script }}
-{% endfor %}
+FALK_INIT_SCRIPT = """
+<script fx-id="falk/init">
+    falk.settings = JSON.parse('{{ settings_string }}');
+    falk.tokens = JSON.parse(`{{ token_string }}`);
+    falk.initialCallbacks = JSON.parse(`{{ callback_string }}`);
 
-{% if not request.is_mutation_request %}
-    <script fx-id="falk/init">
-        falk.settings = JSON.parse('{{ settings_string }}');
-        falk.tokens = JSON.parse(`{{ token_string }}`);
-        falk.initialCallbacks = JSON.parse(`{{ callback_string }}`);
-
-        falk.init();
-    </script>
-{% endif %}
+    falk.init();
+</script>
 """
 
 
@@ -229,74 +224,146 @@ def _get_upload_token(template_context, plain=False):
 @pass_context
 def _get_styles(template_context):
     return _render_styles(
-        app=template_context["app"],
-        styles=template_context["falk"]["_parts"]["styles"],
+        mutable_app=template_context["mutable_app"],
+        mutable_request=template_context["mutable_request"],
+        parts=template_context["falk"]["_parts"],
     )
 
 
 @pass_context
 def _get_scripts(template_context):
     return _render_scripts(
-        app=template_context["app"],
-        request=template_context["request"],
+        mutable_app=template_context["mutable_app"],
+        mutable_request=template_context["mutable_request"],
         parts=template_context["falk"]["_parts"],
     )
 
 
-def _render_styles(app, styles):
-    return "\n".join(styles)
+def get_template_context(
+        mutable_app,
+        mutable_request,
+        extra_template_context=None,
+        parts=None,
+        components=None,
+):
+
+    return {
+        **builtins.__dict__,
+
+        # public immutable data
+        "app": get_immutable_proxy(
+            data=mutable_app,
+            name="app",
+            mutable_version_name="mutable_app",
+        ),
+
+        "settings": get_immutable_proxy(
+            data=mutable_app["settings"],
+            name="settings",
+            mutable_version_name="mutable_settings",
+        ),
+
+        "request": get_immutable_proxy(
+            data=mutable_request,
+            name="request",
+            mutable_version_name="mutable_request",
+        ),
+
+        # public mutable data
+        "mutable_app": mutable_app,
+        "mutable_settings": mutable_app["settings"],
+        "mutable_request": mutable_request,
+
+        # This is a simple NOP to make calls like
+        # `{{ falk.run_callback(render) }}` for simply re rendering work.
+        "render": lambda: None,
+
+        **(extra_template_context or {}),
+        **mutable_app["settings"]["extra_template_context"],
+
+        # The `falk` namespace is always added last so it can not be
+        # overloaded accidentally.
+        "falk": {
+
+            # internal data
+            "_components": (components or {}),
+            "_parts": (parts or {}),
+
+            # internal API
+            "_render_component": _render_component,
+
+            # public API
+            "get_url": _get_url,
+            "get_static_url": _get_static_url,
+            "get_styles": _get_styles,
+            "get_scripts": _get_scripts,
+            "get_upload_token": _get_upload_token,
+            "run_callback": _run_callback,
+        },
+    }
 
 
-def _render_scripts(app, request, parts):
+def _render_styles(mutable_app, mutable_request, parts):
+    template_string = "\n".join(parts["styles"])
 
-    # token_string
+    template_context = get_template_context(
+        mutable_app=mutable_app,
+        mutable_request=mutable_request,
+    )
+
+    return Template(template_string).render(
+        **template_context,
+    )
+
+
+def _render_scripts(mutable_app, mutable_request, parts):
+    template_string = "\n".join([
+        FALK_CLIENT_SCRIPT,
+        *parts["scripts"],
+        FALK_INIT_SCRIPT,
+    ])
+
+    # dump settings, tokens, and initial callbacks
     # If the request is a mutation request, we don't need to serialize the
-    # settings, tokens, initial callbacks because we send them as part of the
-    # JSON body anyway.
     settings_string = ""
     token_string = ""
     callback_string = ""
 
-    if not request["is_mutation_request"]:
+    if not mutable_request["is_mutation_request"]:
         settings_string = json.dumps({
-            "websockets": app["settings"]["websockets"],
+            "websockets": mutable_app["settings"]["websockets"],
         })
 
         token_string = json.dumps(parts["tokens"])
         callback_string = json.dumps(parts["callbacks"])
 
-    # client_url
-    static_url_prefix = app["settings"]["static_url_prefix"]
-
-    if static_url_prefix.startswith("/"):
-        static_url_prefix = static_url_prefix[1:]
-
-    client_url = os.path.join(
-        request["root_path"] or "/",
-        static_url_prefix,
-        "falk/falk.js",
+    # generate template context
+    template_context = get_template_context(
+        mutable_app=mutable_app,
+        mutable_request=mutable_request,
+        extra_template_context={
+            "settings_string": settings_string,
+            "token_string": token_string,
+            "callback_string": callback_string,
+        },
     )
 
-    return Template(SCRIPTS_TEMPLATE_STRING).render({
-        "request": request,
-        "scripts": parts["scripts"],
-        "client_url": client_url,
-        "settings_string": settings_string,
-        "token_string": token_string,
-        "callback_string": callback_string,
-    })
+    return Template(template_string).render(
+        **template_context,
+    )
 
 
-def render_body(app, request, parts):
+def render_body(mutable_app, mutable_request, parts):
     return (
         _render_styles(
-            app=app,
-            styles=parts["styles"],
+            mutable_app=mutable_app,
+            mutable_request=mutable_request,
+            parts=parts,
         ) +
         parts["html"] +
         _render_scripts(
-            app=app,
-            request=request,
+            mutable_app=mutable_app,
+            mutable_request=mutable_request,
             parts=parts,
         )
     )
@@ -405,35 +472,17 @@ def render_component(
         "exception": exception,
     }
 
-    template_context = {
-        **builtins.__dict__,
-        **data,
+    template_context = get_template_context(
+        mutable_app=mutable_app,
+        mutable_request=request,
+        extra_template_context=data,
+        parts=parts,
 
-        # This is a simple NOP to make calls like
-        # `{{ callback(render) }}` for simply re rendering work.
-        "render": lambda: None,
-
-        **mutable_app["settings"]["extra_template_context"],
-
-        "falk": {
-            # TODO: we inspect the component at least twice here.
-            # Explicitly using `get_dependencies()` and inexplicitly
-            # using `run_callback()`.
-            "_components": get_dependencies(component)[1],
-
-            # internal
-            "_render_component": _render_component,
-            "_parts": parts,
-
-            # public
-            "get_url": _get_url,
-            "get_static_url": _get_static_url,
-            "run_callback": _run_callback,
-            "get_upload_token": _get_upload_token,
-            "get_styles": _get_styles,
-            "get_scripts": _get_scripts,
-        },
-    }
+        # TODO: we inspect the component at least twice here.
+        # Explicitly using `get_dependencies()` and inexplicitly
+        # using `run_callback()`.
+        components=get_dependencies(component)[1],
+    )
 
     dependencies = {
         **data,
@@ -509,8 +558,6 @@ def render_component(
     component_blocks = parse_component_template(
         component_template=component_template,
         component=component,
-        root_path=request["root_path"],
-        static_url_prefix=mutable_app["settings"]["static_url_prefix"],
         hash_string=_hash_string,
     )
 

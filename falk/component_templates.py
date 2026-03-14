@@ -1,5 +1,4 @@
 from html.parser import HTMLParser
-import os
 
 from falk.import_strings import get_import_string
 
@@ -28,6 +27,8 @@ FALK_EVENTS = [
     "onresponse",
     "onbeforeunmount",
 ]
+
+STATIC_URL_PREFIX = "/static/"
 
 
 class ComponentTemplateParser(HTMLParser):
@@ -65,13 +66,8 @@ class ComponentTemplateParser(HTMLParser):
             return url[1:]
 
         # static URLs
-        prefix = "/static/"
-
-        if url.startswith(prefix):
-            return os.path.join(
-                self._static_prefix,
-                url[len(prefix):],
-            )
+        if url.startswith(STATIC_URL_PREFIX):
+            return f"{{{{ falk.get_static_url('{url[len(STATIC_URL_PREFIX):]}') }}}}"  # NOQA
 
         raise NotImplementedError(
             f"{get_import_string(self._component)}: '{url}': only external, verbatim, and static URLs are supported",  # NOQA
@@ -397,25 +393,9 @@ class ComponentTemplateParser(HTMLParser):
             )
 
     # public API
-    def parse(
-            self,
-            component_template,
-            component,
-            root_path,
-            static_url_prefix,
-            hash_string,
-    ):
-
+    def parse(self, component_template, component, hash_string):
         self._component_template = component_template
         self._component = component
-
-        if static_url_prefix.startswith("/"):
-            static_url_prefix = static_url_prefix[1:]
-
-        self._static_prefix = os.path.join(
-            root_path or "/",
-            static_url_prefix,
-        )
 
         self._output = {
             "styles": [],
@@ -549,8 +529,6 @@ class ComponentTemplateParser(HTMLParser):
 def parse_component_template(
         component_template,
         component,
-        root_path,
-        static_url_prefix,
         hash_string,
 ):
 
@@ -572,7 +550,5 @@ def parse_component_template(
     return ComponentTemplateParser().parse(
         component_template=component_template,
         component=component,
-        root_path=root_path,
-        static_url_prefix=static_url_prefix,
         hash_string=hash_string,
     )

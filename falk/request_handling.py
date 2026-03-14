@@ -142,8 +142,8 @@ def run_component(
                 "reload": False,
             },
             "body": render_body(
-                app=mutable_app,
-                request=request,
+                mutable_app=mutable_app,
+                mutable_request=request,
                 parts=parts,
             ),
             "tokens": parts["tokens"],
