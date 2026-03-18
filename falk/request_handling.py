@@ -1,12 +1,19 @@
 from http.cookies import SimpleCookie
 import logging
 
-from falk.errors import HTTPError, BadRequestError, NotFoundError
 from falk.rendering import render_component, render_body
 from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.routing import get_component
 from falk.components import ItWorks
+from falk.http import set_header
+
+from falk.errors import (
+    InvalidTokenError,
+    BadRequestError,
+    NotFoundError,
+    HTTPError,
+)
 
 logger = logging.getLogger("falk")
 
@@ -227,6 +234,28 @@ def handle_request(mutable_app, request, exception=None):
         )
 
     except Exception as exception:
+
+        # When we encounter an `InvalidTokenError` while processing a mutation
+        # request, chances are that we got this request from a valid client,
+        # that has state from before we restarted.
+        # In this case, we just ask the client to reload the page to get new
+        # tokens issued.
+        #
+        # TODO: add test
+        if (isinstance(exception, InvalidTokenError) and
+                request["is_mutation_request"]):
+
+            response.update({
+                "is_finished": True,
+                "json": {
+                    "flags": {
+                        "reload": True,
+                    },
+                },
+            })
+
+            return response
+
         if isinstance(exception, HTTPError):
             status = exception.STATUS.value
             error_component = mutable_app["settings"][exception.COMPONENT_NAME]

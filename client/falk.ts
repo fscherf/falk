@@ -246,6 +246,8 @@ class Falk {
             // TODO: add test for reloads
             if (response.valid && response.flags.reload) {
               window.location.reload();
+
+              return;
             }
 
             // run response hook
