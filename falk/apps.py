@@ -63,7 +63,6 @@ from falk.providers.responses import (
 )
 
 
-
 def get_default_app():
     mutable_app = {
         "settings": {
