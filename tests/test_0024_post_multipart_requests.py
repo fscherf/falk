@@ -33,7 +33,7 @@ import pytest
             },
         },
         "error_message_parts": [
-            "Error 400:",
+            "400 Bad Request:",
             '"file-1" (file-1.txt) exceeds the size limit of 1024 bytes',
         ],
     },
@@ -58,7 +58,7 @@ import pytest
             },
         },
         "error_message_parts": [
-            "Error 400:",
+            "400 Bad Request:",
             "max_files of 1 exceeded",
         ],
     },
@@ -103,7 +103,7 @@ import pytest
             },
         },
         "error_message_parts": [
-            "Error 400:",
+            "400 Bad Request:",
             '"file-2" (file-2.txt) exceeds the size limit of 1024 bytes',
         ],
     },
@@ -122,7 +122,7 @@ import pytest
             },
         },
         "error_message_parts": [
-            "Error 400:",
+            "400 Bad Request:",
             "X-Falk-Upload-Token header is not set",
         ],
     },
@@ -141,7 +141,7 @@ import pytest
             },
         },
         "error_message_parts": [
-            "Error 400:",
+            "400 Bad Request:",
             "component does not accept file uploads",
         ],
     },

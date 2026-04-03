@@ -66,37 +66,32 @@ def test_error_responses(start_falk_app):
 
     assert response.status_code == 400
     assert '<title>400 Bad Request</title>' in response.text
-    assert '<h1>Error 400</h1>' in response.text
-    assert '<p>Bad Request</p>' in response.text
+    assert '<h1>400 Bad Request</h1>' in response.text
 
     # 403: Forbidden
     response = requests.get(base_url + "/forbidden-error")
 
     assert response.status_code == 403
     assert '<title>403 Forbidden</title>' in response.text
-    assert '<h1>Error 403</h1>' in response.text
-    assert '<p>Forbidden</p>' in response.text
+    assert '<h1>403 Forbidden</h1>' in response.text
 
     # 404: Not Found (raised)
     response = requests.get(base_url + "/not-found-error")
 
     assert response.status_code == 404
     assert '<title>404 Not Found</title>' in response.text
-    assert '<h1>Error 404</h1>' in response.text
-    assert '<p>Not Found</p>' in response.text
+    assert '<h1>404 Not Found</h1>' in response.text
 
     # 404: Not Found (unknown URL)
     response = requests.get(base_url + "/uknown-url")
 
     assert response.status_code == 404
     assert '<title>404 Not Found</title>' in response.text
-    assert '<h1>Error 404</h1>' in response.text
-    assert '<p>Not Found</p>' in response.text
+    assert '<h1>404 Not Found</h1>' in response.text
 
     # 500: Internal Server Error
     response = requests.get(base_url + "/internal-server-error")
 
     assert response.status_code == 500
     assert '<title>500 Internal Server Error</title>' in response.text
-    assert '<h1>Error 500</h1>' in response.text
-    assert '<p>Internal Server Error</p>' in response.text
+    assert '<h1>500 Internal Server Error</h1>' in response.text

@@ -93,23 +93,19 @@ def BadRequest(
     if request["is_mutation_request"]:
         return """
             <div class="falk-error">
-                Error 400:
+                400 Bad Request:
                 {% if settings.debug %}
                     {{ short_exception_string }}
-                {% else %}
-                    Bad Request
                 {% endif %}
             </div>
         """
 
     return """
         <HTML5Base title="400 Bad Request">
-            <h1>Error 400</h1>
+            <h1>400 Bad Request</h1>
             <div class="falk-error">
                 {% if settings.debug %}
                     <pre>{{ exception_string }}</pre>
-                {% else %}
-                    <p>Bad Request</p>
                 {% endif %}
             </div>
         </HTML5Base>
@@ -135,23 +131,19 @@ def Forbidden(
     if request["is_mutation_request"]:
         return """
             <div class="falk-error">
-                Error 403:
+                403 Forbidden:
                 {% if settings.debug %}
                     {{ short_exception_string }}
-                {% else %}
-                    Forbidden
                 {% endif %}
             </div>
         """
 
     return """
         <HTML5Base title="403 Forbidden">
-            <h1>Error 403</h1>
+            <h1>403 Forbidden</h1>
             <div class="falk-error">
                 {% if settings.debug %}
                     <pre>{{ exception_string }}</pre>
-                {% else %}
-                    <p>Forbidden</p>
                 {% endif %}
             </div>
         </HTML5Base>
@@ -161,10 +153,8 @@ def Forbidden(
 def NotFound(HTML5Base=HTML5Base):
     return """
         <HTML5Base title="404 Not Found">
-            <h1>Error 404</h1>
-            <div class="falk-error">
-                <p>Not Found</p>
-            </div>
+            <h1>404 Not Found</h1>
+            <div class="falk-error"></div>
         </HTML5Base>
     """
 
@@ -188,23 +178,19 @@ def InternalServerError(
     if request["is_mutation_request"]:
         return """
             <div class="falk-error">
-                Error 500:
+                500 Internal Server Error:
                 {% if settings.debug %}
                     {{ short_exception_string }}
-                {% else %}
-                    Internal Server Error
                 {% endif %}
             </div>
         """
 
     return """
         <HTML5Base title="500 Internal Server Error">
-            <h1>Error 500</h1>
+            <h1>500 Internal Server Error</h1>
             <div class="falk-error">
                 {% if settings.debug %}
                     <pre>{{ exception_string }}</pre>
-                {% else %}
-                    <p>Internal Server Error</p>
                 {% endif %}
             </div>
         </HTML5Base>

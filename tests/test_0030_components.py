@@ -341,7 +341,7 @@ def test_component_execution_errors(page, start_falk_app):
     # The error message should contain the falk error type, the component name
     # and its module, the crashing callbacks name, and a repr of the
     # originial error.
-    assert "Error 500:" in exception_text
+    assert "500 Internal Server Error:" in exception_text
     assert ".ComponentExecutionError:" in exception_text
     assert ".test_component_execution_errors." in exception_text
 
