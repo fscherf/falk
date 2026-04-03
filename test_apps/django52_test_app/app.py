@@ -24,6 +24,9 @@ falk_asgi_app = get_asgi_app(configure_app)
 
 
 async def asgi_app(scope, receive, send):
+    # TODO: This poor-mans routing would not be necessary if we had an ASGI
+    # container component of some sort that could be used with `add_route`.
+
     django_prefixes = (
         "/_django/",
         "/admin",
