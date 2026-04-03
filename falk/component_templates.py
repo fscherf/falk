@@ -431,14 +431,23 @@ class ComponentTemplateParser(HTMLParser):
             if tag_name == "link":
                 href = self.get_attribute(attribute_list, "href")
 
+                # `rel` is needed to make the browser load and apply
+                # stylesheets. If nothing is set, this override serves as a
+                # sensible default since most link tags in components will
+                # reference CSS files.
+                #
+                # TODO: add test for values like "preconnect"
+                rel = self.get_attribute(attribute_list, "rel")
+
+                if not rel:
+                    rel = "stylesheet"
+
                 overrides = {
                     "href": self.resolve_url(
                         url=href,
                     ),
 
-                    # `rel` is needed to make the browser load and apply the
-                    # stylesheet. This override serves as a sensible default.
-                    "rel": "stylesheet",
+                    "rel": rel,
                 }
 
                 attribute_string = self.render_attribute_string(
