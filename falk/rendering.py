@@ -230,6 +230,15 @@ def get_template_context(
         callbacks=None,
 ):
 
+    if extra_template_context is None:
+        extra_template_context = {}
+
+    if parts is None:
+        parts = {}
+
+    if components is None:
+        components = {}
+
     if callbacks is None:
         callbacks = {
 
@@ -265,7 +274,7 @@ def get_template_context(
         "mutable_settings": mutable_app["settings"],
         "mutable_request": mutable_request,
 
-        **(extra_template_context or {}),
+        **extra_template_context,
         **mutable_app["settings"]["extra_template_context"],
 
         # The `falk` namespace is always added last so it can not be
@@ -273,9 +282,9 @@ def get_template_context(
         "falk": {
 
             # internal data
-            "_components": (components or {}),
+            "_components": components,
             "_callbacks": callbacks,
-            "_parts": (parts or {}),
+            "_parts": parts,
 
             # internal API
             "_render_component": _render_component,
