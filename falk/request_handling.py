@@ -6,7 +6,6 @@ from falk.immutable_proxy import get_immutable_proxy
 from falk.dependency_injection import run_callback
 from falk.routing import get_component
 from falk.components import ItWorks
-from falk.http import set_header
 
 from falk.errors import (
     InvalidTokenError,
