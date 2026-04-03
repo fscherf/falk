@@ -4,7 +4,6 @@ from falk.providers.routing import add_route_provider, get_url_provider
 from falk.dependency_injection import run_callback, run_coroutine_sync
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
-from falk.providers.callbacks import run_callback_provider
 from falk.file_uploads import default_file_upload_handler
 from falk.providers.flags import disable_state_provider
 from falk.immutable_proxy import get_immutable_proxy
@@ -13,6 +12,11 @@ from falk.static_files import get_falk_static_dir
 from falk.secrets import get_random_secret
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
+
+from falk.providers.callbacks import (
+    add_callback_provider,
+    run_callback_provider,
+)
 
 from falk.providers.static_files import (
     add_static_dir_provider,
@@ -160,6 +164,7 @@ def get_default_app():
             "set_response_body": set_response_body_provider,
             "set_response_file": set_response_file_provider,
             "set_response_json": set_response_json_provider,
+            "add_callback": add_callback_provider,
             "run_callback": run_callback_provider,
             "get_url": get_url_provider,
             "get_static_url": get_static_url_provider,

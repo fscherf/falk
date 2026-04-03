@@ -7,22 +7,23 @@ def EventDelegationTestComponent(
         props,
         state,
         initial_render,
-        template_context,
+        add_callback,
 ):
 
     if initial_render:
         state["id"] = props.get("id", None)
 
-    template_context.update({
-        "slow_render": lambda: time.sleep(0.5),
-    })
+    def slow_render():
+        time.sleep(0.5)
+
+    add_callback(slow_render)
 
     return """
         <div class="event-delegation-test-component" id="{{ state.id }}">
             <span>#{{ state.id }}:</span>
             <span class="events"></span>
 
-            <button class="render" onclick="{{ falk.run_callback(slow_render) }}">
+            <button class="render" onclick="{{ falk.run_callback('slow_render') }}">
                 Render
             </button>
         </div>

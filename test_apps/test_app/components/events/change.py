@@ -3,15 +3,16 @@ from pprint import pformat
 from test_app.components.base import Base
 
 
-def Change(template_context, Base=Base):
+def Change(template_context, add_callback, Base=Base):
     def format_event_data(event):
         template_context.update({
             "event_data_string": pformat(event),
         })
 
+    add_callback(format_event_data)
+
     template_context.update({
         "event_data_string": "{}",
-        "format_event_data": format_event_data,
     })
 
     return """
@@ -22,24 +23,24 @@ def Change(template_context, Base=Base):
             <form>
                 <div>
                     <label for="text-input-1">Text Input 1:</label>
-                    <input name="text-input-1" type="text" onchange="{{ falk.run_callback(format_event_data) }}">
+                    <input name="text-input-1" type="text" onchange="{{ falk.run_callback('format_event_data') }}">
                 </div>
                 <div>
                     <label for="text-input-2">Text Input 2:</label>
-                    <input name="text-input-2" type="text" onchange="{{ falk.run_callback(format_event_data) }}">
+                    <input name="text-input-2" type="text" onchange="{{ falk.run_callback('format_event_data') }}">
                 </div>
                 <div>
                     <label for="number-input">Number Input:</label>
-                    <input name="number-input" type="number" onchange="{{ falk.run_callback(format_event_data) }}">
+                    <input name="number-input" type="number" onchange="{{ falk.run_callback('format_event_data') }}">
                 </div>
                 <div>
                     <label for="range">Range Input:</label>
-                    <input name="range" type="range" onchange="{{ falk.run_callback(format_event_data) }}">
+                    <input name="range" type="range" onchange="{{ falk.run_callback('format_event_data') }}">
                 </div>
             </form>
 
             <h3>Form</h3>
-            <form onchange="{{ falk.run_callback(format_event_data) }}">
+            <form onchange="{{ falk.run_callback('format_event_data') }}">
                 <div>
                     <label for="text-input-1">Text Input 1:</label>
                     <input name="text-input-1" type="text">

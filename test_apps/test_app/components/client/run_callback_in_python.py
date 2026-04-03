@@ -1,7 +1,7 @@
 from test_app.components.base import Base
 
 
-def Counter(props, state, template_context, initial_render, run_callback):
+def Counter(props, state, initial_render, add_callback, run_callback):
     if initial_render:
         state.update({
             "id": props.get("id", ""),
@@ -26,18 +26,16 @@ def Counter(props, state, template_context, initial_render, run_callback):
     def _run_callback(args):
         run_callback(*args)
 
-    template_context.update({
-        "update": update,
-        "reset": reset,
-        "_run_callback": _run_callback,
-    })
+    add_callback(update)
+    add_callback(reset)
+    add_callback(_run_callback)
 
     return """
         <div id="{{ state.id }}" class="counter">
-            <button class="decrement" onclick="{{ falk.run_callback(_run_callback, ['update', ['dec', 1], '.counter']) }}">-</button>
+            <button class="decrement" onclick="{{ falk.run_callback('_run_callback', ['update', ['dec', 1], '.counter']) }}">-</button>
             <span class="state">{{ state.count }}</span>
-            <button class="increment" onclick="{{ falk.run_callback(_run_callback, ['update', ['inc', 1], '.counter']) }}">+</button>
-            <button class="reset" onclick="{{ falk.run_callback(_run_callback, ['reset', [], '.counter']) }}">Reset</button>
+            <button class="increment" onclick="{{ falk.run_callback('_run_callback', ['update', ['inc', 1], '.counter']) }}">+</button>
+            <button class="reset" onclick="{{ falk.run_callback('_run_callback', ['reset', [], '.counter']) }}">Reset</button>
         </div>
     """  # NOQA
 

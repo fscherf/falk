@@ -16,7 +16,13 @@ class DjangoForm(forms.Form):
     )
 
 
-def DjangoFormComponent(request, template_context, HTML5Base=HTML5Base):
+def DjangoFormComponent(
+        request,
+        template_context,
+        add_callback,
+        HTML5Base=HTML5Base,
+):
+
     form = DjangoForm()
 
     def handle_submit(event):
@@ -36,9 +42,10 @@ def DjangoFormComponent(request, template_context, HTML5Base=HTML5Base):
                 "message": "Invalid value",
             })
 
+    add_callback(handle_submit)
+
     template_context.update({
         "message": "No value",
-        "handle_submit": handle_submit,
         "form": form,
     })
 
@@ -47,7 +54,7 @@ def DjangoFormComponent(request, template_context, HTML5Base=HTML5Base):
             <h1>Django Form</h1>
             <p id="message">{{ message }}</p>
 
-            <form onsubmit="{{ falk.run_callback(handle_submit) }}">
+            <form onsubmit="{{ falk.run_callback('handle_submit') }}">
                 {{ form }}
                 <br/>
                 <input type="submit" value="Submit">

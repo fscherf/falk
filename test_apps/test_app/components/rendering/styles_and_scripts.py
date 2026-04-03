@@ -68,9 +68,9 @@ def StylesAndScripts(Base=Base, Component=Component):
 
 
 def CodeSplitting(
-        template_context,
         state,
         initial_render,
+        add_callback,
         Base=Base,
         Component=Component,
 ):
@@ -81,9 +81,7 @@ def CodeSplitting(
     def load_component():
         state["load_component"] = True
 
-    template_context.update({
-        "load_component": load_component,
-    })
+    add_callback(load_component)
 
     return """
         <Base title="Code Splitting">
@@ -93,7 +91,7 @@ def CodeSplitting(
                 <Component />
             {% else %}
                 <button
-                  onclick="{{ falk.run_callback(load_component) }}"
+                  onclick="{{ falk.run_callback('load_component') }}"
                   id="load-component">
                     Load Component
                 </button>

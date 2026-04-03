@@ -1,7 +1,7 @@
 from test_app.components.base import Base
 
 
-def Counter(template_context, state, initial_render, props):
+def Counter(template_context, state, initial_render, props, add_callback):
     if initial_render:
         state.update({
             "id": props.get("id", ""),
@@ -21,28 +21,26 @@ def Counter(template_context, state, initial_render, props):
     def reset():
         state["count"] = state["initial_value"]
 
-    template_context.update({
-        "update": update,
-        "reset": reset,
-    })
+    add_callback(update)
+    add_callback(reset)
 
     return """
         <div class="counter" id="{{ state.id }}">
             <button
               class="decrement"
-              onclick="{{ falk.run_callback(update, ['dec', 1]) }}"
+              onclick="{{ falk.run_callback('update', ['dec', 1]) }}"
               >-</button>
 
             <span class="state">{{ state.count }}</span>
 
             <button
               class="increment"
-              onclick="{{ falk.run_callback(update, ['inc', 1]) }}"
+              onclick="{{ falk.run_callback('update', ['inc', 1]) }}"
               >+</button>
 
             <button
               class="reset"
-              onclick="{{ falk.run_callback(reset) }}"
+              onclick="{{ falk.run_callback('reset') }}"
               >Reset</button>
 
               {{ props.children }}

@@ -3,7 +3,14 @@ import time
 from test_app.components.base import Base
 
 
-def TimeoutComponent(template_context, state, props, initial_render):
+def TimeoutComponent(
+        template_context,
+        state,
+        props,
+        initial_render,
+        add_callback,
+):
+
     if initial_render:
         state.update({
             "id": props.get("id", ""),
@@ -16,8 +23,9 @@ def TimeoutComponent(template_context, state, props, initial_render):
             "message": "rerender",
         })
 
+    add_callback(slow_callback)
+
     template_context.update({
-        "slow_callback": slow_callback,
         "message": "initial render",
     })
 
@@ -29,7 +37,7 @@ def TimeoutComponent(template_context, state, props, initial_render):
 
             <span>{{ state.id }}:</span>
             <span class="message">{{ message }}</span>
-            <button onclick="{{ falk.run_callback(slow_callback) }}">Rerender</button>
+            <button onclick="{{ falk.run_callback('slow_callback') }}">Rerender</button>
         </div>
 
         <script>

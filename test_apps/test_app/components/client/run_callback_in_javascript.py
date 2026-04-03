@@ -1,7 +1,7 @@
 from test_app.components.base import Base
 
 
-def Counter(props, state, template_context, initial_render):
+def Counter(props, state, initial_render, add_callback):
     if initial_render:
         state.update({
             "id": props.get("id", ""),
@@ -21,10 +21,8 @@ def Counter(props, state, template_context, initial_render):
     def reset():
         state["count"] = state["initial_value"]
 
-    template_context.update({
-        "update": update,
-        "reset": reset,
-    })
+    add_callback(update)
+    add_callback(reset)
 
     return """
         <div

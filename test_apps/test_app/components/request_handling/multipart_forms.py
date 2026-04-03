@@ -25,6 +25,7 @@ def get_component(
     def component(
             request,
             template_context,
+            add_callback,
             handle_file_upload=get_tempfile_upload_handler(
                 max_files=max_files,
                 max_file_size_in_bytes=max_file_size_in_bytes,
@@ -49,8 +50,9 @@ def get_component(
                 }),
             })
 
+        add_callback(handle_submit)
+
         template_context.update({
-            "handle_submit": handle_submit,
             "html_id": html_id,
             "html_name": html_name,
             "token": token,
@@ -72,7 +74,7 @@ def get_component(
                 >{{ files_string }}</pre>
 
 
-                <form onsubmit="{{ falk.run_callback(handle_submit) }}">
+                <form onsubmit="{{ falk.run_callback('handle_submit') }}">
                     <label for="field-1" >Field 1:</label>
                     <input type="text" name="field-1">
                     <br/>
@@ -132,7 +134,7 @@ def FileUploadForm4():
         <div id="form-4">
             <h3>No handler set</h3>
 
-            <form onsubmit="{{ falk.run_callback(render) }}">
+            <form onsubmit="{{ falk.run_callback('render') }}">
                 <label for="field-1" >Field 1:</label>
                 <input type="text" name="field-1">
                 <br/>

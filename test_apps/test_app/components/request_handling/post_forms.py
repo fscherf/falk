@@ -3,7 +3,7 @@ import json
 from test_app.components.base import Base
 
 
-def PostForms(template_context, Base=Base):
+def PostForms(template_context, add_callback, Base=Base):
     def handle_submit(event):
         template_context.update({
             "form_data": event["form_data"],
@@ -22,8 +22,9 @@ def PostForms(template_context, Base=Base):
         if "clear_form" in event["form_data"]:
             template_context["form_data"] = {}
 
+    add_callback(handle_submit)
+
     template_context.update({
-        "handle_submit": handle_submit,
         "form_data": {},
         "form_data_string": "",
     })
@@ -32,7 +33,7 @@ def PostForms(template_context, Base=Base):
         <Base title="POST Forms">
             <h2>POST Forms</h2>
 
-            <form onsubmit="{{ falk.run_callback(handle_submit) }}" method="post">
+            <form onsubmit="{{ falk.run_callback('handle_submit') }}" method="post">
                 <label for="text_field" >Text Field:</label>
                 <input type="text" name="text_field" value="{{ form_data.text_field }}">
                 <br/>

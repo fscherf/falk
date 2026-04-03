@@ -25,16 +25,14 @@ def Iframe(
     """
 
 
-def Iframes(template_context, state, initial_render, Base=Base):
+def Iframes(template_context, state, initial_render, add_callback, Base=Base):
     if initial_render:
         state["active_index"] = 0
 
     def set_active_index(args):
         state["active_index"] = args[0]
 
-    template_context.update({
-        "set_active_index": set_active_index,
-    })
+    add_callback(set_active_index)
 
     return """
         <Base title="iFrames">
@@ -43,7 +41,7 @@ def Iframes(template_context, state, initial_render, Base=Base):
                 {% for i in range(4) %}
                     <span
                       class="tab{% if i == state.active_index %} active{% endif %}"
-                      onClick="{{ falk.run_callback(set_active_index, [i]) }}">
+                      onClick="{{ falk.run_callback('set_active_index', [i]) }}">
                         iFrame #{{ i }}
                     </span>
                 {% endfor %}
@@ -52,7 +50,7 @@ def Iframes(template_context, state, initial_render, Base=Base):
                 {% for i in range(4) %}
                     <iframe
                       class="iframe{% if i == state.active_index %} active{% endif %}"
-                      src="{{ get_url('rendering__iframe', {'index': i}) }}">
+                      src="{{ falk.get_url('rendering__iframe', {'index': i}) }}">
                     </iframe>
                 {% endfor %}
             </div>

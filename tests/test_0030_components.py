@@ -19,21 +19,19 @@ def test_basic_component(page, start_falk_app):
 
     from falk.components import HTML5Base
 
-    def Counter(template_context, state, initial_render):
+    def Counter(initial_render, state, add_callback):
         if initial_render:
             state["counter"] = 1
 
         def increment():
             state["counter"] += 1
 
-        template_context.update({
-            "increment": increment,
-        })
+        add_callback(increment)
 
         return """
             <button
               id="button-{{ state.counter }}"
-              onclick="{{ falk.run_callback(increment) }}">
+              onclick="{{ falk.run_callback('increment') }}">
 
                 {{ state.counter }}
             </button>
@@ -295,19 +293,21 @@ def test_component_execution_errors(page, start_falk_app):
             </HTML5Base>
         """
 
-    def ComponentWithCrashingCallback(template_context, HTML5Base=HTML5Base):
+    def ComponentWithCrashingCallback(
+            add_callback,
+            HTML5Base=HTML5Base,
+    ):
+
         def crashing_callback():
             1 / 0  # raises a ZeroDivisionError
 
-        template_context.update({
-            "crashing_callback": crashing_callback,
-        })
+        add_callback(crashing_callback)
 
         return """
             <HTML5Base>
                 <button
                   id="crash"
-                  onclick="{{ falk.run_callback(crashing_callback) }}">
+                  onclick="{{ falk.run_callback('crashing_callback') }}">
                 </button>
             </HTML5Base>
         """

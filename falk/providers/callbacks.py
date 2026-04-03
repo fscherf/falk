@@ -1,3 +1,15 @@
+def add_callback_provider(callbacks):
+    def add_callback(callback, name=""):
+        if not callable(callback):
+            raise ValueError("callback needs to be callable")
+
+        name = name or callback.__name__
+
+        callbacks[name] = callback
+
+    return add_callback
+
+
 def run_callback_provider(template_context, node_id):
     # TODO: add test for selectors
     # TODO: add test for delays

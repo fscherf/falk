@@ -17,6 +17,7 @@ from falk.errors import (
     ComponentTemplatingError,
     InvalidComponentError,
     UnknownComponentError,
+    BadRequestError,
     FalkError,
 )
 
@@ -90,7 +91,7 @@ def _render_component(
 @pass_context
 def _run_callback(
         template_context,
-        callback_or_callback_name,
+        callback_name,
         callback_args=None,
         selector="self",
         stop_event=True,
@@ -108,28 +109,9 @@ def _run_callback(
             f"{caller_import_string}: {message}",
         )
 
-    # find callback
-    callback_name = ""
-
-    if callable(callback_or_callback_name):
-        if selector != "self":
-            _raise_invalid_component_error(
-                "callback needs to be a string if selector is set",
-            )
-
-        for key, value in template_context.items():
-            if value is callback_or_callback_name:
-                callback_name = key
-
-                break
-
-    elif not isinstance(callback_or_callback_name, str):
-        _raise_invalid_component_error(
-            "callback needs to be a either a callable or a string",
-        )
-
-    else:
-        callback_name = callback_or_callback_name
+    # callback_name
+    if not isinstance(callback_name, str):
+        _raise_invalid_component_error("callback names need to be a strings")
 
     # callback_args
     if callback_args and not isinstance(callback_args, (dict, list)):
@@ -142,7 +124,7 @@ def _run_callback(
     if selector == "self":
 
         # check if callback exist
-        if callback_name not in template_context:
+        if callback_name not in template_context["falk"]["_callbacks"]:
             _raise_invalid_component_error(
                 f"unknown callback '{callback_name}'",
             )
@@ -245,7 +227,16 @@ def get_template_context(
         extra_template_context=None,
         parts=None,
         components=None,
+        callbacks=None,
 ):
+
+    if callbacks is None:
+        callbacks = {
+
+            # This is a simple NOP to make calls like
+            # `{{ falk.run_callback('render') }}` for simply re rendering work.
+            "render": lambda: None,
+        }
 
     return {
         **builtins.__dict__,
@@ -274,10 +265,6 @@ def get_template_context(
         "mutable_settings": mutable_app["settings"],
         "mutable_request": mutable_request,
 
-        # This is a simple NOP to make calls like
-        # `{{ falk.run_callback(render) }}` for simply re rendering work.
-        "render": lambda: None,
-
         **(extra_template_context or {}),
         **mutable_app["settings"]["extra_template_context"],
 
@@ -287,6 +274,7 @@ def get_template_context(
 
             # internal data
             "_components": (components or {}),
+            "_callbacks": callbacks,
             "_parts": (parts or {}),
 
             # internal API
@@ -426,7 +414,14 @@ def render_component(
     if component_props is None:
         component_props = {}
 
-    # setup dependencies and template context
+    # setup callbacks, dependencies, and template context
+    component_callbacks = {
+
+        # This is a simple NOP to make calls like
+        # `{{ falk.run_callback('render') }}` for simply re rendering work.
+        "render": lambda: None,
+    }
+
     data = {
         # meta data
         "caller": component,
@@ -468,6 +463,7 @@ def render_component(
         # (some of them are implicitly immutable due to Python internals)
         "node_id": node_id,
         "state": component_state,
+        "callbacks": component_callbacks,
         "response": response,
         "exception": exception,
     }
@@ -477,6 +473,7 @@ def render_component(
         mutable_request=request,
         extra_template_context=data,
         parts=parts,
+        callbacks=component_callbacks,
 
         # TODO: we inspect the component at least twice here.
         # Explicitly using `get_dependencies()` and inexplicitly
@@ -520,8 +517,7 @@ def render_component(
         return parts
 
     # `run_component_callback` is set to string that points to a callback
-    # in the template context of the component when we receive a
-    # mutation request.
+    # registered by the component component when we receive a mutation request.
     # The callback needs to run before we render the jinja2 template because
     # it will most likely mutate the template context.
     if run_component_callback:
@@ -532,9 +528,16 @@ def render_component(
             "event": request["json"].get("event", {"form_data": {}}),
         })
 
+        if run_component_callback not in component_callbacks:
+            component_import_string = get_import_string(component)
+
+            raise BadRequestError(
+                f"{component_import_string}: unknown callback '{run_component_callback}'",  # NOQA
+            )
+
         try:
             run_callback(
-                callback=template_context[run_component_callback],
+                callback=component_callbacks[run_component_callback],
                 dependencies=dependencies,
                 providers=settings["dependencies"],
                 run_coroutine_sync=settings["run_coroutine_sync"],
