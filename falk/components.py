@@ -51,7 +51,7 @@ def HTML5Base(props, template_context):
             <meta name="theme-color" content="{{ props.theme_color }}">
           {% endif %}
 
-          {% if "favicon" in props %} 
+          {% if "favicon" in props %}
             <link rel="icon" href="{{ props.favicon }}">
           {% endif %}
 
