@@ -1,4 +1,5 @@
 def run_callback_provider(template_context, node_id):
+    # TODO: add test for selectors
     # TODO: add test for delays
 
     def run_callback(
