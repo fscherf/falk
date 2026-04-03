@@ -6,7 +6,7 @@ from falk.request_handling import get_request, handle_request
 from falk.http import set_header
 
 
-def _handle_websocket_message(mutable_app, scope, text):
+def _handle_websocket_request(mutable_app, scope, text):
 
     # setup request
     request = get_request()
@@ -42,7 +42,38 @@ def _handle_websocket_message(mutable_app, scope, text):
     return json.dumps([message_id, response])
 
 
+async def _handle_websocket_message(loop, mutable_app, scope, event, send):
+
+    # We need to run `_handle_websocket_request` in a thread because the
+    # called callback could be synchronous and block the event loop.
+    response_string = await loop.run_in_executor(
+        mutable_app["executor"],
+        lambda: _handle_websocket_request(
+            mutable_app=mutable_app,
+            scope=scope,
+            text=event["text"],
+        ),
+    )
+
+    try:
+        # FIXME: check if "websocket.close" was already send
+
+        await send({
+            "type": "websocket.send",
+            "text": response_string,
+        })
+
+    except RuntimeError:
+        # This can happen if the client disconnects before we were able to
+        # handle the request.
+
+        pass
+
+
 async def handle_websocket(mutable_app, scope, receive, send):
+    # TODO: We had problems with long running callbacks clogging the websocket
+    # connection. It is fixed by introducing tasks but there is no test yet.
+
     loop = asyncio.get_event_loop()
 
     while True:
@@ -62,16 +93,16 @@ async def handle_websocket(mutable_app, scope, receive, send):
 
         # websocket.receive
         elif event["type"] == "websocket.receive":
-            response_string = await loop.run_in_executor(
-                mutable_app["executor"],
-                lambda: _handle_websocket_message(
+
+            # We need to schedule a task here so we can jump back to receiving
+            # new messages immediately. This ensures that a long running
+            # callback can't clog the websocket for other callbacks.
+            loop.create_task(
+                _handle_websocket_message(
+                    loop=loop,
                     mutable_app=mutable_app,
                     scope=scope,
-                    text=event["text"],
+                    event=event,
+                    send=send,
                 ),
             )
-
-            await send({
-                "type": "websocket.send",
-                "text": response_string,
-            })
