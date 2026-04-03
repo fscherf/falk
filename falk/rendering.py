@@ -498,6 +498,8 @@ def render_component(
             run_coroutine_sync=mutable_app["settings"]["run_coroutine_sync"],
         )
 
+    # TODO: Because we catch FalkErrors here, no component name is shown when
+    # an error like ForbiddenError is raised, which makes debugging annoying.
     except FalkError:
         raise
 
@@ -538,6 +540,9 @@ def render_component(
                 run_coroutine_sync=settings["run_coroutine_sync"],
             )
 
+        # TODO: Because we catch FalkErrors here, no component name is shown
+        # when an error like ForbiddenError is raised, which makes
+        # debugging annoying.
         except FalkError:
             raise
 
@@ -597,6 +602,8 @@ def render_component(
         template = Template(component_blocks["jinja2_template"])
         parts["html"] = template.render(template_context)
 
+    # TODO: Because we catch FalkErrors here, no component name is shown when
+    # an error like ForbiddenError is raised, which makes debugging annoying.
     except FalkError:
         raise
 
