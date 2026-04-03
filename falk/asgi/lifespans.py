@@ -4,18 +4,19 @@ import logging
 logger = logging.getLogger("falk")
 
 
-async def run_entry_point(mutable_app, entry_point):
+async def run_entry_point(mutable_app, entry_point_name):
     loop = asyncio.get_event_loop()
 
     def _func():
-        try:
-            entry_point(mutable_app)
+        for entry_point in mutable_app["entry_points"][entry_point_name]:
+            try:
+                entry_point(mutable_app)
 
-        except Exception:
-            logger.exception(
-                "exception raised while running %s",
-                entry_point,
-            )
+            except Exception:
+                logger.exception(
+                    "exception raised while running %s",
+                    entry_point,
+                )
 
     return loop.run_in_executor(
         executor=mutable_app["executor"],
@@ -26,7 +27,7 @@ async def run_entry_point(mutable_app, entry_point):
 async def shutdown(mutable_app, send):
     await run_entry_point(
         mutable_app=mutable_app,
-        entry_point=mutable_app["entry_points"]["on_shutdown"],
+        entry_point_name="on_shutdown",
     )
 
     if mutable_app["executor"]:
@@ -46,7 +47,7 @@ async def handle_lifespan(mutable_app, scope, receive, send):
             if event["type"] == "lifespan.startup":
                 await run_entry_point(
                     mutable_app=mutable_app,
-                    entry_point=mutable_app["entry_points"]["on_startup"],
+                    entry_point_name="on_startup",
                 )
 
                 await send({"type": "lifespan.startup.complete"})

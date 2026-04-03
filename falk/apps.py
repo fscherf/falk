@@ -66,6 +66,11 @@ from falk.providers.responses import (
     set_response_json_provider,
 )
 
+from falk.providers.entry_points import (
+    add_shutdown_callback_provider,
+    add_startup_callback_provider,
+)
+
 
 def get_default_app():
     mutable_app = {
@@ -78,8 +83,8 @@ def get_default_app():
             "default_file_upload_handler": default_file_upload_handler,
         },
         "entry_points": {
-            "on_startup": lambda mutable_app: None,
-            "on_shutdown": lambda mutable_app: None,
+            "on_startup": [],
+            "on_shutdown": [],
         },
         "executor": None,
         "components": {},
@@ -207,6 +212,8 @@ def run_configure_app(configure_app):
             "mutable_settings": mutable_app["settings"],
         },
         providers={
+            "add_startup_callback": add_startup_callback_provider,
+            "add_shutdown_callback": add_shutdown_callback_provider,
             "add_route": add_route_provider,
             "add_static_dir": add_static_dir_provider,
             "get_url": get_url_provider,
