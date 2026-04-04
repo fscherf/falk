@@ -46,6 +46,10 @@ def get_asgi_app(configure_app=None, mutable_app=None):
                 max_workers=mutable_app["settings"]["workers"],
             )
 
+            # run checks
+            if mutable_app["settings"]["debug"]:
+                logger.warning("falk is running in debug mode")
+
         # lifespans
         if scope["type"] == "lifespan":
             await handle_lifespan(
