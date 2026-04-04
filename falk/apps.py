@@ -14,6 +14,11 @@ from falk.secrets import get_random_secret
 from falk.node_ids import get_node_id
 from falk.hashing import get_md5_hash
 
+from falk.providers.settings import (
+    get_setting_provider,
+    set_setting_provider,
+)
+
 from falk.providers.callbacks import (
     add_callback_provider,
     run_callback_provider,
@@ -151,6 +156,8 @@ def get_default_app():
     # settings: dependencies
     mutable_app["settings"].update({
         "dependencies": {
+            "get_setting": get_setting_provider,
+            "set_setting": set_setting_provider,
             "disable_state": disable_state_provider,
             "get_request_header": get_request_header_provider,
             "set_request_header": set_request_header_provider,
@@ -213,6 +220,8 @@ def run_configure_app(configure_app):
             "mutable_settings": mutable_app["settings"],
         },
         providers={
+            "get_setting": get_setting_provider,
+            "set_setting": set_setting_provider,
             "add_dependency": add_dependency_provider,
             "add_startup_callback": add_startup_callback_provider,
             "add_shutdown_callback": add_shutdown_callback_provider,
