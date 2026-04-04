@@ -53,6 +53,8 @@ from falk.providers.requests import (
 )
 
 from falk.providers.middlewares import (
+    add_pre_request_middleware_provider,
+    add_post_request_middleware_provider,
     add_post_component_middleware_provider,
     add_pre_component_middleware_provider,
 )
@@ -104,6 +106,8 @@ def get_default_app():
 
     # settings: middlewares
     mutable_app["settings"].update({
+        "pre_request_middlewares": [],
+        "post_request_middlewares": [],
         "pre_component_middlewares": [
             serve_static_files,
         ],
@@ -228,6 +232,12 @@ def run_configure_app(configure_app):
             "add_route": add_route_provider,
             "add_static_dir": add_static_dir_provider,
             "get_url": get_url_provider,
+
+            "add_pre_request_middleware":
+                add_pre_request_middleware_provider,
+
+            "add_post_request_middleware":
+                add_post_request_middleware_provider,
 
             "add_pre_component_middleware":
                 add_pre_component_middleware_provider,

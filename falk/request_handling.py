@@ -35,8 +35,10 @@ def get_request():
         "post": {},
         "json": {},
         "files": {},
+        "exception": None,
 
         # flags
+        "valid": True,
         "is_mutation_request": False,
 
         # user defined
@@ -156,17 +158,93 @@ def run_component(
         response["body"] = parts["html"]
 
 
-def handle_request(mutable_app, request, exception=None):
+def run_error_component(
+        exception,
+        mutable_app,
+        request,
+        response,
+):
+
+    # When we encounter an `InvalidTokenError` while processing a mutation
+    # request, chances are that we got this request from a valid client,
+    # that has state from before we restarted.
+    # In this case, we just ask the client to reload the page to get new
+    # tokens issued.
+    #
+    # TODO: add test
+    if (isinstance(exception, InvalidTokenError) and
+            request["is_mutation_request"]):
+
+        response.update({
+            "is_finished": True,
+            "json": {
+                "flags": {
+                    "reload": True,
+                },
+            },
+        })
+
+        return response
+
+    if isinstance(exception, HTTPError):
+        status = exception.STATUS.value
+        error_component = mutable_app["settings"][exception.COMPONENT_NAME]
+
+    else:
+        logger.exception("exception raised while handling request")
+
+        status = 500
+
+        error_component = (
+            mutable_app["settings"]["internal_server_error_component"]
+        )
+
+    # reset response
+    response.update({
+        "is_finished": False,
+        "content_type": "text/html",
+        "body": None,
+        "file_path": "",
+        "json": None,
+    })
+
+    if not request["is_mutation_request"]:
+        response["status"] = status
+
+    # run error component
+    run_component(
+        component=error_component,
+        mutable_app=mutable_app,
+        request=request,
+        response=response,
+        exception=exception,
+    )
+
+
+def handle_request(mutable_app, request):
     response = get_response()
     component_state = None
 
     try:
 
+        # pre request middlewares
+        #
+        # The request can be invalid and raise an exception in the next stage.
+        # We still run the pre request middlewares though to give the app an
+        # opportunity to do some logging or telemetry.
+        run_middlewares(
+            middlewares=mutable_app["settings"]["pre_request_middlewares"],
+            request=request,
+            response=response,
+            mutable_app=mutable_app,
+        )
+
         # Re raise exceptions that were catched while parsing the request.
         # This ensures that error components get called correctly.
-        if exception:
-            raise exception
+        if request["exception"]:
+            raise request["exception"]
 
+        # pre component middlewares
         run_middlewares(
             middlewares=mutable_app["settings"]["pre_component_middlewares"],
             request=request,
@@ -174,6 +252,9 @@ def handle_request(mutable_app, request, exception=None):
             mutable_app=mutable_app,
         )
 
+        # Components and post component middlewares only run if the response
+        # was not finished in a pre component middleware. This happens for
+        # static files for example.
         if not response["is_finished"]:
 
             # mutation requests
@@ -225,71 +306,44 @@ def handle_request(mutable_app, request, exception=None):
                 run_component_callback=request["json"].get("callbackName", ""),
             )
 
-        # post component middlewares
+            # post component middlewares
+            run_middlewares(
+                middlewares=(
+                    mutable_app["settings"]["post_component_middlewares"]
+                ),
+                request=request,
+                response=response,
+                mutable_app=mutable_app,
+            )
+
+    except Exception as exception:
+        run_error_component(
+            exception=exception,
+            mutable_app=mutable_app,
+            request=request,
+            response=response,
+        )
+
+    # post request middlewares
+    #
+    # Post request middlewares run in their own try catch block so we can
+    # ensure that no matter where in the pipeline an exception was raised,
+    # these middlewares run, to give the app an opportunity to do logging,
+    # telemetry, or close database connections.
+    try:
         run_middlewares(
-            middlewares=(
-                mutable_app["settings"]["post_component_middlewares"]
-            ),
+            middlewares=mutable_app["settings"]["post_request_middlewares"],
             request=request,
             response=response,
             mutable_app=mutable_app,
         )
 
     except Exception as exception:
-
-        # When we encounter an `InvalidTokenError` while processing a mutation
-        # request, chances are that we got this request from a valid client,
-        # that has state from before we restarted.
-        # In this case, we just ask the client to reload the page to get new
-        # tokens issued.
-        #
-        # TODO: add test
-        if (isinstance(exception, InvalidTokenError) and
-                request["is_mutation_request"]):
-
-            response.update({
-                "is_finished": True,
-                "json": {
-                    "flags": {
-                        "reload": True,
-                    },
-                },
-            })
-
-            return response
-
-        if isinstance(exception, HTTPError):
-            status = exception.STATUS.value
-            error_component = mutable_app["settings"][exception.COMPONENT_NAME]
-
-        else:
-            logger.exception("exception raised while handling request")
-
-            status = 500
-
-            error_component = (
-                mutable_app["settings"]["internal_server_error_component"]
-            )
-
-        # reset response
-        response.update({
-            "is_finished": False,
-            "content_type": "text/html",
-            "body": None,
-            "file_path": "",
-            "json": None,
-        })
-
-        if not request["is_mutation_request"]:
-            response["status"] = status
-
-        # run error component
-        run_component(
-            component=error_component,
+        run_error_component(
+            exception=exception,
             mutable_app=mutable_app,
             request=request,
             response=response,
-            exception=exception,
         )
 
     return response

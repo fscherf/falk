@@ -14,7 +14,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
 
     # setup request
     request = get_request()
-    exception = None
 
     request.update({
         "scheme": scope["scheme"],
@@ -109,8 +108,9 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
                     receive=receive,
                 )
 
-    except Exception as _exception:
-        exception = _exception
+    except Exception as exception:
+        request["valid"] = False
+        request["exception"] = exception
 
     # handle falk request
     response = await loop.run_in_executor(
@@ -118,7 +118,6 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
         lambda: handle_request(
             mutable_app=mutable_app,
             request=request,
-            exception=exception,
         ),
     )
 

@@ -10,7 +10,6 @@ def _handle_websocket_request(mutable_app, scope, text):
 
     # setup request
     request = get_request()
-    exception = None
 
     request["path"] = scope["path"]
     request["query"] = parse_qs(scope["query_string"].decode())
@@ -30,13 +29,13 @@ def _handle_websocket_request(mutable_app, scope, text):
 
         request["json"] = message_data
 
-    except Exception as _exception:
-        exception = _exception
+    except Exception as exception:
+        request["valid"] = False
+        request["exception"] = exception
 
     response = handle_request(
         mutable_app=mutable_app,
         request=request,
-        exception=exception,
     )
 
     return json.dumps([message_id, response])
