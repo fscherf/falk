@@ -2,6 +2,7 @@ import os
 
 from falk.providers.routing import add_route_provider, get_url_provider
 from falk.dependency_injection import run_callback, run_coroutine_sync
+from falk.providers.dependencies import add_dependency_provider
 from falk.middlewares.static_files import serve_static_files
 from falk.utils.environment import get_boolean, get_integer
 from falk.file_uploads import default_file_upload_handler
@@ -212,6 +213,7 @@ def run_configure_app(configure_app):
             "mutable_settings": mutable_app["settings"],
         },
         providers={
+            "add_dependency": add_dependency_provider,
             "add_startup_callback": add_startup_callback_provider,
             "add_shutdown_callback": add_shutdown_callback_provider,
             "add_route": add_route_provider,
