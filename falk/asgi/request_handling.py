@@ -135,7 +135,7 @@ async def handle_http_request(mutable_app, event, scope, receive, send):
 
         # headers
         headers = [
-            (name.encode(), value.encode())
+            (str(name).encode("utf-8"), str(value).encode("utf-8"))
             for name, value in response["headers"].items()
         ]
 
