@@ -22,14 +22,15 @@ def get_request():
         # scope
         "headers": {},
         "cookie": SimpleCookie(),
+        "client": None,
+        "server": None,
         "scheme": "http",
         "root_path": "",
         "raw_path": "",
-        "path": "",
         "method": "GET",
+        "path": "",
         "query": {},
-        "client": None,
-        "server": None,
+        "match_info": {},
 
         # body
         "post": {},
