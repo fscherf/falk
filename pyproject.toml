@@ -14,7 +14,21 @@ authors = [
 ]
 
 readme = "README.md"
+license = "MIT"
 license-files = ["LICENSE.txt"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: AsyncIO",
+  "Framework :: Django",
+  "Framework :: Pytest",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python",
+  "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Software Development :: User Interfaces",
+]
 
 dependencies = [
   "jinja2",
