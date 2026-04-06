@@ -70,6 +70,39 @@ def test_basic_component(page, start_falk_app):
 
 
 @pytest.mark.only_browser("chromium")
+def test_request_match_info(page, start_falk_app):
+    """
+    This test tests request match infos by implementing a simple component
+    that shows the match info keys `a` and `b` to the screen, and mounts it
+    behind a simple route that defines these two keys.
+
+    The test is successful if opening the view with `a` and `b` encoded into
+    the URL, yields both keys shown to the screen.
+    """
+
+    def Index():
+        return """
+            <div>
+                <h1>{{ request.match_info.a }}</h1>
+                <h2>{{ request.match_info.b }}</h2>
+            </div>
+        """
+
+    def configure_app(add_route):
+        add_route(r"/<a>/<b>(/)", Index)
+
+    _, base_url, _ = start_falk_app(
+        configure_app=configure_app,
+    )
+
+    # run test
+    page.goto(base_url + "/foo/bar")
+
+    assert page.inner_text("h1") == "foo"
+    assert page.inner_text("h2") == "bar"
+
+
+@pytest.mark.only_browser("chromium")
 def test_prop_passing(page, start_falk_app):
     """
     This test tests whether passing all props of a component to another
