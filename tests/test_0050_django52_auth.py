@@ -70,11 +70,9 @@ def _get_error_message(page):
 def test_login_url_redirects(page, start_falk_app):
     from falk.routing import encode_query
 
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     _wait_for_database()
 
@@ -105,11 +103,9 @@ def test_login_url_redirects(page, start_falk_app):
 def test_require_login(page, start_falk_app):
     from falk.routing import encode_query
 
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     _wait_for_database()
 
@@ -132,11 +128,9 @@ def test_require_login(page, start_falk_app):
 def test_require_staff(page, start_falk_app):
     from falk.routing import encode_query
 
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     _wait_for_database()
 
@@ -159,11 +153,9 @@ def test_require_staff(page, start_falk_app):
 def test_require_permissions(page, start_falk_app):
     from falk.routing import encode_query
 
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     auth_url = base_url + "/auth"
 
@@ -242,11 +234,9 @@ def test_require_permissions(page, start_falk_app):
 def test_require_groups(page, start_falk_app):
     from falk.routing import encode_query
 
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     auth_url = base_url + "/auth"
 

@@ -3,11 +3,9 @@ import pytest
 
 @pytest.mark.only_browser("chromium")
 def test_forms(page, start_falk_app):
-    from django52_test_app.app import asgi_app
+    from django52_test_app.app import configure_app
 
-    _, base_url, _ = start_falk_app(
-        asgi_app=asgi_app,
-    )
+    _, base_url, _ = start_falk_app(configure_app)
 
     auth_url = base_url + "/forms"
 
