@@ -6,6 +6,7 @@ from falk.asgi.request_handling import handle_http_request
 from falk.asgi.websockets import handle_websocket
 from falk.asgi.lifespans import handle_lifespan
 from falk.apps import run_configure_app
+from falk.routing import get_component
 
 logger = logging.getLogger("falk")
 
@@ -15,6 +16,8 @@ def get_asgi_app(configure_app=None, mutable_app=None):
 
     async def app(scope, receive, send):
         # FIXME: if `mutable_app` is provided, the executor is never set up
+
+        loop = asyncio.get_running_loop()
 
         # setup
         if not mutable_app:
@@ -29,8 +32,6 @@ def get_asgi_app(configure_app=None, mutable_app=None):
                 raise
 
             # setup async support
-            loop = asyncio.get_running_loop()
-
             def run_coroutine_sync(coroutine):
                 future = asyncio.run_coroutine_threadsafe(
                     coro=coroutine,
@@ -60,6 +61,31 @@ def get_asgi_app(configure_app=None, mutable_app=None):
             )
 
             return
+
+        # mounted ASGI apps
+        asgi_component, _ = await loop.run_in_executor(
+            mutable_app["executor"],
+            lambda: get_component(
+                routes=mutable_app["routes"],
+                path=scope["path"],
+                asgi_interface=True,
+            )
+        )
+
+        if asgi_component:
+            try:
+                return await asgi_component(
+                    mutable_app=mutable_app,
+                    asgi_scope=scope,
+                    asgi_receive=receive,
+                    asgi_send=send,
+                )
+
+            except Exception:
+                logger.exception(
+                    "exception raised while running %s",
+                    asgi_component,
+                )
 
         # websockets
         elif scope["type"] == "websocket":

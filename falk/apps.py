@@ -250,7 +250,7 @@ def run_configure_app(configure_app):
     # setup component registry
     for route in mutable_app["routes"]:
         mutable_app["settings"]["register_component"](
-            component=route[1],
+            component=route[2],
             mutable_app=mutable_app,
         )
 

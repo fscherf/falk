@@ -134,3 +134,12 @@ class InvalidPathError(RoutingError):
 
 class InvalidRouteArgsError(RoutingError):
     pass
+
+
+# ASGI
+class AsgiError(FalkError):
+    pass
+
+
+class InvalidMountPointError(AsgiError):
+    pass

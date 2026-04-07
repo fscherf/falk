@@ -1,4 +1,5 @@
 from urllib.parse import urlencode
+import inspect
 import re
 
 from falk.errors import (
@@ -12,6 +13,12 @@ PARTS_RE = re.compile(r"<(?P<name>[^:>]+)(:(?P<pattern>[^>]+))?>")
 ROUTE_PART_FORMAT_STRING = r"(?P<{}>{})"
 DEFAULT_PART_PATTERN = r"[^/]+"
 OPTIONAL_TRAILING_SLASH_PATTERN = r"(/)"
+
+
+def is_asgi_component(component):
+    parameters = inspect.signature(component).parameters
+
+    return "asgi_scope" in parameters.keys()
 
 
 def encode_query(url="", query=None):
@@ -83,6 +90,7 @@ def get_route(pattern, component, name=""):
         format_string += "/"
 
     return (
+        is_asgi_component(component),
         pattern_re,
         component,
         format_string,
@@ -90,22 +98,39 @@ def get_route(pattern, component, name=""):
     )
 
 
-def get_component(routes, path):
+def get_component(routes, path, asgi_interface=False):
     if not path.startswith("/"):
         raise InvalidPathError(
             'all paths have to start with "/"',
         )
 
     for route in routes:
-        pattern = route[0]
+        _is_asgi_component = route[0]
+
+        if _is_asgi_component is not asgi_interface:
+            continue
+
+        pattern = route[1]
         match_object = pattern.match(path)
 
         if not match_object:
             continue
 
-        return route[1], match_object.groupdict()
+        return route[2], match_object.groupdict()
 
     return None, None
+
+
+def get_asgi_components(routes):
+    components = []
+
+    for _is_asgi_component, _, component, _, _ in routes:
+        if not _is_asgi_component:
+            continue
+
+        components.append(component)
+
+    return components
 
 
 def get_url(
@@ -121,13 +146,13 @@ def get_url(
     route = None
 
     for _route in routes:
-        if _route[3] == route_name:
+        if _route[4] == route_name:
             route = _route
 
     if not route:
         raise UnknownRouteError(f'no route with name "{route_name}" found')
 
-    pattern_re, _, format_string, _ = route
+    _, pattern_re, _, format_string, _ = route
 
     # run format string
     try:

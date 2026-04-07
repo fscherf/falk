@@ -1,7 +1,7 @@
 from django52_test_app.asgi import application as django_asgi_app
 
 from falk.contrib.django.auth import DjangoUserMiddleware
-from falk.asgi import get_asgi_app
+from falk.asgi import get_asgi_app, Mount
 
 from django52_test_app.components.forms import DjangoFormComponent
 from django52_test_app.components.auth import AuthComponent
@@ -15,25 +15,12 @@ def configure_app(mutable_settings, add_route, add_pre_component_middleware):
 
     add_pre_component_middleware(DjangoUserMiddleware)
 
+    add_route(r"/_django/<path:.*>", Mount(django_asgi_app, lifespan=False))
+    add_route(r"/admin/<path:.*>", Mount(django_asgi_app, lifespan=False))
+
     add_route(r"/forms(/)", DjangoFormComponent)
     add_route(r"/auth(/)", AuthComponent)
     add_route(r"/", Index)
 
 
-falk_asgi_app = get_asgi_app(configure_app)
-
-
-async def asgi_app(scope, receive, send):
-    # TODO: This poor-mans routing would not be necessary if we had an ASGI
-    # container component of some sort that could be used with `add_route`.
-
-    django_prefixes = (
-        "/_django/",
-        "/admin",
-    )
-
-    for prefix in django_prefixes:
-        if scope["path"].startswith(prefix):
-            return await django_asgi_app(scope, receive, send)
-
-    return await falk_asgi_app(scope, receive, send)
+asgi_app = get_asgi_app(configure_app)
