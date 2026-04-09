@@ -1,25 +1,3 @@
-# falk
-
-[![PyPI - Version](https://img.shields.io/pypi/v/falk)](https://pypi.org/project/falk)
-[![PyPI - License](https://img.shields.io/pypi/l/falk)](https://github.com/fscherf/falk/blob/master/LICENSE.txt)
-
-falk is a Python based web framework for responsive server components. falk
-components hold their state cryptographically signed on the client side. This
-makes the server fully stateless and easy to scale.
-
-falk components can contain business logic, HTML markup, external and inline
-stylesheets and scripts, can communicate with the server over HTTP REST
-or websockets.
-
-
-## Demo
-
-![Demo](./demo.gif)
-
-```python
-# pip install uvicorn[websocket] falk
-# uvicorn --app-dir=./ demo:app
-
 from falk.components import HTML5Base
 from falk.asgi import get_asgi_app
 
@@ -82,4 +60,3 @@ def configure_app(set_setting, add_route):
 
 
 app = get_asgi_app(configure_app)
-```
