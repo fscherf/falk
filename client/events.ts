@@ -1,30 +1,15 @@
-export const dumpEvent = (event: Event) => {
-  // TODO: add a proper `EventData` type
-  const eventData = {
-    // keys in `eventData` contain underscores so they are consistent with
-    // other data structures on the server
+import { EventData } from "./types";
+
+export const dumpEvent = (event: Event | undefined) => {
+  const eventData: EventData = {
     eventData: {
-      // contains a name like "submit" or "click"
       type: "",
-
-      // If the target element of the event is an input, this contains
-      // the value.
       data: undefined,
-
-      // If the target element of the event is a form, this contains the
-      // full form data.
       form_data: {},
     },
-
-    // multipart
-    // If the target element of the event is a form that contains file
-    // inputs, this contains the upload token (if present) and the file inputs
-    // and all files with zero size.
     uploadToken: "",
     files: [],
   };
-
-  const files = [];
 
   // The event is `undefined` when handling non-standard event handler
   // like `onRender`.
@@ -56,7 +41,7 @@ export const dumpEvent = (event: Event) => {
         if (value instanceof File) {
           // skip empty file fields
           if (value.size > 0) {
-            eventData.files.push({ key, file: value });
+            eventData.files.push({ key: key, file: value });
           }
         } else {
           // form data
@@ -72,7 +57,7 @@ export const dumpEvent = (event: Event) => {
       eventData.eventData.data = inputElement.value;
 
       if (inputElement.hasAttribute("name")) {
-        const inputName: string = inputElement.getAttribute("name");
+        const inputName: string = inputElement.getAttribute("name") as string;
 
         if (inputName) {
           eventData.eventData.form_data[inputName] = inputElement.value;

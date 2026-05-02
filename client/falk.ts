@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    falk: Falk;
+  }
+}
+
 import {
   patchNode,
   patchNodeAttributes,
@@ -13,27 +19,34 @@ import { dumpEvent } from "./events";
 import { MutationRequestResponse } from "./types";
 
 class Falk {
-  public httpTransport: HTTPTransport;
-  public websocketTransport: WebsocketTransport;
+  public httpTransport: HTTPTransport | undefined;
+  public websocketTransport: WebsocketTransport | undefined;
 
-  public settings: Object;
-  public tokens: Object;
+  public settings: Record<string, any>;
+  public tokens: Record<string, string>;
   public initialCallbacks: Array<any>;
 
   private requestId: number;
 
-  public init = async () => {
+  constructor() {
+    this.settings = {};
+    this.tokens = {};
+    this.initialCallbacks = new Array();
     this.requestId = 1;
+  }
 
-    // setup transports
-    this.httpTransport = new HTTPTransport();
-    this.websocketTransport = new WebsocketTransport();
-
+  public init = async () => {
     const _init = async () => {
-      const htmlElement = document.querySelector("html");
+      // setup transports
+      this.httpTransport = new HTTPTransport();
+      this.websocketTransport = new WebsocketTransport();
 
       // run beforeinit event handler
-      this.dispatchEvent("beforeinit", htmlElement);
+      const htmlElement = document.querySelector("html");
+
+      if (htmlElement) {
+        this.dispatchEvent("beforeinit", htmlElement);
+      }
 
       // try to connect websocket
       if (this.settings["websockets"]) {
@@ -43,7 +56,7 @@ class Falk {
       // dispatch initialRender events
       iterFalkComponents({
         rootNode: document.body,
-        callback: (node: HTMLElement) => {
+        callback: (node: Element) => {
           if (!nodeIsUiNode(node)) {
             return;
           }
@@ -78,12 +91,12 @@ class Falk {
   // events
   public dispatchEvent = (
     shortName: string,
-    element: HTMLElement,
+    element: Element,
     extraDetail?: Object,
   ) => {
     const attributeName: string = `on${shortName}`;
     const eventName: string = `falk:${shortName}`;
-    const attribute = element.getAttribute(attributeName);
+    const attribute = element.getAttribute(attributeName) ?? "";
     const fn: Function = new Function("event", attribute);
     const nodeId: string = getFalkNodeId(element);
 
@@ -108,8 +121,12 @@ class Falk {
     element.dispatchEvent(event);
   };
 
-  public filterEvents = (selector: string, callback: (event) => any) => {
-    return (event) => {
+  public filterEvents = (selector: string, callback: (event: Event) => any) => {
+    return (event: Event) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
       if (!event.target.matches(selector)) {
         return;
       }
@@ -118,11 +135,11 @@ class Falk {
     };
   };
 
-  private on = (...args) => {
+  private on = (...args: Array<any>) => {
     const eventShortName: string = args[0];
     const eventName: string = `falk:${eventShortName}`;
     let selector: string;
-    let callback: (event) => any;
+    let callback: (event: Event) => any;
 
     // falk.on("render", event => { console.log(event));
     if (args.length == 2) {
@@ -156,7 +173,7 @@ class Falk {
     // TODO: add test that checks whether the awaiting actually works
 
     const callbacksDone = new Array();
-    let nodes: Array<HTMLElement>;
+    let nodes: Array<Element> = new Array();
 
     // parse options string
     if (options.optionsString) {
@@ -200,6 +217,10 @@ class Falk {
       const promise = new Promise((resolve) => {
         setTimeout(
           async () => {
+            if (!this.httpTransport || !this.websocketTransport) {
+              throw "falk is not initialized correctly";
+            }
+
             // run beforerequest hook
             this.dispatchEvent("beforerequest", node, {
               requestId: requestId,
@@ -244,7 +265,7 @@ class Falk {
 
             // handle reloads
             // TODO: add test for reloads
-            if (response.valid && response.flags.reload) {
+            if (response.valid && response.flags && response.flags.reload) {
               window.location.reload();
 
               return;
@@ -263,8 +284,12 @@ class Falk {
 
             // rendering
             // TODO: remove rendering flags
-            const render: boolean =
-              !response.flags.skipRendering || response.flags.forceRendering;
+            let render: boolean = true;
+
+            if (response.flags) {
+              render =
+                !response.flags.skipRendering || response.flags.forceRendering;
+            }
 
             // parse response HTML
             if (render) {
@@ -280,10 +305,10 @@ class Falk {
                 "link[rel=stylesheet]",
               );
 
-              linkNodes.forEach((node: HTMLLinkElement) => {
+              linkNodes.forEach((node: Element) => {
                 // check if style is already loaded
                 let selector: string;
-                const styleHref: string = node.getAttribute("href");
+                const styleHref: string | null = node.getAttribute("href");
 
                 if (styleHref) {
                   selector = `link[href="${styleHref}"]`;
@@ -307,7 +332,7 @@ class Falk {
               styleNodes.forEach((node: HTMLStyleElement) => {
                 // check if style is already loaded
                 const styleId: string = getFalkNodeId(node);
-                const selector = `style[fx-id="${styleId}"]`;
+                const selector: string = `style[fx-id="${styleId}"]`;
 
                 if (document.querySelector(selector)) {
                   return;
@@ -324,7 +349,7 @@ class Falk {
               scriptNodes.forEach((node: HTMLScriptElement) => {
                 // check if script is already loaded
                 let selector: string;
-                const scriptSrc: string = node.getAttribute("src");
+                const scriptSrc: string | null = node.getAttribute("src");
 
                 if (scriptSrc) {
                   selector = `script[src="${scriptSrc}"]`;
@@ -372,7 +397,7 @@ class Falk {
                 patchNodeAttributes({
                   fromNode: node,
                   toNode: newDocument.children[0] as HTMLElement,
-                  onRender: (node: HTMLElement) => {
+                  onRender: (node: Element) => {
                     this.dispatchEvent("render", node);
                   },
                 });
@@ -386,15 +411,15 @@ class Falk {
                   toNode: newDocument.body,
                   eventType: eventType,
 
-                  onInitialRender: (node: HTMLElement) => {
+                  onInitialRender: (node: Element) => {
                     this.dispatchEvent("initialrender", node);
                   },
 
-                  onRender: (node: HTMLElement) => {
+                  onRender: (node: Element) => {
                     this.dispatchEvent("render", node);
                   },
 
-                  onBeforeUnmount: (node: HTMLElement) => {
+                  onBeforeUnmount: (node: Element) => {
                     this.dispatchEvent("beforeunmount", node);
 
                     // remove obsolete token
@@ -410,18 +435,18 @@ class Falk {
               } else {
                 patchNode({
                   fromNode: node,
-                  toNode: newDocument.body.firstChild as HTMLElement,
+                  toNode: newDocument.body.firstChild as Element,
                   eventType: eventType,
 
-                  onInitialRender: (node: HTMLElement) => {
+                  onInitialRender: (node: Element) => {
                     this.dispatchEvent("initialrender", node);
                   },
 
-                  onRender: (node: HTMLElement) => {
+                  onRender: (node: Element) => {
                     this.dispatchEvent("render", node);
                   },
 
-                  onBeforeUnmount: (node: HTMLElement) => {
+                  onBeforeUnmount: (node: Element) => {
                     this.dispatchEvent("beforeunmount", node);
                   },
                 });
@@ -433,12 +458,12 @@ class Falk {
             // morphdom removes all tokens for us that are not needed anymore,
             // and before we run the hooks because the hooks need the tokens to
             // be updated.
-            for (const [key, value] of Object.entries(response.tokens)) {
+            for (const [key, value] of Object.entries(response.tokens ?? {})) {
               this.tokens[key] = value;
             }
 
             // run callbacks
-            this.runCallbacks(response.callbacks);
+            this.runCallbacks(response.callbacks ?? []);
 
             // end callback
             resolve(null);
@@ -466,4 +491,4 @@ class Falk {
   };
 }
 
-window["falk"] = new Falk();
+window.falk = new Falk();

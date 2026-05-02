@@ -8,21 +8,21 @@ export function nodeIsElement(node: Node) {
   return node.nodeType == Node.ELEMENT_NODE;
 }
 
-export function nodeIsUiNode(node: HTMLElement) {
+export function nodeIsUiNode(node: Element) {
   return !["SCRIPT", "LINK", "STYLE"].includes(node.tagName);
 }
 
 // node ids
-export function nodeHasFalkNodeId(node: HTMLElement) {
+export function nodeHasFalkNodeId(node: Element) {
   return node.hasAttribute(FALK_NODE_ID_ATTRIBUTE_NAME);
 }
 
-export function getFalkNodeId(node: HTMLElement) {
-  return node.getAttribute(FALK_NODE_ID_ATTRIBUTE_NAME);
+export function getFalkNodeId(node: Element) {
+  return node.getAttribute(FALK_NODE_ID_ATTRIBUTE_NAME) ?? "";
 }
 
 // render modes
-export function getChildrenRenderMode(node: HTMLElement) {
+export function getChildrenRenderMode(node: Element) {
   const modeString = node.getAttribute(FALK_RENDER_ATTRIMUTE_NAME) || "";
 
   if (modeString.includes("children-skip")) {
@@ -38,16 +38,14 @@ export function getChildrenRenderMode(node: HTMLElement) {
 
 // helper
 export function iterFalkComponents(options: {
-  rootNode: HTMLElement;
-  callback: (node: HTMLElement) => any;
-  skipNodes?: Array<HTMLElement>;
+  rootNode: Element;
+  callback: (node: Element) => any;
+  skipNodes?: Array<Element>;
 }) {
-  if (!options.skipNodes) {
-    options.skipNodes = new Array();
-  }
+  const skipNodes: Array<Element> = options.skipNodes ?? [];
 
-  Array.from(options.rootNode.children).forEach((child: HTMLElement) => {
-    if (options.skipNodes.includes(child)) {
+  Array.from(options.rootNode.children).forEach((child: Element) => {
+    if (skipNodes.includes(child)) {
       return;
     }
 
@@ -58,7 +56,7 @@ export function iterFalkComponents(options: {
     iterFalkComponents({
       rootNode: child,
       callback: options.callback,
-      skipNodes: options.skipNodes,
+      skipNodes: skipNodes,
     });
   });
 
@@ -71,12 +69,12 @@ export function iterFalkComponents(options: {
 
 // node patching
 export function patchNode(options: {
-  fromNode: HTMLElement;
-  toNode: HTMLElement;
+  fromNode: Element;
+  toNode: Element;
   eventType: string;
-  onInitialRender: (node: HTMLElement) => any;
-  onRender: (node: HTMLElement) => any;
-  onBeforeUnmount: (node: HTMLElement) => any;
+  onInitialRender: (node: Element) => any;
+  onRender: (node: Element) => any;
+  onBeforeUnmount: (node: Element) => any;
 }) {
   // TODO: add tests for render modes
   // TODO: add tests for preserving form input
@@ -85,24 +83,26 @@ export function patchNode(options: {
   const skipNodes: Array<HTMLElement> = new Array();
 
   morphdom(options.fromNode, options.toNode, {
-    getNodeKey: (node: HTMLElement) => {
+    getNodeKey: (node: Node) => {
       if (!nodeIsElement(node)) {
         return;
       }
+
+      const _node = node as Element;
 
       // If the given node has set a render mode
       // (`fx-render="children-append"`), we need a user set id (`Node.id`) to
       // correctly identify the new and the old node because the falk node id
       // (`fx-id`) is short lived and not reproducible.
-      if (node.hasAttribute(FALK_RENDER_ATTRIMUTE_NAME)) {
-        return node.id;
+      if (_node.hasAttribute(FALK_RENDER_ATTRIMUTE_NAME)) {
+        return _node.id;
       }
 
-      if (nodeHasFalkNodeId(node)) {
-        return getFalkNodeId(node);
+      if (nodeHasFalkNodeId(_node)) {
+        return getFalkNodeId(_node);
       }
 
-      return node.id;
+      return _node.id;
     },
 
     onBeforeElUpdated: (fromEl: HTMLElement, toEl: HTMLElement) => {
@@ -130,14 +130,12 @@ export function patchNode(options: {
       return true;
     },
 
-    onBeforeElChildrenUpdated: (fromEl: HTMLElement, toEl: HTMLElement) => {
+    onBeforeElChildrenUpdated: (fromEl: Element, toEl: Element) => {
       // remove non-UI nodes
       // We never add scripts or styles while rendering. Only while loading.
-      toEl
-        .querySelectorAll("link,style,script")
-        .forEach((node: HTMLElement) => {
-          node.remove();
-        });
+      toEl.querySelectorAll("link,style,script").forEach((value: Element) => {
+        value.remove();
+      });
 
       const childrenRendernMode: string = getChildrenRenderMode(fromEl);
 
@@ -187,11 +185,13 @@ export function patchNode(options: {
 
         return false;
       }
+
+      throw `unknown render mode: ${childrenRendernMode}`;
     },
 
     onBeforeNodeDiscarded: (node: Node) => {
       // We never discard scripts or styles while rendering.
-      if (!nodeIsUiNode(node as HTMLElement)) {
+      if (!nodeIsUiNode(node as Element)) {
         return false;
       }
 
@@ -202,8 +202,8 @@ export function patchNode(options: {
       // the node still exists and is mounted to the document.
       if (nodeIsElement(node)) {
         iterFalkComponents({
-          rootNode: node as HTMLElement,
-          callback: (componentRootNode: HTMLElement) => {
+          rootNode: node as Element,
+          callback: (componentRootNode: Element) => {
             options.onBeforeUnmount(componentRootNode);
           },
         });
@@ -222,7 +222,7 @@ export function patchNode(options: {
   iterFalkComponents({
     rootNode: options.fromNode,
     skipNodes: skipNodes,
-    callback: (componentRootNode: HTMLElement) => {
+    callback: (componentRootNode: Element) => {
       if (componentRootNode != options.fromNode) {
         options.onInitialRender(componentRootNode);
       }
@@ -233,13 +233,13 @@ export function patchNode(options: {
 }
 
 export function patchNodeAttributes(options: {
-  fromNode: HTMLElement;
-  toNode: HTMLElement;
-  onRender: (node: HTMLElement) => any;
+  fromNode: Element;
+  toNode: Element;
+  onRender: (node: Element) => any;
 }) {
   // patch node
   morphdom(options.fromNode, options.toNode, {
-    onBeforeElChildrenUpdated: (fromEl: HTMLElement, toEl: HTMLElement) => {
+    onBeforeElChildrenUpdated: (fromEl: Element, toEl: Element) => {
       // ignore all children
       return false;
     },

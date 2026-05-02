@@ -1,14 +1,14 @@
 import { MutationRequestResponse } from "./types";
 
 export class WebsocketTransport {
-  private websocket: WebSocket;
+  private websocket: WebSocket | undefined;
   private messageIdCounter: number;
 
   private pendingRequests: Map<
     number,
     {
-      resolve: (value: unknown) => void;
-      reject: (reason?: unknown) => void;
+      resolve: (value: any) => void;
+      reject: (reason?: any) => void;
     }
   >;
 
@@ -18,10 +18,21 @@ export class WebsocketTransport {
     this.available = await this.connect();
   };
 
+  constructor() {
+    this.websocket = undefined;
+    this.available = false;
+    this.messageIdCounter = 1;
+    this.pendingRequests = new Map();
+  }
+
   private handleMessage = (event: MessageEvent) => {
     const [messageId, messageData] = JSON.parse(event.data);
     const responseData = messageData.json;
     const promiseCallbacks = this.pendingRequests.get(messageId);
+
+    if (!promiseCallbacks) {
+      throw `unknown message id: ${messageId}`;
+    }
 
     const mutationRequestResponse: MutationRequestResponse = {
       valid: true,
@@ -79,8 +90,18 @@ export class WebsocketTransport {
   }): Promise<MutationRequestResponse> => {
     return new Promise(async (resolve, reject) => {
       // connect websocket if necessary
-      if (this.websocket.readyState !== this.websocket.OPEN) {
+      if (
+        !this.websocket ||
+        this.websocket.readyState !== this.websocket.OPEN
+      ) {
         await this.connect();
+      }
+
+      if (!this.websocket) {
+        // FIXME: if this happens we should flag this transport as unavailable
+        // and retry the request using HTTP.
+
+        throw "websocket not available";
       }
 
       // send request

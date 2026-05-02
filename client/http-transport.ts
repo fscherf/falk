@@ -1,7 +1,7 @@
 import { MutationRequestResponse } from "./types";
 
 export class HTTPTransport {
-  private headers = {
+  private headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-Falk-Request-Type": "mutation",
   };
