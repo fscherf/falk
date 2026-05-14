@@ -1,7 +1,7 @@
 import tempfile
 import logging
-import os
 
+from falk.utils.path import resolve_path
 from falk.errors import BadRequestError
 
 logger = logging.getLogger("falk.file-uploads")
@@ -48,9 +48,12 @@ def get_tempfile_upload_handler(
                         f"max_files of {max_files} exceeded",
                     )
 
-                abs_path = os.path.join(
-                    upload_state["temp_dir"].name,
-                    filename,
+                abs_path = resolve_path(
+                    safe_base_paths=[
+                        upload_state["temp_dir"].name,
+                    ],
+                    unsafe_path=filename,
+                    is_direct_child=True,
                 )
 
                 upload_state["file_handles"][name] = open(abs_path, "wb+")

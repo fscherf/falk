@@ -206,17 +206,21 @@ async def handle_multipart_body(
         receive=receive,
     )
 
-    run_file_upload_handler(
-        handler=handler,
-        handler_dependencies=handler_dependencies,
-        handler_state=handler_state,
-        mutable_app=mutable_app,
-        request=request,
-        event="upload-start",
-        name="",
-        filename="",
-        chunk=b"",
-    )
+    try:
+        run_file_upload_handler(
+            handler=handler,
+            handler_dependencies=handler_dependencies,
+            handler_state=handler_state,
+            mutable_app=mutable_app,
+            request=request,
+            event="upload-start",
+            name="",
+            filename="",
+            chunk=b"",
+        )
 
-    async for chunk in chunks:
-        parser.write(chunk)
+        async for chunk in chunks:
+            parser.write(chunk)
+
+    except FileNotFoundError as exception:
+        raise BadRequestError() from exception

@@ -225,3 +225,85 @@ def test_post_multipart_requests(args, page, start_falk_app):
             )
 
             assert file_data == args["file_data"]
+
+
+@pytest.mark.only_browser("chromium")
+def test_malicious_file_names(page, start_falk_app, tmp_path):
+    """
+    This test tries to upload a file into a temporary directory that was
+    created by this test, not by falk, outside any safe locations.
+
+    If this succeeds, the test is failed.
+    """
+
+    from pathlib import Path
+
+    import requests
+
+    from test_app.app import configure_app
+
+    # We need a valid upload token first. The easiest way to get a valid one
+    # is to spin up the test project, go to `/request-handling/multipart-forms`
+    # and extract it from the form.
+    _, base_url, _ = start_falk_app(configure_app=configure_app)
+    form_url = base_url + "/request-handling/multipart-forms"
+
+    page.goto(form_url)
+    page.wait_for_selector("h2:text('Multipart Forms')")
+
+    upload_token = page.locator(
+        "#form-1 input[name='falk/upload-token']",
+    ).get_attribute("value")
+
+    # sub path
+    rel_path = Path("some-directory/pwned.txt")
+    abs_path = tmp_path / rel_path
+
+    response = requests.post(
+        form_url,
+        files={
+            "file-1": (str(rel_path), b"pwned", "text/plain"),
+        },
+        headers={
+            "X-Falk-Request-Type": "mutation",
+            "X-Falk-Upload-Token": upload_token,
+        },
+    )
+
+    assert "400 Bad Request:" in response.text
+    assert not abs_path.exists()
+
+    # absolute path
+    abs_path = tmp_path / "pwned.txt"
+
+    response = requests.post(
+        form_url,
+        files={
+            "file-1": (str(abs_path), b"pwned", "text/plain"),
+        },
+        headers={
+            "X-Falk-Request-Type": "mutation",
+            "X-Falk-Upload-Token": upload_token,
+        },
+    )
+
+    assert "400 Bad Request:" in response.text
+    assert not abs_path.exists()
+
+    # relative path
+    rel_path = Path("../../app/pwned.txt")
+    abs_path = Path("/app/pwned.txt")
+
+    response = requests.post(
+        form_url,
+        files={
+            "file-1": (str(rel_path), b"pwned", "text/plain"),
+        },
+        headers={
+            "X-Falk-Request-Type": "mutation",
+            "X-Falk-Upload-Token": upload_token,
+        },
+    )
+
+    assert "400 Bad Request:" in response.text
+    assert not abs_path.exists()
