@@ -1,17 +1,8 @@
-import os
-
+from falk.utils.path import resolve_path
 from falk.errors import NotFoundError
 
 
-def serve_static_files(
-        request,
-        response,
-        settings,
-        set_response_file,
-        set_response_status,
-        set_response_body,
-):
-
+def serve_static_files(request, response, settings, set_response_file):
     # NOTE: This needs to be a middleware because the prefix for static URLs
     # should be configurable in the settings (settings["static_url_prefix"]).
 
@@ -23,21 +14,15 @@ def serve_static_files(
 
     rel_path = request["path"][len(settings["static_url_prefix"]):]
 
-    if rel_path.startswith("/"):
-        rel_path = rel_path[1:]
-
-    for static_dir in settings["static_dirs"]:
-        abs_path = os.path.join(
-            static_dir,
-            rel_path,
+    try:
+        abs_path = resolve_path(
+            safe_base_paths=settings["static_dirs"],
+            unsafe_path=rel_path,
+            is_directory=False,
+            exists=True,
         )
 
-        if not os.path.exists(abs_path):
-            continue
-
-        # matching file found
         set_response_file(abs_path)
 
-        return
-
-    raise NotFoundError()
+    except FileNotFoundError as error:
+        raise NotFoundError() from error
