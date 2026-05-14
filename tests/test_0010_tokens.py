@@ -80,15 +80,15 @@ def test_tampered_with_tokens():
         signature = decoded[:32]
         component_data = decoded[32:]
 
-        component_id, component_state = json.loads(
+        component_id, component_state, nonce = json.loads(
             component_data.decode(),
         )
 
-        return component_id, component_state, signature
+        return component_id, component_state, nonce, signature
 
-    def pack(component_id, component_state, signature):
+    def pack(component_id, component_state, nonce, signature):
         component_data = json.dumps(
-            [component_id, component_state],
+            [component_id, component_state, nonce],
             separators=(",", ":"),
             sort_keys=True,
         ).encode()
@@ -107,14 +107,14 @@ def test_tampered_with_tokens():
     # test unpack and pack
     assert decode_token(token=token, mutable_app=app)
 
-    _component_id, _component_state, _signature = unpack(token)
-    _token = pack(_component_id, _component_state, _signature)
+    _component_id, _component_state, _nonce, _signature = unpack(token)
+    _token = pack(_component_id, _component_state, _nonce, _signature)
 
     assert decode_token(token=_token, mutable_app=app)
 
     # test changed component identifier
-    _component_id, _component_state, _signature = unpack(token)
-    _token = pack("changed", _component_state, _signature)
+    _component_id, _component_state, _nonce, _signature = unpack(token)
+    _token = pack("changed", _component_state, _nonce, _signature)
 
     with pytest.raises(InvalidTokenError):
         decode_token(
@@ -123,9 +123,9 @@ def test_tampered_with_tokens():
         )
 
     # test changed component state
-    _component_id, _component_state, _signature = unpack(token)
+    _component_id, _component_state, _nonce, _signature = unpack(token)
     _component_state["changed"] = "changed"
-    _token = pack(_component_id, _component_state, _signature)
+    _token = pack(_component_id, _component_state, _nonce, _signature)
 
     with pytest.raises(InvalidTokenError):
         decode_token(

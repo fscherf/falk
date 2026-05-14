@@ -2,6 +2,7 @@ import hashlib
 import base64
 import hmac
 import json
+import secrets
 
 from falk.errors import InvalidSettingsError, InvalidTokenError
 
@@ -13,9 +14,10 @@ def encode_token(component_id, data, mutable_app):
         )
 
     secret = mutable_app["settings"]["token_secret"]
+    nonce = secrets.token_hex(16)
 
     component_data = json.dumps(
-        [component_id, data],
+        [component_id, data, nonce],
         separators=(",", ":"),
         sort_keys=True,
     ).encode()
@@ -57,7 +59,7 @@ def decode_token(token, mutable_app):
     if not hmac.compare_digest(signature, expected_signature):
         raise InvalidTokenError()
 
-    component_id, data = json.loads(
+    component_id, data, _ = json.loads(
         component_data.decode(),
     )
 
